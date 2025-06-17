@@ -11,15 +11,6 @@ An interactive Django web application where users watch videos, answer embedded 
 - Credit points assigned based on performance
 - Certificates are downloadable and include QR verification (optional)
 
-## 🧰 Tech Stack
-
-- Python 3.x
-- Django 4.x
-- SQLite / PostgreSQL
-- HTML / CSS / JavaScript
-- Bootstrap (optional for styling)
-- AJAX (for quiz submission without page reload)
-
 ---
 
 ## 📦 Installation Guide
@@ -27,7 +18,7 @@ An interactive Django web application where users watch videos, answer embedded 
 ### 🔁 Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/video-quiz-app.git
+git clone https://github.com/IhsanMubarak18/Quizapp.git
 cd video-quiz-app
 ```
 
@@ -81,35 +72,32 @@ Open your browser and go to `http://127.0.0.1:8000/`
 
 ---
 
-## 📁 Folder Structure
-
-```
-video-quiz-app/
-│
-├── quiz/                      # Main Django app
-│   ├── models.py              # Models for Video, Question, Result
-│   ├── views.py               # Logic for playback, scoring, certificate
-│   ├── templates/quiz/        # HTML templates
-│   └── static/quiz/           # JS, CSS, and image files
-│
-├── media/                     # Uploaded video and user media
-├── static/                    # Project-wide static files
-├── templates/                 # Base templates
-├── users/                     # Optional custom user app
-├── manage.py
-├── requirements.txt
-└── README.md
-```
-
----
-
 ## 📜 Requirements.txt Example
 
 ```
-Django>=4.0,<5.0
-Pillow
-qrcode
-reportlab  # For certificate PDF generation
+asgiref==3.4.1
+Brotli==1.1.0
+cffi==1.15.1
+cssselect2==0.4.1
+Django==3.2
+fonttools==4.27.1
+html5lib==1.1
+Pillow==8.4.0
+pkg-resources==0.0.0
+pycparser==2.21
+pydyf==0.1.2
+pyphen==0.11.0
+pytz==2025.2
+qrcode==7.3.1
+reportlab==3.6.8
+six==1.17.0
+sqlparse==0.4.4
+tinycss2==1.1.1
+typing-extensions==4.1.1
+weasyprint==54.3
+webencodings==0.5.1
+zopfli==0.1.9
+
 ```
 
 > If you use a different certificate generator (e.g., manually rendering HTML to PDF), include its dependency here.
@@ -125,35 +113,3 @@ Visit `http://127.0.0.1:8000/admin/` and log in using your superuser account to:
 - Manage users and certificates
 
 ---
-
-## 🧾 License
-
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙋‍♂️ Author
-
-- **Your Name** – [@yourgithub](https://github.com/yourgithub)
-
----
-
-## 📣 Contributions
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## 📌 Notes
-
-- This project assumes videos are stored locally (e.g., `media/videos/`)
-- Make sure to enable `MEDIA_URL` and `MEDIA_ROOT` in `settings.py`
-- Add URL patterns to serve media in `urls.py` for development
-
-```python
-from django.conf import settings
-from django.conf.urls.static import static
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
-```
