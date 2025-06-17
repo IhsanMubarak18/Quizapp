@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Certificate Not Available</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f44336, #e57373);
+      color: white;
+      text-align: center;
+      padding-top: 100px;
+    }
+
+    .card {
+      background: white;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 2em;
+      border-radius: 12px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .card h1 {
+      color: #e53935;
+    }
+
+    .card p {
+      font-size: 1.2em;
+      margin-top: 1em;
+    }
+
+    .back-btn {
+      margin-top: 2em;
+      display: inline-block;
+      padding: 10px 20px;
+      background: #e53935;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      transition: 0.3s ease;
+    }
+
+    .back-btn:hover {
+      background: #c62828;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🚫 Certificate Unavailable</h1>
+
+    {% if show_attempt_msg %}
+      <p>Hi {{ user.get_full_name|default:user.username }}, it looks like you haven't attempted any quizzes yet.</p>
+      <p>Please attempt all video quizzes to become eligible for a certificate.</p>
+    {% else %}
+      <p>Hi {{ user.get_full_name|default:user.username }}, your total score is <strong>{{ score }}/{{ max_score }}</strong> which is <strong>{{ percentage }}%</strong>.</p>
+      <p>To earn a certificate, a minimum of <strong>60%</strong> is required.</p>
+    {% endif %}
+
+    <a href="{% url 'video_app:video_list' %}" class="back-btn">📹 Go Back to Videos</a>
+  </div>
+</body>
+</html>

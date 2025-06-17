@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Certificate Verification</title>
+</head>
+<body>
+    <h2>Certificate Verified</h2>
+    <p><strong>User:</strong> {{ user.get_full_name }} ({{ user.username }})</p>
+    <p><strong>Score:</strong> {{ certificate.score }}/{{ certificate.total }}</p>
+    <p><strong>Percentage:</strong> {{ certificate.percentage }}%</p>
+    <p><strong>Credit Points:</strong> {{ certificate.credit_point }}</p>
+    <p><strong>Date:</strong> {{ certificate.created_at }}</p>
+</body>
+</html>

@@ -1,0 +1,29 @@
+{% extends 'layout.html' %}
+{% block title %}Welcome | EduVideoQuiz{% endblock %}
+
+{% block content %}
+<div class="text-center animate-fade-in">
+  <h2 class="text-3xl font-bold mb-4 text-blue-700">Welcome to the Interactive Video Quiz Platform</h2>
+  <p class="mb-6 text-lg leading-relaxed">Watch lessons, test your knowledge, and earn certificates based on your performance. Learn. Attempt. Achieve.</p>
+
+  <div class="bg-white shadow-lg rounded-lg p-6 text-left">
+    <h3 class="text-xl font-semibold mb-2">Credit Points Based on Score:</h3>
+    <ul class="list-disc pl-6 text-gray-700 space-y-1">
+      <li>60–69%: <span class="font-bold">3 Points</span></li>
+      <li>70–79%: <span class="font-bold">4 Points</span></li>
+      <li>80–90%: <span class="font-bold">5 Points</span></li>
+      <li>91–100%: <span class="font-bold">6 Points</span></li>
+    </ul>
+  </div>
+</div>
+
+<style>
+  .animate-fade-in {
+    animation: fadeIn 1.2s ease-in-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}

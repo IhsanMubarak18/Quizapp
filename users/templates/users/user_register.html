@@ -1,0 +1,95 @@
+{% extends 'layout.html' %}
+
+{% block title %}
+    User Register
+{% endblock %}
+
+{% block content %}
+<style>
+    .register-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .register-container h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #444;
+        font-weight: 500;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+    .form-group input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    .form-button {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .form-button:hover {
+        background-color: #0056b3;
+    }
+
+    .errorlist {
+        color: red;
+        font-size: 13px;
+        margin-bottom: 10px;
+        list-style-type: none;
+        padding-left: 0;
+    }
+</style>
+
+<div class="register-container">
+    <h1>Sign Up</h1>
+    <form method="post" action="{% url 'users:user_register' %}">
+        {% csrf_token %}
+        
+        {% for field in form %}
+            <div class="form-group">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <ul class="errorlist">
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="form-button">Submit</button>
+    </form>
+</div>
+{% endblock %}

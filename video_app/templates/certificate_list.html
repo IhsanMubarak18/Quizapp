@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+{% block title %}My Certificate{% endblock %}
+
+{% block content %}
+  <h2 class="text-2xl font-bold mb-6">🎓 My Final Certificate</h2>
+
+  {% if final_certificate %}
+    <div class="bg-white shadow p-5 rounded">
+      <h3 class="text-lg font-semibold">{{ final_certificate.certificate_title }}</h3>
+      <p><strong>User:</strong> {{ final_certificate.user.get_full_name|default:final_certificate.user.username }}</p>
+      <p><strong>Score:</strong> {{ final_certificate.score }} / {{ final_certificate.total_possible }}</p>
+      <p><strong>Percentage:</strong> {{ final_certificate.percentage }}%</p>
+      <p><strong>Credit Point:</strong> {{ final_certificate.credit_point }}</p>
+      <p><strong>Date:</strong> {{ final_certificate.date|date:"F j, Y" }}</p>
+      <div class="mt-4">
+        <a href="{% url 'video_app:generate_final_certificate' %}" class="text-blue-600 hover:underline mr-4">📥 Download Certificate</a>
+        {% comment %} <a href="{% url 'video_app:download_certificate' result_id %}" class="text-green-600 hover:underline">📥 Download Certificate</a> {% endcomment %}
+      </div>
+    </div>
+  {% else %}
+    <p class="text-gray-600 italic">{{ message }}</p>
+  {% endif %}
+{% endblock %}

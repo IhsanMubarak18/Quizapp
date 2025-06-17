@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{{ video.title }} - Video Quiz</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      background: #f4f4f4;
+    }
+    #quiz-box {
+      display: none;
+      background: #fff;
+      padding: 1em;
+      border: 2px solid #ccc;
+      margin-top: 1em;
+      border-radius: 8px;
+      max-width: 600px;
+    }
+    .quiz-btn {
+      margin-top: 1em;
+      padding: 0.5em 1em;
+      font-size: 1em;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: #fff;
+    }
+    .quiz-btn:hover {
+      background-color: #0056b3;
+    }
+    .feedback {
+      margin-top: 0.5em;
+      font-weight: bold;
+    }
+    .cert-btn, .next-btn {
+      margin-top: 2em;
+      display: inline-block;
+      padding: 0.6em 1em;
+      background-color: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+    .next-btn {
+      background-color: #007bff;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>{{ video.title }}</h2>
+
+  <video id="video-player" width="720" controls>
+    {% if video.video_file %}
+      <source src="{{ video.video_file.url }}" type="video/mp4" />
+    {% else %}
+      <p style="color:red;">⚠️ No video uploaded for this lesson.</p>
+    {% endif %}
+  </video>
+
+  <p id="no-quiz-msg" style="display:none; color:gray;">No quiz questions available for this video.</p>
+
+  <div id="quiz-box">
+    <h3 id="question-text"></h3>
+    <form id="quiz-form"></form>
+    <p id="quiz-feedback" class="feedback"></p>
+  </div>
+
+  <div id="action-buttons"></div>
+
+  <script>
+  const video = document.getElementById('video-player');
+  const quizBox = document.getElementById('quiz-box');
+  const questionText = document.getElementById('question-text');
+  const quizForm = document.getElementById('quiz-form');
+  const feedback = document.getElementById('quiz-feedback');
+  const noQuizMsg = document.getElementById('no-quiz-msg');
+  const actionButtons = document.getElementById('action-buttons');
+
+  let currentQuestionIndex = 0;
+  let questions = [];
+  let selectedAnswers = [];  // ✅ Track selected answers per question
+
+  const videoId = parseInt("{{ video.id|default:'0' }}");
+
+  fetch(`/api/questions/${videoId}/`)
+    .then(response => response.json())
+    .then(data => {
+      questions = data;
+
+      if (questions.length === 0) {
+        noQuizMsg.style.display = 'block';
+        return;
+      }
+
+      video.addEventListener('timeupdate', () => {
+        if (currentQuestionIndex >= questions.length) return;
+
+        const currentTime = video.currentTime;
+        const nextQuestion = questions[currentQuestionIndex];
+
+        if (currentTime >= nextQuestion.timestamp) {
+          showQuestion(nextQuestion);
+          video.pause();
+          currentQuestionIndex++;
+        }
+      });
+    })
+    .catch(err => {
+      noQuizMsg.textContent = "⚠️ Failed to load quiz questions.";
+      noQuizMsg.style.display = 'block';
+    });
+
+  function showQuestion(question) {
+    quizBox.style.display = 'block';
+    questionText.textContent = question.text;
+    quizForm.innerHTML = '';
+    feedback.textContent = '';
+
+    question.options.forEach(option => {
+      const label = document.createElement('label');
+      label.innerHTML = `
+        <input type="radio" name="answer" value="${option.id}" required> ${option.text}
+      `;
+      quizForm.appendChild(label);
+      quizForm.appendChild(document.createElement('br'));
+    });
+
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.className = 'quiz-btn';
+    submitBtn.textContent = 'Submit';
+    quizForm.appendChild(submitBtn);
+
+    quizForm.onsubmit = function (e) {
+      e.preventDefault();
+      const selected = quizForm.answer.value;
+
+      submitBtn.disabled = true;
+
+      fetch("{% url 'video_app:validate_answer' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": "{{ csrf_token }}"
+        },
+        body: JSON.stringify({
+          question_id: question.id,
+          selected_option_id: selected
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        feedback.textContent = data.correct ? "✅ Correct!" : "❌ Incorrect.";
+
+        // ✅ Save the answer
+        selectedAnswers.push({
+          question_id: question.id,
+          selected_option_id: parseInt(selected)
+        });
+
+        setTimeout(() => {
+          quizBox.style.display = 'none';
+          feedback.textContent = '';
+          if (currentQuestionIndex >= questions.length) {
+            submitFinalScore(); // All done
+          } else {
+            video.play();
+          }
+        }, 1000);
+      })
+      .catch(() => {
+        feedback.textContent = "❌ Error validating answer.";
+      });
+    };
+  }
+
+  function submitFinalScore() {
+    fetch("{% url 'video_app:submit_quiz_result' %}", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": "{{ csrf_token }}"
+      },
+      body: JSON.stringify({
+        video_id: videoId,
+        answers: selectedAnswers  // ✅ Use the correct answer list
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      const container = document.createElement("div");
+      actionButtons.innerHTML = "";
+
+      {% if is_last_video %}
+        const finishBtn = document.createElement("a");
+        finishBtn.href = "{% url 'video_app:video_list' %}";
+        finishBtn.className = "next-btn";
+        finishBtn.textContent = "✅ Finish";
+        container.appendChild(finishBtn);
+      {% else %}
+        const nextBtn = document.createElement("a");
+        nextBtn.href = "{% url 'video_app:video_list' %}";
+        nextBtn.className = "next-btn";
+        nextBtn.textContent = "➡️ Next Video";
+        container.appendChild(nextBtn);
+      {% endif %}
+
+      actionButtons.appendChild(container);
+    })
+    .catch(() => {
+      actionButtons.innerHTML = "<p style='color:red;'>⚠️ Failed to submit score.</p>";
+    });
+  }
+</script>
+
+</body>
+</html>
