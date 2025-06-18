@@ -1,22 +1,42 @@
 {% extends 'layout.html' %}
 {% block title %}Available Lessons{% endblock %}
+
 {% block content %}
-  <h2 class="text-2xl font-bold mb-6">🎬 Available Video Lessons</h2>
-  <div class="grid gap-6 md:grid-cols-2">
-    {% for item in video_statuses %}
-      {% with video=item.video attempted=item.attempted %}
-        <div class="bg-white shadow-md rounded-lg p-5 transition-transform transform hover:scale-105 hover:shadow-xl">
-          <h3 class="text-lg font-semibold text-gray-800 mb-2">{{ video.title }}</h3>
-          {% if attempted %}
-            <span class="text-green-600 font-bold">✅ Completed</span><br>
-            <span class="text-gray-500 italic">Quiz already completed</span>
-          {% else %}
-            <a href="{% url 'video_app:video_quiz_page' video.id %}" class="text-blue-500 hover:underline">
-              ➤ Watch and Answer Questions
-            </a>
-          {% endif %}
-        </div>
-      {% endwith %}
+  <h2 class="text-xl sm:text-2xl font-bold mb-6">🎬 Available Video Lessons</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+    {% for video in all_videos %}
+      <div class="bg-white shadow-md rounded-lg p-4 transition-transform transform hover:scale-105 hover:shadow-xl">
+        <h3 class="text-md sm:text-lg font-semibold text-gray-800 mb-2">{{ video.title }}</h3>
+        <a href="{% url 'video_app:video_quiz_page' video.id %}" class="text-blue-500 hover:underline text-sm sm:text-base">
+          ➤ Watch and Answer Questions
+        </a>
+      </div>
     {% endfor %}
   </div>
+
+  {% if quiz_results %}
+    <h2 class="text-xl sm:text-2xl font-bold mt-10 mb-4">📝 Previous Quiz Results</h2>
+    <div class="bg-white shadow-md rounded-lg p-5">
+      <ul class="space-y-3 text-sm sm:text-base">
+        {% for result in quiz_results %}
+          <li class="border-b pb-2">
+            <strong>{{ result.video.title }}</strong><br>
+            Score: {{ result.score }}/{{ result.video.get_total_mark }}
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  {% if show_generate_button %}
+    <div class="text-center mt-10">
+      <form method="post" action="{% url 'video_app:generate_final_certificate' %}">
+        {% csrf_token %}
+        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition text-sm sm:text-base">
+          🎓 Generate Final Certificate
+        </button>
+      </form>
+    </div>
+  {% endif %}
 {% endblock %}

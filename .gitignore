@@ -1,0 +1,5 @@
+.env
+virt_env
+*.pdf
+media/*
+*.pyc

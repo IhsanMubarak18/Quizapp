@@ -8,15 +8,15 @@ class OptionInline(admin.TabularInline):
 class QuestionInline(admin.TabularInline):
     model = Question
     extra = 1
-    fields = ['question_text', 'timestamp', 'mark']  # include mark
+    fields = ['question_text', 'mark']  # include mark
 
 class QuestionAdmin(admin.ModelAdmin):
     inlines = [OptionInline]
 
 class VideoLessonAdmin(admin.ModelAdmin):
     inlines = [QuestionInline]
-    list_display = ['title', 'order', 'total_marks']
-    fields = ['title', 'video_file', 'order', 'total_marks']
+    list_display = ['title', 'order']
+    fields = ['title', 'video_file', 'order']
 
 @admin.register(CertificateConfig)
 class CertificateConfigAdmin(admin.ModelAdmin):

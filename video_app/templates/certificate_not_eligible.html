@@ -8,14 +8,14 @@
       background: linear-gradient(135deg, #f44336, #e57373);
       color: white;
       text-align: center;
-      padding-top: 100px;
+      padding: 50px 1em 1em;
     }
 
     .card {
       background: white;
       color: #333;
       max-width: 600px;
-      margin: 0 auto;
+      margin: auto;
       padding: 2em;
       border-radius: 12px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -23,10 +23,11 @@
 
     .card h1 {
       color: #e53935;
+      font-size: 1.8em;
     }
 
     .card p {
-      font-size: 1.2em;
+      font-size: 1.1em;
       margin-top: 1em;
     }
 
@@ -44,6 +45,23 @@
     .back-btn:hover {
       background: #c62828;
     }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 1em;
+        margin: 1em;
+      }
+
+      .card p {
+        font-size: 1em;
+      }
+
+      .back-btn {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -51,10 +69,20 @@
     <h1>🚫 Certificate Unavailable</h1>
 
     {% if show_attempt_msg %}
-      <p>Hi {{ user.get_full_name|default:user.username }}, it looks like you haven't attempted any quizzes yet.</p>
+      {% if user.first_name or user.last_name %}
+        <p>Hi {{ user.first_name }} {{ user.last_name }},
+      {% else %}
+        <p>Hi {{ user.email }},
+      {% endif %}
+      it looks like you haven't attempted any quizzes yet.</p>
       <p>Please attempt all video quizzes to become eligible for a certificate.</p>
     {% else %}
-      <p>Hi {{ user.get_full_name|default:user.username }}, your total score is <strong>{{ score }}/{{ max_score }}</strong> which is <strong>{{ percentage }}%</strong>.</p>
+      {% if user.first_name or user.last_name %}
+        <p>Hi {{ user.first_name }} {{ user.last_name }},
+      {% else %}
+        <p>Hi {{ user.email }},
+      {% endif %}
+      your total score is <strong>{{ score }}/{{ max_score }}</strong> which is <strong>{{ percentage }}%</strong>.</p>
       <p>To earn a certificate, a minimum of <strong>60%</strong> is required.</p>
     {% endif %}
 

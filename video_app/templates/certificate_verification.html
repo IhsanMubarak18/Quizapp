@@ -1,14 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Certificate Verification</title>
+  <title>Certificate Verification</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 2em;
+      max-width: 800px;
+      margin: auto;
+      background: #f9f9f9;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      color: #2c7a7b;
+      font-size: 1.6em;
+    }
+
+    p {
+      margin-top: 1em;
+      font-size: 1.1em;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        padding: 1em;
+      }
+
+      h2 {
+        font-size: 1.3em;
+      }
+
+      p {
+        font-size: 1em;
+      }
+    }
+  </style>
 </head>
 <body>
-    <h2>Certificate Verified</h2>
-    <p><strong>User:</strong> {{ user.get_full_name }} ({{ user.username }})</p>
-    <p><strong>Score:</strong> {{ certificate.score }}/{{ certificate.total }}</p>
-    <p><strong>Percentage:</strong> {{ certificate.percentage }}%</p>
-    <p><strong>Credit Points:</strong> {{ certificate.credit_point }}</p>
-    <p><strong>Date:</strong> {{ certificate.created_at }}</p>
+  <h2>Certificate Verified</h2>
+  <p><strong>User:</strong> {{ user.first_name }} {{ user.last_name }} ({{ user.email }})</p>
+  <p><strong>Score:</strong> {{ certificate.score }}/{{ certificate.total }}</p>
+  <p><strong>Percentage:</strong> {{ certificate.percentage }}%</p>
+  <p><strong>Credit Points:</strong> {{ certificate.credit_point }}</p>
+  <p><strong>Date:</strong> {{ certificate.created_at }}</p>
 </body>
 </html>

@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+    .verify-container {
+        max-width: 500px;
+        margin: 40px auto;
+        padding: 30px;
+        background-color: #fdfdfd;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .verify-container h2 {
+        text-align: center;
+        color: #333;
+    }
+
+    .verify-container p {
+        text-align: center;
+        color: #666;
+        margin-bottom: 20px;
+    }
+
+    .verify-container label {
+        display: block;
+        margin-bottom: 5px;
+        color: #444;
+        font-weight: 500;
+    }
+
+    .verify-container input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    .verify-container button {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .verify-container button:hover {
+        background-color: #0056b3;
+    }
+
+    .verify-container .error {
+        color: red;
+        font-size: 13px;
+        margin-top: 10px;
+    }
+
+    @media (max-width: 600px) {
+        .verify-container {
+            margin: 20px 10px;
+            padding: 20px;
+        }
+
+        .verify-container button {
+            font-size: 14px;
+            padding: 10px;
+        }
+    }
+</style>
+
+<div class="verify-container">
+    <h2>Email Verification</h2>
+    <p>An OTP has been sent to your email. Please enter it below to complete signup.</p>
+
+    <form method="POST">
+        {% csrf_token %}
+        <label for="otp">Enter OTP:</label>
+        <input type="text" name="otp" id="otp" required maxlength="6">
+        <button type="submit">Verify OTP</button>
+    </form>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+</div>
+{% endblock %}

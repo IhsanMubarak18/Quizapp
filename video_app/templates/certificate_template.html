@@ -8,22 +8,51 @@
       margin-top: 100px;
       font-family: 'Georgia', serif;
       background-color: #fff8f0;
+      padding: 1em;
     }
     .certificate {
       border: 4px solid #444;
       padding: 40px;
       display: inline-block;
       background: white;
+      max-width: 100%;
+      width: 800px;
+      box-sizing: border-box;
     }
     h1 {
       color: darkgreen;
+      font-size: 1.8em;
+    }
+    h2 {
+      font-size: 1.5em;
     }
     .qr-code {
       margin-top: 30px;
     }
     .verify-url {
-      font-size: 0.9em;
+      font-size: 0.85em;
       color: gray;
+      word-break: break-word;
+    }
+
+    @media (max-width: 600px) {
+      body {
+        margin-top: 30px;
+      }
+      .certificate {
+        padding: 20px;
+        width: 100%;
+      }
+      h1 {
+        font-size: 1.4em;
+      }
+      h2 {
+        font-size: 1.2em;
+      }
+      .qr-code img {
+        width: 120px;
+        height: 120px;
+      }
     }
   </style>
 </head>
@@ -31,16 +60,21 @@
   <div class="certificate">
     <h1>Certificate of Completion in {{ certificate_title }}</h1>
     <p>This certifies that</p>
-    <h2><em>{{ user.get_full_name|default:user.username }}</em></h2>
+    <h2><em>
+      {% if user.first_name or user.last_name %}
+        {{ user.first_name }} {{ user.last_name }}
+      {% else %}
+        {{ user.email }}
+      {% endif %}
+    </em></h2>
     <p>has successfully completed the quiz:</p>
     <strong>{{ video.title }}</strong><br><br>
 
     <p>
-      <p>
-        Score: {{ score }}/{{ total_possible }}<br>
-        Percentage: {{ percentage }}%<br>
-        Credit Point: {{ credit_point }}<br>
-        Date: {{ date|date:"F j, Y" }}
+      Score: {{ score }}/{{ total_possible }}<br>
+      Percentage: {{ percentage }}%<br>
+      Credit Point: {{ credit_point }}<br>
+      Date: {{ date|date:"F j, Y" }}
     </p>
 
     <div class="qr-code">

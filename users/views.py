@@ -1,35 +1,86 @@
-# users/views.py
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, logout
-from django.contrib.auth.forms import AuthenticationForm
-from .forms import CustomUserCreationForm  # ✅ use custom form
+from django.contrib.auth import get_user_model, login, logout
+from django.core.mail import send_mail
+from .forms import EmailSignUpForm, OTPLoginForm
+from .models import EmailOTP
+import random
 
-def user_register_view(request):
-    if request.method == "POST":
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.first_name = form.cleaned_data['first_name']
-            user.last_name = form.cleaned_data['last_name']
-            user.save()
-            login(request, user)
-            return redirect('video_app:video_list')
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'users/user_register.html', {'form': form})
+User = get_user_model()  # Use your CustomUser model
 
-def user_login_view(request):
+def send_otp_to_email(email):
+    otp = str(random.randint(100000, 999999))
+    EmailOTP.objects.create(email=email, otp=otp)
+    send_mail(
+        subject="Your OTP Code",
+        message=f"Your OTP is: {otp}",
+        from_email="noreply@example.com",
+        recipient_list=[email],
+        fail_silently=False,
+    )
+
+def signup_view(request):
     if request.method == 'POST':
-        form = AuthenticationForm(data=request.POST)
+        form = EmailSignUpForm(request.POST)
         if form.is_valid():
-            login(request, form.get_user())
-            if 'next' in request.POST:
-                return redirect(request.POST.get('next'))
-            else:
-                return redirect('video_app:video_list')
+            email = form.cleaned_data['email']
+            send_otp_to_email(email)
+            request.session['signup_data'] = form.cleaned_data
+            return redirect('users:verify_signup_otp')
     else:
-        form = AuthenticationForm()
-    return render(request, 'users/user_login.html', {'form': form})
+        form = EmailSignUpForm()
+    return render(request, 'users/signup.html', {'form': form})
+
+def verify_signup_otp(request):
+    if request.method == 'POST':
+        otp = request.POST.get('otp')
+        email = request.session.get('signup_data')['email']
+        if EmailOTP.objects.filter(email=email, otp=otp).exists():
+            data = request.session.get('signup_data')
+            user = User.objects.create_user(
+                #username=email,
+                email=email,
+                first_name=data['first_name'],
+                last_name=data['last_name'],
+            )
+            login(request, user)
+            # ✅ Delete OTP after successful use
+            EmailOTP.objects.filter(email=email, otp=otp).delete()
+            return redirect('video_app:video_list')
+    return render(request, 'users/verify_otp.html')
+
+
+def login_view(request):
+    form = OTPLoginForm(request.POST or None)
+    context = {'form': form, 'step': 'email'}
+
+    if request.method == 'POST':
+        if 'send_otp' in request.POST:
+            email = form.data.get('email')
+            if User.objects.filter(email=email).exists():
+                send_otp_to_email(email)
+                context.update({'otp_sent': True, 'step': 'otp', 'email': email})
+            else:
+                form.add_error('email', "You don’t have an account on this site.Sign up first!")
+        
+        elif 'verify_otp' in request.POST:
+            email = form.data.get('email')
+            otp = form.data.get('otp')
+            context.update({'step': 'otp', 'email': email})
+            if EmailOTP.objects.filter(email=email, otp=otp).exists():
+                try:
+                    user = User.objects.get(email=email)
+                    login(request, user)
+                    EmailOTP.objects.filter(email=email, otp=otp).delete()
+                    return redirect('video_app:video_list')
+                except User.DoesNotExist:
+                    form.add_error('email', "No user found.")
+            else:
+                form.add_error('otp', "Invalid OTP.")
+    
+    return render(request, 'users/otp_login.html', context)
+
+
+
 
 def logout_view(request):
     if request.method == 'POST':

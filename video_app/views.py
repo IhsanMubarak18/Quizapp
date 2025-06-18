@@ -1,4 +1,5 @@
 import json
+from textwrap import wrap
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
@@ -29,18 +30,25 @@ def home_view(request):
 @login_required(login_url='/users/login/')
 def video_list(request):
     all_videos = VideoLesson.objects.all().order_by('id')
-    completed_ids = QuizResult.objects.filter(user=request.user).values_list('video_id', flat=True)
 
-    video_statuses = []
+    # Get latest quiz result per video
+    latest_results = []
+    completed_video_ids = set()
+
     for video in all_videos:
-        attempted = video.id in completed_ids
-        video_statuses.append({
-            'video': video,
-            'attempted': attempted
-        })
+        latest_result = QuizResult.objects.filter(user=request.user, video=video).order_by('-id').first()
+        if latest_result:
+            latest_results.append(latest_result)
+            completed_video_ids.add(video.id)
+
+    # Show generate button only if all videos have been completed
+    all_video_ids = set(all_videos.values_list('id', flat=True))
+    show_generate_button = (completed_video_ids == all_video_ids)
 
     return render(request, 'videoquiz/video_list.html', {
-        'video_statuses': video_statuses
+        'all_videos': all_videos,
+        'quiz_results': latest_results,
+        'show_generate_button': show_generate_button,
     })
 
 
@@ -50,11 +58,7 @@ def video_list(request):
 def video_quiz_page(request, video_id):
     video = get_object_or_404(VideoLesson, id=video_id)
 
-    # Prevent reattempt
-    if QuizResult.objects.filter(user=request.user, video=video).exists():
-        return HttpResponse("❌ You have already completed this quiz.")
-
-    # Determine if it's the last video
+    # ✅ Allow multiple attempts — no restriction
     all_videos = VideoLesson.objects.all().order_by('id')
     is_last_video = video == all_videos.last()
 
@@ -66,6 +70,7 @@ def video_quiz_page(request, video_id):
 
 
 
+
 @login_required(login_url='/users/login/')
 def questions_for_video(request, video_id):
     video = get_object_or_404(VideoLesson, id=video_id)
@@ -73,7 +78,7 @@ def questions_for_video(request, video_id):
     for q in video.questions.all():
         data.append({
             "id": q.id,
-            "timestamp": q.timestamp,
+            #"timestamp": q.timestamp,
             "text": q.question_text,
             "options": [{"id": opt.id, "text": opt.text} for opt in q.options.all()]
         })
@@ -111,7 +116,7 @@ def submit_quiz_result(request):
         return JsonResponse({"error": "Invalid data"}, status=400)
 
     video = get_object_or_404(VideoLesson, id=video_id)
-    total_video_marks = video.total_marks
+    total_video_marks = video.get_total_mark
 
     raw_score = 0
     total_question_marks = 0
@@ -130,8 +135,8 @@ def submit_quiz_result(request):
     if total_question_marks == 0:
         return JsonResponse({"error": "No valid questions found."}, status=400)
 
-    scaled_score = (raw_score / total_question_marks) * total_video_marks
-    percentage = (scaled_score / total_video_marks) * 100
+    #scaled_score = (raw_score / total_question_marks) * total_video_marks
+    percentage = (raw_score / total_video_marks) * 100
 
     # ✅ Calculate credit point based on percentage
     if percentage >= 91:
@@ -148,7 +153,7 @@ def submit_quiz_result(request):
     result = QuizResult.objects.create(
         user=request.user,
         video=video,
-        score=round(scaled_score, 2),
+        score=round(raw_score, 2),
         total_questions=len(answers),
         percentage=round(percentage, 2),
         credit_point=credit_point,
@@ -192,81 +197,89 @@ def verify_certificate(request, user_id):
 
 
 
-@login_required(login_url='/users/login/')
-def certificate_list(request):
-    user = request.user
+# @login_required(login_url='/users/login/')
+# def certificate_list(request):
+#     user = request.user
 
-    all_video_ids = set(VideoLesson.objects.values_list('id', flat=True))
-    completed_video_ids = set(QuizResult.objects.filter(user=user).values_list('video_id', flat=True))
+#     all_videos = VideoLesson.objects.all()
+#     all_video_ids = set(all_videos.values_list('id', flat=True))
 
-    if not completed_video_ids:  # User has not attempted any quiz
-        return render(request, 'certificate_not_eligible.html', {
-            'user': user,
-            'score': 0,
-            'max_score': 0,
-            'percentage': 0,
-            'show_attempt_msg': True,
-        })
+#     # Collect latest attempt per video
+#     latest_results = []
+#     completed_video_ids = set()
 
-    if all_video_ids != completed_video_ids:
-        return render(request, 'certificate_not_eligible.html', {
-            'user': user,
-            'score': 0,
-            'max_score': 0,
-            'percentage': 0,
-            'show_attempt_msg': False,
-        })
+#     for video in all_videos:
+#         latest_result = QuizResult.objects.filter(user=user, video=video).order_by('-id').first()
+#         if latest_result:
+#             latest_results.append(latest_result)
+#             completed_video_ids.add(video.id)
 
-    results = QuizResult.objects.filter(user=user)
-    total_score = sum(r.score for r in results)
-    total_possible = sum(r.video.total_marks for r in results)
+#     if not completed_video_ids:  # No attempts at all
+#         return render(request, 'certificate_not_eligible.html', {
+#             'user': user,
+#             'score': 0,
+#             'max_score': 0,
+#             'percentage': 0,
+#             'show_attempt_msg': True,
+#         })
 
-    if total_possible == 0:
-        return render(request, 'certificate_not_eligible.html', {
-            'user': user,
-            'score': 0,
-            'max_score': 0,
-            'percentage': 0,
-            'show_attempt_msg': False,
-        })
+#     if all_video_ids != completed_video_ids:  # Some videos are not attempted
+#         return render(request, 'certificate_not_eligible.html', {
+#             'user': user,
+#             'score': 0,
+#             'max_score': 0,
+#             'percentage': 0,
+#             'show_attempt_msg': False,
+#         })
 
-    percentage = (total_score / total_possible) * 100
+#     total_score = sum(r.score for r in latest_results)
+#     total_possible = sum(r.video.total_marks for r in latest_results)
 
-    if percentage < 60:
-        return render(request, 'certificate_not_eligible.html', {
-            'user': user,
-            'score': round(total_score, 2),
-            'max_score': total_possible,
-            'percentage': round(percentage, 2),
-            'show_attempt_msg': False,
-        })
+#     if total_possible == 0:
+#         return render(request, 'certificate_not_eligible.html', {
+#             'user': user,
+#             'score': 0,
+#             'max_score': 0,
+#             'percentage': 0,
+#             'show_attempt_msg': False,
+#         })
 
-    # Credit point logic
-    if 60 <= percentage < 70:
-        credit_point = 3
-    elif 70 <= percentage < 80:
-        credit_point = 4
-    elif 80 <= percentage <= 90:
-        credit_point = 5
-    elif percentage > 90:
-        credit_point = 6
-    else:
-        credit_point = 0
+#     percentage = (total_score / total_possible) * 100
 
-    latest_result = results.latest('timestamp')
+#     if percentage < 60:
+#         return render(request, 'certificate_not_eligible.html', {
+#             'user': user,
+#             'score': round(total_score, 2),
+#             'max_score': total_possible,
+#             'percentage': round(percentage, 2),
+#             'show_attempt_msg': False,
+#         })
 
-    return render(request, 'certificate_list.html', {
-        'final_certificate': {
-            'user': user,
-            'score': round(total_score, 2),
-            'total_possible': total_possible,
-            'percentage': round(percentage, 2),
-            'credit_point': credit_point,
-            'date': latest_result.timestamp,
-            'certificate_title': "Final Certificate of Completion",
-        },
-        'result_id': latest_result.id
-    })
+#     # Credit point logic
+#     if 60 <= percentage < 70:
+#         credit_point = 3
+#     elif 70 <= percentage < 80:
+#         credit_point = 4
+#     elif 80 <= percentage <= 90:
+#         credit_point = 5
+#     else:  # > 90%
+#         credit_point = 6
+
+#     # Latest quiz timestamp from any of the latest results
+#     latest_result = max(latest_results, key=lambda r: r.timestamp)
+
+#     return render(request, 'certificate_list.html', {
+#         'final_certificate': {
+#             'user': user,
+#             'score': round(total_score, 2),
+#             'total_possible': total_possible,
+#             'percentage': round(percentage, 2),
+#             'credit_point': credit_point,
+#             'date': latest_result.timestamp,
+#             'certificate_title': "Final Certificate of Completion",
+#         },
+#         'result_id': latest_result.id
+#     })
 
 
     
@@ -277,9 +290,20 @@ def certificate_list(request):
 def generate_final_certificate(request):
     user = request.user
 
-    all_video_ids = set(VideoLesson.objects.values_list('id', flat=True))
-    completed_video_ids = set(QuizResult.objects.filter(user=user).values_list('video_id', flat=True))
+    all_videos = VideoLesson.objects.all()
+    all_video_ids = set(all_videos.values_list('id', flat=True))
 
+    # Get latest quiz result for each video
+    latest_results = []
+    completed_video_ids = set()
+
+    for video in all_videos:
+        latest_result = QuizResult.objects.filter(user=user, video=video).order_by('-id').first()
+        if latest_result:
+            latest_results.append(latest_result)
+            completed_video_ids.add(video.id)
+
+    # Check completion
     if all_video_ids != completed_video_ids:
         return render(request, 'certificate_not_eligible.html', {
             'user': user,
@@ -288,9 +312,8 @@ def generate_final_certificate(request):
             'percentage': 0,
         })
 
-    results = QuizResult.objects.filter(user=user)
-    total_score = sum(r.score for r in results)
-    total_possible = sum(r.video.total_marks for r in results)
+    total_score = sum(r.score for r in latest_results)
+    total_possible = sum(r.video.get_total_mark for r in latest_results)
 
     if total_possible == 0:
         return render(request, 'certificate_not_eligible.html', {
@@ -320,7 +343,10 @@ def generate_final_certificate(request):
     else:
         credit_point = 6
 
-    # === Generate PDF and capture it ===
+    # Remove previously generated certificate for same user (optional)
+    FinalCertificate.objects.filter(user=user).delete()
+
+    # === Generate Certificate PDF ===
     buffer = BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
@@ -344,22 +370,20 @@ def generate_final_certificate(request):
     pdf.setFont("Helvetica-Bold", 32)
     pdf.drawCentredString(width / 2, height - 100, "Certificate of Achievement")
 
-    # Paragraph text with bold name
-    from textwrap import wrap
-
+    # Certificate paragraph
     normal_font = "Helvetica"
     bold_font = "Helvetica-Bold"
     font_size = 14
 
-    full_name = f"{user.first_name} {user.last_name}".strip() or user.username
+    full_name = f"{user.first_name} {user.last_name}".strip() or user.email
     paragraph_text = (
         f"This is to certify that {full_name} has successfully completed the "
         f"'{campaign_name}' test, organized at {institution_name}, and is hereby awarded "
         f"{credit_point} credit points in recognition of this accomplishment."
     )
 
-    max_text_width = width - 160  # 80 on each side (matches your border)
-    char_width_estimate = 7  # avg char width at size 14
+    max_text_width = width - 160
+    char_width_estimate = 7
     wrap_width = int(max_text_width / char_width_estimate)
     wrapped_lines = wrap(paragraph_text, width=wrap_width)
     y_position = height - 180
@@ -368,9 +392,9 @@ def generate_final_certificate(request):
         if full_name in line:
             parts = line.split(full_name)
             total_line_width = (
-                pdf.stringWidth(parts[0], normal_font, font_size)
-                + pdf.stringWidth(full_name, bold_font, font_size)
-                + pdf.stringWidth(parts[1], normal_font, font_size)
+                pdf.stringWidth(parts[0], normal_font, font_size) +
+                pdf.stringWidth(full_name, bold_font, font_size) +
+                pdf.stringWidth(parts[1], normal_font, font_size)
             )
             x_start = (width - total_line_width) / 2
 
@@ -387,12 +411,7 @@ def generate_final_certificate(request):
         else:
             pdf.setFont(normal_font, font_size)
             pdf.drawCentredString(width / 2, y_position, line)
-
         y_position -= 20
-
-
-
-
 
     # QR Code
     current_site = Site.objects.get_current()
@@ -408,9 +427,9 @@ def generate_final_certificate(request):
     pdf.save()
     buffer.seek(0)
 
-    # Save PDF
-    filename = f"final_certificate_{user.username}.pdf"
-    final_cert = FinalCertificate.objects.create(
+    # Save PDF to model
+    filename = f"final_certificate_{user.email}.pdf"
+    FinalCertificate.objects.create(
         user=user,
         score=round(total_score, 2),
         total=total_possible,
@@ -419,7 +438,8 @@ def generate_final_certificate(request):
         certificate_file=ContentFile(buffer.getvalue(), name=filename),
     )
 
-    for result in results:
+    # Mark quiz results as used
+    for result in latest_results:
         result.certificate_generated = True
         result.credit_point = credit_point
         result.save()
@@ -427,4 +447,3 @@ def generate_final_certificate(request):
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
-

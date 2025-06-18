@@ -1,37 +1,20 @@
+# users/forms.py
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 
-class CustomUserCreationForm(UserCreationForm):
-    first_name = forms.CharField(required=True)
-    last_name = forms.CharField(required=False)
 
+class EmailSignUpForm(forms.ModelForm):
     class Meta:
-        model = User
-        fields = ['username', 'first_name', 'last_name', 'password1', 'password2']
-        help_texts = {
-            'username': None,
-            'password1': None,
-            'password2': None,
-        }
+        model = get_user_model()
+        fields = ['first_name', 'last_name', 'email']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        
-        # Custom label for username field
-        self.fields['username'].label = 'Username for this account'
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if get_user_model().objects.filter(email=email).exists():
+            raise forms.ValidationError("Email already exists.")
+        return email
 
-        # Remove all help texts manually again
-        for fieldname in ['username', 'password1', 'password2']:
-            self.fields[fieldname].help_text = None
 
-    def clean_password1(self):
-        # Skip default password validation
-        return self.cleaned_data.get("password1")
-
-    def clean_password2(self):
-        password1 = self.cleaned_data.get("password1")
-        password2 = self.cleaned_data.get("password2")
-        if password1 and password2 and password1 != password2:
-            raise forms.ValidationError("Passwords do not match.")
-        return password2
+class OTPLoginForm(forms.Form):
+    email = forms.EmailField()
+    otp = forms.CharField(max_length=6, required=False)

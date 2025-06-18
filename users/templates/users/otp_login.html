@@ -1,0 +1,111 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<style>
+    .login-container {
+        max-width: 500px;
+        margin: 50px auto;
+        padding: 30px;
+        background-color: #ffffff;
+        border-radius: 12px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .login-container h2 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #444;
+        font-weight: 500;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        font-size: 14px;
+    }
+
+    .form-group input:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+
+    .form-button {
+        width: 100%;
+        padding: 12px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+    }
+
+    .form-button:hover {
+        background-color: #0056b3;
+    }
+
+    .error-msg {
+        color: red;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 600px) {
+        .login-container {
+            margin: 20px 10px;
+            padding: 20px;
+        }
+
+        .form-button {
+            font-size: 14px;
+            padding: 10px;
+        }
+    }
+</style>
+
+<div class="login-container">
+    <h2>Login Using Email OTP</h2>
+
+    {% if step == "email" %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="email">Enter Your Email:</label>
+                <input type="email" name="email" id="email" required>
+                {% if form.email.errors %}
+                    <p class="error-msg">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" name="send_otp" class="form-button">Send OTP</button>
+        </form>
+
+    {% elif step == "otp" %}
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="otp">Enter OTP:</label>
+                <input type="text" name="otp" id="otp" required maxlength="6">
+                <input type="hidden" name="email" value="{{ email }}">
+                {% if form.otp.errors %}
+                    <p class="error-msg">{{ form.otp.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <button type="submit" name="verify_otp" class="form-button">Login</button>
+        </form>
+    {% endif %}
+</div>
+{% endblock %}

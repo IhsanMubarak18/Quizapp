@@ -1,12 +1,19 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
+
 
 class VideoLesson(models.Model):
     title = models.CharField(max_length=200)
     video_file = models.FileField(upload_to='videos/')
     order = models.PositiveIntegerField(default=1)
-    total_marks = models.PositiveIntegerField(default=20)
     
+    
+    @property
+    def get_total_mark(self):
+        t = 0
+        for q in self.questions.all():
+            t += q.mark
+        return t    
 
     def __str__(self):
         return self.title
@@ -16,11 +23,10 @@ class VideoLesson(models.Model):
 class Question(models.Model):
     video = models.ForeignKey(VideoLesson, related_name='questions', on_delete=models.CASCADE)
     question_text = models.TextField()
-    timestamp = models.FloatField()
     mark = models.FloatField(default=1)  # mark per question (optional if all are equal)
 
     def __str__(self):
-        return f"Question of {self.video.title} at {self.timestamp}s"
+        return f"Question of {self.video.title} "
 
 
 class Option(models.Model):
@@ -33,7 +39,7 @@ class Option(models.Model):
     
     
 class QuizResult(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     video = models.ForeignKey(VideoLesson, on_delete=models.CASCADE)
     score = models.FloatField()
     total_questions = models.IntegerField()
@@ -41,11 +47,12 @@ class QuizResult(models.Model):
     credit_point = models.IntegerField(default=0)  # Add this if not present
     certificate_generated = models.BooleanField(default=False)
     certificate_file = models.FileField(upload_to='certificates/', null=True, blank=True)  # New optional field
-    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    
 
 
 class FinalCertificate(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     score = models.FloatField()
     total = models.FloatField()
     percentage = models.FloatField()
