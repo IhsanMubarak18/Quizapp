@@ -1,111 +1,200 @@
 {% extends 'layout.html' %}
-
-{% block content %}
+{% block title %}Sign In | EduVideoQuiz{% endblock %}
+{% block extra_head %}
 <style>
-    .login-container {
-        max-width: 500px;
-        margin: 50px auto;
-        padding: 30px;
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        font-family: 'Segoe UI', sans-serif;
+    body {
+        background-image: radial-gradient(ellipse at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 60%), radial-gradient(ellipse at 80% 70%, rgba(34, 211, 238, 0.1) 0%, transparent 60%);
     }
 
-    .login-container h2 {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #333;
+    .auth-wrap {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
     }
 
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        color: #444;
-        font-weight: 500;
-    }
-
-    .form-group input {
+    .auth-card {
         width: 100%;
-        padding: 10px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 14px;
+        max-width: 420px;
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid #334155;
+        border-radius: 20px;
+        padding: 36px;
+        backdrop-filter: blur(20px);
     }
 
-    .form-group input:focus {
-        border-color: #007bff;
-        outline: none;
+    .auth-card h2 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin-bottom: 6px;
     }
 
-    .form-button {
+    .auth-card .subtitle {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 28px;
+    }
+
+    .step-indicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 28px;
+    }
+
+    .step {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.78rem;
+        font-weight: 700;
+    }
+
+    .step-active {
+        background: #6366f1;
+        color: white;
+    }
+
+    .step-done {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+
+    .step-pending {
+        background: rgba(255, 255, 255, 0.05);
+        color: #94a3b8;
+        border: 1px solid #334155;
+    }
+
+    .step-line {
+        flex: 1;
+        height: 1px;
+        background: #334155;
+    }
+
+    .submit-btn {
         width: 100%;
-        padding: 12px;
-        background-color: #007bff;
-        color: #fff;
+        padding: 13px;
         border: none;
-        border-radius: 6px;
-        font-size: 16px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
         cursor: pointer;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
     }
 
-    .form-button:hover {
-        background-color: #0056b3;
+    .submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
     }
 
-    .error-msg {
-        color: red;
-        font-size: 13px;
-        margin-top: 5px;
+    .link-row {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 0.85rem;
+        color: #94a3b8;
     }
 
-    /* Responsive tweaks */
-    @media (max-width: 600px) {
-        .login-container {
-            margin: 20px 10px;
-            padding: 20px;
-        }
+    .link-row a {
+        color: #6366f1;
+        text-decoration: none;
+        font-weight: 600;
+    }
 
-        .form-button {
-            font-size: 14px;
-            padding: 10px;
-        }
+    .link-row a:hover {
+        text-decoration: underline;
+    }
+
+    .otp-note {
+        background: rgba(34, 197, 94, 0.07);
+        border: 1px solid rgba(34, 197, 94, 0.25);
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.84rem;
+        color: #86efac;
+        margin-bottom: 20px;
+    }
+
+    .errlist {
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.84rem;
+        color: #f87171;
+        margin-bottom: 16px;
+        list-style: none;
     }
 </style>
+{% endblock %}
 
-<div class="login-container">
-    <h2>Login Using Email OTP</h2>
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="step-indicator">
+            {% if step == 'email' %}
+            <div class="step step-active">1</div>
+            <div class="step-line"></div>
+            <div class="step step-pending">2</div>
+            <p style="font-size:0.78rem;color:#94a3b8;margin:0 0 0 6px;">Enter Email</p>
+            {% else %}
+            <div class="step step-done">1</div>
+            <div class="step-line"></div>
+            <div class="step step-active">2</div>
+            <p style="font-size:0.78rem;color:#94a3b8;margin:0 0 0 6px;">Verify OTP</p>
+            {% endif %}
+        </div>
 
-    {% if step == "email" %}
-        <form method="POST">
+        {% if step == 'email' %}
+        <h2>👋 Welcome back</h2>
+        <p class="subtitle">Enter your email to receive a one-time password.</p>
+        {% else %}
+        <h2>📧 Check your email</h2>
+        <p class="subtitle">We sent a 6-digit OTP to <strong style="color:#f1f5f9;">{{ email }}</strong></p>
+        <div class="otp-note">✉️ OTP sent! Check your inbox or spam folder.</div>
+        {% endif %}
+
+        {% if form.non_field_errors %}
+        <ul class="errlist">{% for e in form.non_field_errors %}<li>⚠️ {{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+        {% if form.email.errors %}
+        <ul class="errlist">{% for e in form.email.errors %}<li>⚠️ {{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+        {% if form.otp.errors %}
+        <ul class="errlist">{% for e in form.otp.errors %}<li>⚠️ {{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+
+        <form method="post">
             {% csrf_token %}
+            {% if step == 'email' %}
             <div class="form-group">
-                <label for="email">Enter Your Email:</label>
-                <input type="email" name="email" id="email" required>
-                {% if form.email.errors %}
-                    <p class="error-msg">{{ form.email.errors.0 }}</p>
-                {% endif %}
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-input" placeholder="" required
+                    value="{{ form.data.email|default:'' }}">
             </div>
-            <button type="submit" name="send_otp" class="form-button">Send OTP</button>
+            <button type="submit" name="send_otp" class="submit-btn">📨 Send OTP</button>
+            {% else %}
+            <input type="hidden" name="email" value="{{ email }}">
+            <div class="form-group">
+                <label class="form-label">One-Time Password</label>
+                <input type="text" name="otp" class="form-input" placeholder="Enter 6-digit OTP" maxlength="6" required
+                    autocomplete="one-time-code" style="letter-spacing:0.2em;font-size:1.3rem;text-align:center;">
+            </div>
+            <button type="submit" name="verify_otp" class="submit-btn">✅ Verify & Sign In</button>
+            {% endif %}
         </form>
 
-    {% elif step == "otp" %}
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="otp">Enter OTP:</label>
-                <input type="text" name="otp" id="otp" required maxlength="6">
-                <input type="hidden" name="email" value="{{ email }}">
-                {% if form.otp.errors %}
-                    <p class="error-msg">{{ form.otp.errors.0 }}</p>
-                {% endif %}
-            </div>
-            <button type="submit" name="verify_otp" class="form-button">Login</button>
-        </form>
-    {% endif %}
+        <div class="link-row">
+            Don't have an account? <a href="{% url 'users:signup' %}">Sign up</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

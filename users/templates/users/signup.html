@@ -1,108 +1,141 @@
 {% extends 'layout.html' %}
-
-{% block title %}
-    User Register
-{% endblock %}
-
-{% block content %}
+{% block title %}Sign Up | EduVideoQuiz{% endblock %}
+{% block extra_head %}
 <style>
-    .register-container {
-        max-width: 500px;
-        margin: 50px auto;
-        padding: 30px;
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        font-family: 'Segoe UI', sans-serif;
+    body {
+        background-image: radial-gradient(ellipse at 25% 35%, rgba(99, 102, 241, 0.15) 0%, transparent 55%);
     }
 
-    .register-container h1 {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #333;
+    .auth-wrap {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
     }
 
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        color: #444;
-        font-weight: 500;
-    }
-
-    .form-group input {
+    .auth-card {
         width: 100%;
-        padding: 10px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        font-size: 14px;
+        max-width: 440px;
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid #334155;
+        border-radius: 20px;
+        padding: 36px;
+        backdrop-filter: blur(20px);
     }
 
-    .form-group input:focus {
-        border-color: #007bff;
-        outline: none;
+    .auth-card h2 {
+        font-size: 1.4rem;
+        font-weight: 800;
+        margin-bottom: 6px;
     }
 
-    .form-button {
+    .auth-card .subtitle {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 28px;
+    }
+
+    .name-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .submit-btn {
         width: 100%;
-        padding: 12px;
-        background-color: #007bff;
-        color: #fff;
+        padding: 13px;
         border: none;
-        border-radius: 6px;
-        font-size: 16px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
         cursor: pointer;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
     }
 
-    .form-button:hover {
-        background-color: #0056b3;
+    .submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
     }
 
-    .errorlist {
-        color: red;
-        font-size: 13px;
-        margin-bottom: 10px;
-        list-style-type: none;
-        padding-left: 0;
+    .link-row {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 0.85rem;
+        color: #94a3b8;
     }
 
-    /* Mobile support */
-    @media (max-width: 600px) {
-        .register-container {
-            margin: 20px 10px;
-            padding: 20px;
-        }
+    .link-row a {
+        color: #6366f1;
+        text-decoration: none;
+        font-weight: 600;
+    }
 
-        .form-button {
-            font-size: 14px;
-            padding: 10px;
+    .errlist {
+        background: rgba(239, 68, 68, 0.08);
+        border: 1px solid rgba(239, 68, 68, 0.25);
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-size: 0.84rem;
+        color: #f87171;
+        margin-bottom: 16px;
+        list-style: none;
+    }
+
+    @media(max-width:480px) {
+        .name-row {
+            grid-template-columns: 1fr;
         }
     }
 </style>
+{% endblock %}
 
-<div class="register-container">
-    <h1>Sign Up</h1>
-    <form method="post" action="{% url 'users:signup' %}">
-        {% csrf_token %}
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <h2>🎓 Create Account</h2>
+        <p class="subtitle">Join EduVideoQuiz and start earning certificates.</p>
 
-        {% for field in form %}
-            <div class="form-group">
-                {{ field.label_tag }}
-                {{ field }}
-                {% if field.errors %}
-                    <ul class="errorlist">
-                        {% for error in field.errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
-                {% endif %}
+        {% if form.errors %}
+        <ul class="errlist">
+            {% for field in form %}
+            {% for error in field.errors %}
+            <li>⚠️ {{ field.label }}: {{ error }}</li>
+            {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+            <li>⚠️ {{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="name-row">
+                <div class="form-group">
+                    <label class="form-label">First Name</label>
+                    <input type="text" name="first_name" class="form-input" placeholder="" required
+                        value="{{ form.data.first_name|default:'' }}">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Last Name</label>
+                    <input type="text" name="last_name" class="form-input" placeholder=""
+                        value="{{ form.data.last_name|default:'' }}">
+                </div>
             </div>
-        {% endfor %}
-
-        <button type="submit" class="form-button">Submit</button>
-    </form>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-input" placeholder="" required
+                    value="{{ form.data.email|default:'' }}">
+            </div>
+            <button type="submit" class="submit-btn">📨 Send Verification OTP</button>
+        </form>
+        <div class="link-row">
+            Already have an account? <a href="{% url 'users:login' %}">Sign in</a>
+        </div>
+    </div>
 </div>
 {% endblock %}

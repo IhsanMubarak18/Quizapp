@@ -1,91 +1,98 @@
 {% extends 'layout.html' %}
-
-{% block content %}
+{% block title %}Verify OTP | EduVideoQuiz{% endblock %}
+{% block extra_head %}
 <style>
-    .verify-container {
-        max-width: 500px;
-        margin: 40px auto;
-        padding: 30px;
-        background-color: #fdfdfd;
+    .auth-wrap {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .auth-card {
+        width: 100%;
+        max-width: 400px;
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid #334155;
+        border-radius: 20px;
+        padding: 36px;
+        backdrop-filter: blur(20px);
+        text-align: center;
+    }
+
+    .auth-card .icon {
+        font-size: 3rem;
+        margin-bottom: 14px;
+    }
+
+    .auth-card h2 {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .auth-card p {
+        font-size: 0.875rem;
+        color: #94a3b8;
+        margin-bottom: 28px;
+        line-height: 1.6;
+    }
+
+    .otp-input {
+        width: 100%;
+        background: #0f172a;
+        border: 1px solid #334155;
         border-radius: 12px;
-        box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        font-family: 'Segoe UI', sans-serif;
-    }
-
-    .verify-container h2 {
+        padding: 16px;
+        color: #f1f5f9;
+        font-size: 1.5rem;
+        font-weight: 700;
+        letter-spacing: 0.3em;
         text-align: center;
-        color: #333;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
     }
 
-    .verify-container p {
-        text-align: center;
-        color: #666;
-        margin-bottom: 20px;
+    .otp-input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
     }
 
-    .verify-container label {
-        display: block;
-        margin-bottom: 5px;
-        color: #444;
-        font-weight: 500;
-    }
-
-    .verify-container input {
+    .submit-btn {
         width: 100%;
-        padding: 10px;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        margin-bottom: 15px;
-        font-size: 14px;
-    }
-
-    .verify-container button {
-        width: 100%;
-        padding: 12px;
-        background-color: #007bff;
-        color: white;
+        margin-top: 16px;
+        padding: 13px;
         border: none;
-        border-radius: 6px;
-        font-size: 16px;
+        border-radius: 10px;
+        font-size: 0.95rem;
+        font-weight: 700;
         cursor: pointer;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        color: white;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.2s;
     }
 
-    .verify-container button:hover {
-        background-color: #0056b3;
-    }
-
-    .verify-container .error {
-        color: red;
-        font-size: 13px;
-        margin-top: 10px;
-    }
-
-    @media (max-width: 600px) {
-        .verify-container {
-            margin: 20px 10px;
-            padding: 20px;
-        }
-
-        .verify-container button {
-            font-size: 14px;
-            padding: 10px;
-        }
+    .submit-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.4);
     }
 </style>
-
-<div class="verify-container">
-    <h2>Email Verification</h2>
-    <p>An OTP has been sent to your email. Please enter it below to complete signup.</p>
-
-    <form method="POST">
-        {% csrf_token %}
-        <label for="otp">Enter OTP:</label>
-        <input type="text" name="otp" id="otp" required maxlength="6">
-        <button type="submit">Verify OTP</button>
-    </form>
-
-    {% if error %}
-        <p class="error">{{ error }}</p>
-    {% endif %}
+{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="icon">📧</div>
+        <h2>Verify Your Email</h2>
+        <p>We've sent a 6-digit OTP to your email. Enter it below to complete your registration.</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="otp" class="otp-input" placeholder="______" maxlength="6" required
+                autocomplete="one-time-code">
+            <button type="submit" class="submit-btn">✅ Verify & Continue</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

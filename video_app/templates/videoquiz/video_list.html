@@ -1,42 +1,287 @@
 {% extends 'layout.html' %}
-{% block title %}Available Lessons{% endblock %}
+{% block title %}Video Lessons | EduVideoQuiz{% endblock %}
+{% block extra_head %}
+<style>
+  .page-hero {
+    margin-bottom: 32px;
+  }
+
+  .page-hero h1 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  .page-hero p {
+    color: #94a3b8;
+    font-size: 0.95rem;
+  }
+
+  .videos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .video-card {
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid #334155;
+    border-radius: 16px;
+    padding: 24px;
+    transition: all 0.25s;
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .video-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+  }
+
+  .video-card .num {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #6366f1;
+  }
+
+  .video-card h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+
+  .video-card .meta {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .video-card a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: auto;
+    padding: 9px 16px;
+    border-radius: 9px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s;
+    width: fit-content;
+  }
+
+  .video-card a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  }
+
+  .completed-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: auto;
+    padding: 7px 12px;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    color: #22c55e;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  .results-table th {
+    background: rgba(99, 102, 241, 0.08);
+    color: #6366f1;
+    text-align: left;
+    padding: 12px 16px;
+    font-weight: 700;
+  }
+
+  .results-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #1e293b;
+    vertical-align: middle;
+  }
+
+  .results-table tr:last-child td {
+    border: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+  }
+
+  .badge-green {
+    background: rgba(34, 197, 94, 0.12);
+    color: #22c55e;
+  }
+
+  .badge-red {
+    background: rgba(239, 68, 68, 0.12);
+    color: #f87171;
+  }
+
+  .badge-blue {
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+  }
+
+  .gen-cert {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(99, 102, 241, 0.1));
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .gen-cert h2 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #22c55e;
+  }
+
+  .gen-cert p {
+    color: #94a3b8;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+  }
+
+  .gen-cert button {
+    padding: 13px 32px;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: white;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .gen-cert button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4);
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-  <h2 class="text-xl sm:text-2xl font-bold mb-6">🎬 Available Video Lessons</h2>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-    {% for video in all_videos %}
-      <div class="bg-white shadow-md rounded-lg p-4 transition-transform transform hover:scale-105 hover:shadow-xl">
-        <h3 class="text-md sm:text-lg font-semibold text-gray-800 mb-2">{{ video.title }}</h3>
-        <a href="{% url 'video_app:video_quiz_page' video.id %}" class="text-blue-500 hover:underline text-sm sm:text-base">
-          ➤ Watch and Answer Questions
-        </a>
-      </div>
-    {% endfor %}
+<div class="container">
+  <div class="page-hero">
+    <h1>📽️ Video Lessons</h1>
+    <p>Watch every lesson and complete all quizzes to earn your certificate.</p>
   </div>
 
-  {% if quiz_results %}
-    <h2 class="text-xl sm:text-2xl font-bold mt-10 mb-4">📝 Previous Quiz Results</h2>
-    <div class="bg-white shadow-md rounded-lg p-5">
-      <ul class="space-y-3 text-sm sm:text-base">
-        {% for result in quiz_results %}
-          <li class="border-b pb-2">
-            <strong>{{ result.video.title }}</strong><br>
-            Score: {{ result.score }}/{{ result.video.get_total_mark }}
-          </li>
-        {% endfor %}
-      </ul>
+  {% if all_videos %}
+  <div class="videos-grid">
+    {% for video in all_videos %}
+    {% with result=quiz_results|dictsortreversed:"id"|first %}
+    <div class="video-card">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div class="num">{{ forloop.counter }}</div>
+        <h3>{{ video.title }}</h3>
+      </div>
+      <div class="meta">❓ {{ video.questions.count }} questions &nbsp;·&nbsp; ⭐ {{ video.get_total_mark }} marks</div>
+      {% comment %}check if this video has a result{% endcomment %}
+      {% for res in quiz_results %}
+      {% if res.video.id == video.id %}
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <span class="badge badge-blue">{{ res.percentage }}%</span>
+        <span class="badge badge-green">{{ res.credit_point }} pts</span>
+        <span class="badge" style="background:rgba(255,255,255,0.05);color:#94a3b8;">Score: {{ res.score }}/{{
+          video.get_total_mark }}</span>
+      </div>
+      {% endif %}
+      {% endfor %}
+      <a href="{% url 'video_app:video_quiz_page' video.id %}">▶️ Watch & Quiz</a>
     </div>
+    {% endwith %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:80px 20px;color:#94a3b8;">
+    <div style="font-size:4rem;margin-bottom:16px;">📭</div>
+    <p style="font-size:1.1rem;">No video lessons are available yet.</p>
+  </div>
+  {% endif %}
+
+  {% if quiz_results %}
+  <h2 class="section-title">📊 Your Quiz Results</h2>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table class="results-table">
+        <thead>
+          <tr>
+            <th>Video</th>
+            <th>Score</th>
+            <th>Percentage</th>
+            <th>Credit Points</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for result in quiz_results %}
+          <tr>
+            <td><strong>{{ result.video.title }}</strong></td>
+            <td>{{ result.score }} / {{ result.video.get_total_mark }}</td>
+            <td><span class="badge {% if result.percentage >= 60 %}badge-green{% else %}badge-red{% endif %}">{{
+                result.percentage }}%</span></td>
+            <td><span class="badge badge-blue">{{ result.credit_point }} pts</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
   {% endif %}
 
   {% if show_generate_button %}
-    <div class="text-center mt-10">
-      <form method="post" action="{% url 'video_app:generate_final_certificate' %}">
-        {% csrf_token %}
-        <button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 transition text-sm sm:text-base">
-          🎓 Generate Final Certificate
-        </button>
-      </form>
-    </div>
+  <div class="gen-cert">
+    <h2>🎉 Congratulations!</h2>
+    <p>You've completed all video lessons. Generate your final certificate now.</p>
+    <form method="post" action="{% url 'video_app:generate_final_certificate' %}">
+      {% csrf_token %}
+      <button type="submit">🎓 Generate Final Certificate</button>
+    </form>
+  </div>
   {% endif %}
+</div>
 {% endblock %}

@@ -1,11 +1,12 @@
 import json
 from textwrap import wrap
 from django.http import JsonResponse, HttpResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.template.loader import render_to_string
 from .models import QuizResult, VideoLesson, Question, Option, FinalCertificate, CertificateConfig
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import VideoLessonForm, QuestionForm, OptionForm, CertificateConfigForm
 import qrcode
 from io import BytesIO
 import base64
@@ -20,7 +21,17 @@ from django.core.files.base import ContentFile
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from reportlab.lib.utils import ImageReader
+from django.contrib.auth import get_user_model
+from django.forms import modelformset_factory
 
+
+def staff_required(view_func):
+    """Decorator: redirect non-staff users to admin login."""
+    decorated = user_passes_test(
+        lambda u: u.is_active and u.is_staff,
+        login_url='/admin-login/'
+    )(view_func)
+    return decorated
 
 
 
@@ -447,3 +458,172 @@ def generate_final_certificate(request):
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
+
+
+# ─────────────────────────────────────────────
+# CUSTOM ADMIN DASHBOARD VIEWS
+# ─────────────────────────────────────────────
+
+AuthUser = get_user_model()
+
+@staff_required
+def admin_dashboard(request):
+    total_videos = VideoLesson.objects.count()
+    total_questions = Question.objects.count()
+    total_users = AuthUser.objects.filter(is_staff=False).count()
+    total_results = QuizResult.objects.count()
+    recent_results = QuizResult.objects.select_related('user', 'video').order_by('-id')[:8]
+    return render(request, 'admin/dashboard.html', {
+        'total_videos': total_videos,
+        'total_questions': total_questions,
+        'total_users': total_users,
+        'total_results': total_results,
+        'recent_results': recent_results,
+    })
+
+
+@staff_required
+def admin_videos(request):
+    videos = VideoLesson.objects.all().order_by('order')
+    return render(request, 'admin/videos.html', {'videos': videos})
+
+
+@staff_required
+def admin_add_video(request):
+    if request.method == 'POST':
+        form = VideoLessonForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return redirect('video_app:admin_videos')
+    else:
+        form = VideoLessonForm()
+    return render(request, 'admin/add_video.html', {'form': form})
+
+
+@staff_required
+def admin_edit_video(request, video_id):
+    video = get_object_or_404(VideoLesson, id=video_id)
+    if request.method == 'POST':
+        form = VideoLessonForm(request.POST, request.FILES, instance=video)
+        if form.is_valid():
+            form.save()
+            return redirect('video_app:admin_videos')
+    else:
+        form = VideoLessonForm(instance=video)
+    return render(request, 'admin/edit_video.html', {'form': form, 'video': video})
+
+
+@staff_required
+def admin_delete_video(request, video_id):
+    video = get_object_or_404(VideoLesson, id=video_id)
+    if request.method == 'POST':
+        video.delete()
+        return redirect('video_app:admin_videos')
+    return render(request, 'admin/delete_confirm.html', {
+        'object_name': video.title,
+        'cancel_url': 'admin_videos',
+        'object_type': 'Video',
+    })
+
+
+@staff_required
+def admin_questions(request, video_id):
+    video = get_object_or_404(VideoLesson, id=video_id)
+    questions = video.questions.prefetch_related('options').all()
+    return render(request, 'admin/questions.html', {'video': video, 'questions': questions})
+
+
+@staff_required
+def admin_add_question(request, video_id):
+    video = get_object_or_404(VideoLesson, id=video_id)
+    OptionFormSet = modelformset_factory(Option, form=OptionForm, extra=4, max_num=4)
+
+    if request.method == 'POST':
+        q_form = QuestionForm(request.POST)
+        opt_formset = OptionFormSet(request.POST, queryset=Option.objects.none(), prefix='options')
+        if q_form.is_valid() and opt_formset.is_valid():
+            question = q_form.save(commit=False)
+            question.video = video
+            question.save()
+            for opt_form in opt_formset:
+                if opt_form.cleaned_data.get('text'):
+                    opt = opt_form.save(commit=False)
+                    opt.question = question
+                    opt.save()
+            return redirect('video_app:admin_questions', video_id=video.id)
+    else:
+        q_form = QuestionForm()
+        opt_formset = OptionFormSet(queryset=Option.objects.none(), prefix='options')
+
+    return render(request, 'admin/add_question.html', {
+        'video': video, 'q_form': q_form, 'opt_formset': opt_formset,
+    })
+
+
+@staff_required
+def admin_edit_question(request, question_id):
+    question = get_object_or_404(Question, id=question_id)
+    OptionFormSet = modelformset_factory(Option, form=OptionForm, extra=0)
+
+    if request.method == 'POST':
+        q_form = QuestionForm(request.POST, instance=question)
+        opt_formset = OptionFormSet(request.POST, queryset=question.options.all(), prefix='options')
+        if q_form.is_valid() and opt_formset.is_valid():
+            q_form.save()
+            for opt_form in opt_formset:
+                if opt_form.cleaned_data.get('text'):
+                    opt = opt_form.save(commit=False)
+                    opt.question = question
+                    opt.save()
+                elif opt_form.instance.pk and not opt_form.cleaned_data.get('text'):
+                    opt_form.instance.delete()
+            return redirect('video_app:admin_questions', video_id=question.video.id)
+    else:
+        q_form = QuestionForm(instance=question)
+        opt_formset = OptionFormSet(queryset=question.options.all(), prefix='options')
+
+    return render(request, 'admin/edit_question.html', {
+        'question': question, 'q_form': q_form, 'opt_formset': opt_formset,
+    })
+
+
+@staff_required
+def admin_delete_question(request, question_id):
+    question = get_object_or_404(Question, id=question_id)
+    video_id = question.video.id
+    if request.method == 'POST':
+        question.delete()
+        return redirect('video_app:admin_questions', video_id=video_id)
+    return render(request, 'admin/delete_confirm.html', {
+        'object_name': f'Question #{question.id}',
+        'cancel_url': 'admin_questions',
+        'cancel_arg': video_id,
+        'object_type': 'Question',
+    })
+
+
+@staff_required
+def admin_certificate_config(request):
+    config = CertificateConfig.objects.first()
+    if request.method == 'POST':
+        form = CertificateConfigForm(request.POST, instance=config)
+        if form.is_valid():
+            form.save()
+            return redirect('video_app:admin_dashboard')
+    else:
+        form = CertificateConfigForm(instance=config)
+    return render(request, 'admin/certificate_config.html', {'form': form, 'config': config})
+
+
+@staff_required
+def admin_users(request):
+    users = AuthUser.objects.filter(is_staff=False).order_by('-date_joined')
+    user_data = []
+    for u in users:
+        results = QuizResult.objects.filter(user=u)
+        user_data.append({
+            'user': u,
+            'quizzes_taken': results.count(),
+            'latest_result': results.order_by('-id').first(),
+        })
+    return render(request, 'admin/users.html', {'user_data': user_data})

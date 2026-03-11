@@ -1,92 +1,98 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Certificate Not Available</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #f44336, #e57373);
-      color: white;
-      text-align: center;
-      padding: 50px 1em 1em;
-    }
+{% extends 'layout.html' %}
+{% block title %}Not Eligible | EduVideoQuiz{% endblock %}
+{% block extra_head %}
+<style>
+  .elig-wrap {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
 
-    .card {
-      background: white;
-      color: #333;
-      max-width: 600px;
-      margin: auto;
-      padding: 2em;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    }
+  .elig-card {
+    max-width: 520px;
+    width: 100%;
+    text-align: center;
+    background: rgba(30, 41, 59, 0.7);
+    border: 1px solid #334155;
+    border-radius: 20px;
+    padding: 48px 36px;
+    backdrop-filter: blur(10px);
+  }
 
-    .card h1 {
-      color: #e53935;
-      font-size: 1.8em;
-    }
+  .elig-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
 
-    .card p {
-      font-size: 1.1em;
-      margin-top: 1em;
-    }
+  .elig-card h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    color: #f87171;
+  }
 
-    .back-btn {
-      margin-top: 2em;
-      display: inline-block;
-      padding: 10px 20px;
-      background: #e53935;
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      transition: 0.3s ease;
-    }
+  .elig-card p {
+    color: #94a3b8;
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
 
-    .back-btn:hover {
-      background: #c62828;
-    }
+  .stat-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
 
-    @media (max-width: 600px) {
-      .card {
-        padding: 1em;
-        margin: 1em;
-      }
+  .stat {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 14px 20px;
+    min-width: 100px;
+  }
 
-      .card p {
-        font-size: 1em;
-      }
+  .stat .val {
+    font-size: 1.6rem;
+    font-weight: 800;
+  }
 
-      .back-btn {
-        width: 100%;
-        box-sizing: border-box;
-        padding: 12px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>🚫 Certificate Unavailable</h1>
-
-    {% if show_attempt_msg %}
-      {% if user.first_name or user.last_name %}
-        <p>Hi {{ user.first_name }} {{ user.last_name }},
-      {% else %}
-        <p>Hi {{ user.email }},
-      {% endif %}
-      it looks like you haven't attempted any quizzes yet.</p>
-      <p>Please attempt all video quizzes to become eligible for a certificate.</p>
+  .stat .lab {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 2px;
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="elig-wrap">
+  <div class="elig-card">
+    <div class="elig-icon">❌</div>
+    <h2>Not Eligible Yet</h2>
+    {% if percentage > 0 %}
+    <div class="stat-row">
+      <div class="stat">
+        <div class="val" style="color:#6366f1;">{{ score }}</div>
+        <div class="lab">Your Score</div>
+      </div>
+      <div class="stat">
+        <div class="val" style="color:#22d3ee;">{{ max_score }}</div>
+        <div class="lab">Max Score</div>
+      </div>
+      <div class="stat">
+        <div class="val" style="color:#f59e0b;">{{ percentage }}%</div>
+        <div class="lab">Percentage</div>
+      </div>
+    </div>
+    <p>You need at least <strong style="color:#f1f5f9;">60%</strong> to receive a certificate. Keep practicing!</p>
     {% else %}
-      {% if user.first_name or user.last_name %}
-        <p>Hi {{ user.first_name }} {{ user.last_name }},
-      {% else %}
-        <p>Hi {{ user.email }},
-      {% endif %}
-      your total score is <strong>{{ score }}/{{ max_score }}</strong> which is <strong>{{ percentage }}%</strong>.</p>
-      <p>To earn a certificate, a minimum of <strong>60%</strong> is required.</p>
+    <p>You need to <strong style="color:#f1f5f9;">complete all video lessons</strong> and score at least 60% across all
+      quizzes to earn your certificate.</p>
     {% endif %}
-
-    <a href="{% url 'video_app:video_list' %}" class="back-btn">📹 Go Back to Videos</a>
+    <a href="{% url 'video_app:video_list' %}" class="btn btn-primary" style="margin-top:8px;">📽️ Go to Videos</a>
   </div>
-</body>
-</html>
+</div>
+{% endblock %}

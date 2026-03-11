@@ -1,0 +1,63 @@
+{% extends 'admin/base_admin.html' %}
+{% block title %}Add Question{% endblock %}
+{% block page_title %}Add Question{% endblock %}
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1>➕ Add Question</h1>
+        <span class="breadcrumb">
+            <a href="{% url 'video_app:admin_videos' %}" style="color:#6366f1;">Videos</a> →
+            <a href="{% url 'video_app:admin_questions' video.id %}" style="color:#6366f1;">{{ video.title }}</a> → Add
+            Question
+        </span>
+    </div>
+</div>
+
+<form method="post">
+    {% csrf_token %}
+    {{ opt_formset.management_form }}
+
+    <div class="card" style="max-width:720px;">
+        <div class="card-title">📝 Question Details</div>
+        <div class="form-group">
+            <label class="form-label">Question Text</label>
+            {{ q_form.question_text }}
+            {% if q_form.question_text.errors %}<p style="color:#ef4444;font-size:0.8rem;margin-top:4px;">{{
+                q_form.question_text.errors.0 }}</p>{% endif %}
+        </div>
+        <div class="form-group">
+            <label class="form-label">Marks</label>
+            {{ q_form.mark }}
+            {% if q_form.mark.errors %}<p style="color:#ef4444;font-size:0.8rem;margin-top:4px;">{{ q_form.mark.errors.0
+                }}</p>{% endif %}
+        </div>
+    </div>
+
+    <div class="card" style="max-width:720px;">
+        <div class="card-title">🔘 Answer Options <span style="font-weight:400;font-size:0.85rem;color:#94a3b8;">(check
+                the correct answer)</span></div>
+        {% for opt_form in opt_formset %}
+        <div style="
+      display:flex;align-items:center;gap:12px;
+      padding:12px 16px;border-radius:10px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid #334155;
+      margin-bottom:10px;
+    ">
+            <span style="color:#94a3b8;font-size:0.85rem;min-width:24px;">{{ forloop.counter }}</span>
+            {{ opt_form.id }}
+            <div style="flex:1;">{{ opt_form.text }}</div>
+            <label
+                style="display:flex;align-items:center;gap:6px;color:#94a3b8;font-size:0.85rem;cursor:pointer;white-space:nowrap;">
+                {{ opt_form.is_correct }} Correct
+            </label>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">💾 Save Question</button>
+        <a href="{% url 'video_app:admin_questions' video.id %}" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+{% endblock %}

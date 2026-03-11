@@ -1,48 +1,132 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Certificate Verification</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      padding: 2em;
-      max-width: 800px;
-      margin: auto;
-      background: #f9f9f9;
-      box-sizing: border-box;
+{% extends 'layout.html' %}
+{% block title %}Verify Certificate | EduVideoQuiz{% endblock %}
+{% block extra_head %}
+<style>
+  .verify-wrap {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .verify-card {
+    max-width: 560px;
+    width: 100%;
+    background: rgba(30, 41, 59, 0.8);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 20px;
+    padding: 40px;
+    backdrop-filter: blur(10px);
+    text-align: center;
+  }
+
+  .verify-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+  }
+
+  .verify-card h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #22c55e;
+  }
+
+  .verify-card p {
+    color: #94a3b8;
+    margin-bottom: 20px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 24px 0;
+  }
+
+  .info-item {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .info-item .lab {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-bottom: 4px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .info-item .val {
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .badge-valid {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(34, 197, 94, 0.12);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 30px;
+    padding: 8px 20px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #22c55e;
+    margin-bottom: 20px;
+  }
+
+  @media(max-width:480px) {
+    .info-grid {
+      grid-template-columns: 1fr;
     }
-
-    h2 {
-      color: #2c7a7b;
-      font-size: 1.6em;
-    }
-
-    p {
-      margin-top: 1em;
-      font-size: 1.1em;
-    }
-
-    @media (max-width: 600px) {
-      body {
-        padding: 1em;
-      }
-
-      h2 {
-        font-size: 1.3em;
-      }
-
-      p {
-        font-size: 1em;
-      }
-    }
-  </style>
-</head>
-<body>
-  <h2>Certificate Verified</h2>
-  <p><strong>User:</strong> {{ user.first_name }} {{ user.last_name }} ({{ user.email }})</p>
-  <p><strong>Score:</strong> {{ certificate.score }}/{{ certificate.total }}</p>
-  <p><strong>Percentage:</strong> {{ certificate.percentage }}%</p>
-  <p><strong>Credit Points:</strong> {{ certificate.credit_point }}</p>
-  <p><strong>Date:</strong> {{ certificate.created_at }}</p>
-</body>
-</html>
+  }
+</style>
+{% endblock %}
+{% block content %}
+<div class="verify-wrap">
+  <div class="verify-card">
+    <div class="verify-icon">🏅</div>
+    {% if certificate %}
+    <div class="badge-valid">✅ Certificate Verified</div>
+    <h2>Authentic Certificate</h2>
+    <p>This certificate has been issued to <strong style="color:#f1f5f9;">{{ user.first_name }} {{ user.last_name
+        }}</strong> and is verified as genuine.</p>
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="lab">Name</div>
+        <div class="val">{{ user.first_name }} {{ user.last_name }}</div>
+      </div>
+      <div class="info-item">
+        <div class="lab">Email</div>
+        <div class="val" style="font-size:0.9rem;word-break:break-all;">{{ user.email }}</div>
+      </div>
+      <div class="info-item">
+        <div class="lab">Score</div>
+        <div class="val" style="color:#6366f1;">{{ certificate.score }} / {{ certificate.total }}</div>
+      </div>
+      <div class="info-item">
+        <div class="lab">Percentage</div>
+        <div class="val" style="color:#22c55e;">{{ certificate.percentage }}%</div>
+      </div>
+      <div class="info-item">
+        <div class="lab">Credit Points</div>
+        <div class="val" style="color:#f59e0b;">{{ certificate.credit_point }}</div>
+      </div>
+      <div class="info-item">
+        <div class="lab">Issued On</div>
+        <div class="val" style="font-size:0.9rem;">{{ certificate.created_at|date:"M d, Y" }}</div>
+      </div>
+    </div>
+    {% else %}
+    <h2 style="color:#f87171;">Certificate Not Found</h2>
+    <p>No certificate is associated with this user.</p>
+    {% endif %}
+    <a href="{% url 'video_app:home' %}" class="btn btn-primary">← Back to Home</a>
+  </div>
+</div>
+{% endblock %}

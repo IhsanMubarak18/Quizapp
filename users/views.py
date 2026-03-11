@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import get_user_model, login, logout
+from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.core.mail import send_mail
 from .forms import EmailSignUpForm, OTPLoginForm
 from .models import EmailOTP
@@ -86,3 +86,22 @@ def logout_view(request):
     if request.method == 'POST':
         logout(request)
         return redirect('video_app:home')
+
+
+def admin_login_view(request):
+    """Password-based login for admin (staff) users only."""
+    error = None
+    if request.user.is_authenticated and request.user.is_staff:
+        return redirect('video_app:admin_dashboard')
+
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        user = authenticate(request, username=email, password=password)
+        if user is not None and user.is_staff:
+            login(request, user)
+            return redirect('video_app:admin_dashboard')
+        else:
+            error = "Invalid credentials or you are not an admin."
+
+    return render(request, 'users/admin_login.html', {'error': error})
