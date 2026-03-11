@@ -13,7 +13,7 @@ def send_otp_to_email(email):
     send_mail(
         subject="Your OTP Code",
         message=f"Your OTP is: {otp}",
-        from_email="noreply@example.com",
+        from_email=None,  # Uses DEFAULT_FROM_EMAIL from settings.py
         recipient_list=[email],
         fail_silently=False,
     )
