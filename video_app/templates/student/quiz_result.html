@@ -396,11 +396,11 @@
     .review-content {
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.3s ease;
+        transition: max-height 0.5s ease;
     }
 
     .review-content.expanded {
-        max-height: 2000px;
+        max-height: none;
     }
 
     .questions-container {
@@ -649,10 +649,10 @@
                 Download Certificate
             </a>
             {% endif %}
-            <a href="{% url 'video_app:quiz_list' %}" class="btn btn-primary">
+            {% comment %} <a href="{% url 'video_app:quiz_list' %}" class="btn btn-primary">
                 <i class="fas fa-redo"></i>
                 Try Another Quiz
-            </a>
+            </a> {% endcomment %}
             <a href="{% url 'video_app:student_dashboard' %}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i>
                 Back to Dashboard
@@ -753,7 +753,7 @@
                 <i class="fas fa-clipboard-list"></i>
                 Answer Review
             </h2>
-            <div class="review-stats">
+            {% comment %} <div class="review-stats">
                 <div class="review-stat">
                     <div class="review-stat-value">{{ result.score|default:0 }}</div>
                     <div class="review-stat-label">Correct</div>
@@ -762,7 +762,7 @@
                     <div class="review-stat-value">{{ result.total_questions|add:"-"|add:result.score|default:0 }}</div>
                     <div class="review-stat-label">Incorrect</div>
                 </div>
-            </div>
+            </div> {% endcomment %}
             <button class="accordion-toggle" id="accordionToggle">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>

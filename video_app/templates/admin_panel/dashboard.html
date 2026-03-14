@@ -531,14 +531,14 @@
             <div class="stat-icon-wrapper">
                 <i class="fas fa-question-circle stat-icon"></i>
             </div>
-            <div class="stat-trend up">
+            {% comment %} <div class="stat-trend up">
                 <i class="fas fa-arrow-up"></i>
                 12%
-            </div>
+            </div> {% endcomment %}
         </div>
         <div class="stat-value">{{ total_questions }}</div>
         <div class="stat-label">Questions in Bank</div>
-        <div class="stat-change">+{{ total_questions|add:"10" }} this month</div>
+        <div class="stat-change">+{{ total_questions|add:"0" }} this month</div>
     </div>
 
     <div class="stat-card">
@@ -546,14 +546,14 @@
             <div class="stat-icon-wrapper">
                 <i class="fas fa-clipboard-list stat-icon"></i>
             </div>
-            <div class="stat-trend up">
+            {% comment %} <div class="stat-trend up">
                 <i class="fas fa-arrow-up"></i>
                 8%
-            </div>
+            </div> {% endcomment %}
         </div>
         <div class="stat-value">{{ total_quizzes }}</div>
         <div class="stat-label">Active Quizzes</div>
-        <div class="stat-change">{{ total_quizzes|add:"2" }} published</div>
+        <div class="stat-change">{{ total_quizzes|add:"0" }} published</div>
     </div>
 
     <div class="stat-card">
@@ -561,14 +561,14 @@
             <div class="stat-icon-wrapper">
                 <i class="fas fa-users stat-icon"></i>
             </div>
-            <div class="stat-trend up">
+            {% comment %} <div class="stat-trend up">
                 <i class="fas fa-arrow-up"></i>
                 15%
-            </div>
+            </div> {% endcomment %}
         </div>
         <div class="stat-value">{{ total_students }}</div>
         <div class="stat-label">Registered Students</div>
-        <div class="stat-change">+{{ total_students|add:"5" }} new this week</div>
+        <div class="stat-change">+{{ total_students|add:"0" }} new this week</div>
     </div>
 
     <div class="stat-card">
@@ -576,14 +576,14 @@
             <div class="stat-icon-wrapper">
                 <i class="fas fa-bullseye stat-icon"></i>
             </div>
-            <div class="stat-trend neutral">
+            {% comment %} <div class="stat-trend neutral">
                 <i class="fas fa-minus"></i>
                 0%
-            </div>
+            </div> {% endcomment %}
         </div>
         <div class="stat-value">{{ total_attempts }}</div>
         <div class="stat-label">Total Attempts</div>
-        <div class="stat-change">{{ total_attempts|add:"20" }} completions</div>
+        <div class="stat-change">{{ total_attempts|add:"0" }} completions</div>
     </div>
 
     {% if request.user.is_superuser %}
@@ -592,10 +592,10 @@
             <div class="stat-icon-wrapper">
                 <i class="fas fa-shield-alt stat-icon"></i>
             </div>
-            <div class="stat-trend neutral">
+            {% comment %} <div class="stat-trend neutral">
                 <i class="fas fa-minus"></i>
                 0%
-            </div>
+            </div> {% endcomment %}
         </div>
         <div class="stat-value">{{ total_admin_users }}</div>
         <div class="stat-label">Admin Users</div>
