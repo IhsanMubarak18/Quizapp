@@ -51,28 +51,4 @@
     <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Quiz results &amp; analytics</div>
   </a>
 </div>
-{% if recent_results %}
-<div class="card">
-  <h2 style="font-size:18px;font-weight:700;margin-bottom:20px;">Recent Quiz Submissions</h2>
-  <table>
-    <thead>
-      <tr><th>Student</th><th>Quiz</th><th>Score</th><th>%</th><th>Grade</th><th>Date</th></tr>
-    </thead>
-    <tbody>
-      {% for r in recent_results %}
-      {% with grade=r.grade %}
-      <tr>
-        <td style="font-weight:500;">{{ r.student.student_profile.student_name|default:r.student.email }}</td>
-        <td>{{ r.quiz.title }}</td>
-        <td>{{ r.score }}/{{ r.total_questions }}</td>
-        <td>{{ r.percentage|floatformat:1 }}%</td>
-        <td><span class="badge badge-{% if grade == 'F' %}danger{% elif grade == 'C' %}warning{% else %}success{% endif %}">{{ grade }}</span></td>
-        <td style="font-size:13px;color:#64748b;">{{ r.completed_at|date:"d M Y" }}</td>
-      </tr>
-      {% endwith %}
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endif %}
 {% endblock %}

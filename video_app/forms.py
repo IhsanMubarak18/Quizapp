@@ -113,11 +113,6 @@ class QuizForm(forms.ModelForm):
         self.fields['start_time'].required = False
         self.fields['end_time'].required = False
         self.fields['description'].required = False
-        if self.instance and self.instance.pk:
-            if self.instance.start_time:
-                self.initial['start_time'] = self.instance.start_time.strftime('%Y-%m-%dT%H:%M')
-            if self.instance.end_time:
-                self.initial['end_time'] = self.instance.end_time.strftime('%Y-%m-%dT%H:%M')
 
 
 class RandomQuestionSelectForm(forms.Form):

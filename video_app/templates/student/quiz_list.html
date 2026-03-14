@@ -27,9 +27,12 @@
                 <span class="badge badge-warning">🔀 Shuffled</span>
                 {% endif %}
             </div>
-            {% if item.quiz.start_time %}
+            {% if item.quiz.start_time or item.quiz.end_time %}
             <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">
-                📅 {{ item.quiz.start_time|date:"d M Y, H:i" }} — {{ item.quiz.end_time|date:"d M Y, H:i" }}
+                📅
+                {% if item.quiz.start_time %}{{ item.quiz.start_time|date:"d M Y, H:i" }}{% endif %}
+                {% if item.quiz.start_time and item.quiz.end_time %} — {% endif %}
+                {% if item.quiz.end_time %}{{ item.quiz.end_time|date:"d M Y, H:i" }}{% endif %}
             </div>
             {% endif %}
             {% if item.attempted %}

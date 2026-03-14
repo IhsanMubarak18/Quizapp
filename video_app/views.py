@@ -1,5 +1,6 @@
 import random
 import io
+from datetime import date
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -7,6 +8,7 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from django.db.models import Q
+from django.db.models.functions import TruncDate
 from django.contrib import messages
 from .models import Question, Quiz, QuizQuestion, QuizAttempt, StudentAnswer, QuizResult
 from .forms import QuestionForm, QuizForm, RandomQuestionSelectForm
@@ -325,13 +327,11 @@ def admin_dashboard(request):
     total_quizzes = Quiz.objects.count()
     total_students = AuthUser.objects.filter(is_staff=False).count()
     total_attempts = QuizAttempt.objects.filter(is_submitted=True).count()
-    recent_results = QuizResult.objects.select_related('student', 'quiz').order_by('-completed_at')[:8]
     return render(request, 'admin_panel/dashboard.html', {
         'total_questions': total_questions,
         'total_quizzes': total_quizzes,
         'total_students': total_students,
         'total_attempts': total_attempts,
-        'recent_results': recent_results,
     })
 
 
@@ -641,13 +641,43 @@ def admin_students_pdf(request):
 
 @staff_required
 def admin_reports(request):
-    quiz_id = request.GET.get('quiz_id')
-    quizzes = Quiz.objects.all()
-    results = QuizResult.objects.select_related('student', 'student__student_profile', 'quiz').order_by('-completed_at')
-    if quiz_id:
-        results = results.filter(quiz_id=quiz_id)
+    selected_quiz_attempt = request.GET.get('quiz_attempt', '')
+    results = (
+        QuizResult.objects
+        .select_related('student', 'student__student_profile', 'quiz', 'attempt')
+        .order_by('-attempt__started_at', '-completed_at')
+    )
+
+    if selected_quiz_attempt:
+        try:
+            quiz_id_str, attempt_date_str = selected_quiz_attempt.split('|', 1)
+            attempt_date = date.fromisoformat(attempt_date_str)
+            results = results.filter(
+                quiz_id=int(quiz_id_str),
+                attempt__started_at__date=attempt_date,
+            )
+        except (TypeError, ValueError):
+            selected_quiz_attempt = ''
+
+    raw_report_filters = (
+        QuizResult.objects
+        .annotate(attempt_date=TruncDate('attempt__started_at'))
+        .values('quiz_id', 'quiz__title', 'attempt_date')
+        .order_by('quiz__title', '-attempt_date')
+        .distinct()
+    )
+    report_filters = [
+        {
+            'value': f"{item['quiz_id']}|{item['attempt_date'].isoformat()}",
+            'quiz_title': item['quiz__title'],
+            'attempt_date': item['attempt_date'],
+        }
+        for item in raw_report_filters
+        if item['attempt_date']
+    ]
+
     return render(request, 'admin_panel/reports.html', {
         'results': results,
-        'quizzes': quizzes,
-        'selected_quiz_id': int(quiz_id) if quiz_id else None,
+        'report_filters': report_filters,
+        'selected_quiz_attempt': selected_quiz_attempt,
     })

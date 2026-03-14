@@ -44,9 +44,13 @@
         {{ quiz.title }}</div>
       <div style="font-size:13px;color:#64748b;margin-bottom:12px;">⏱️ {{ quiz.time_limit_minutes }} minutes
         &nbsp;|&nbsp; 📝 {{ quiz.total_questions }} questions</div>
-      {% if quiz.start_time %}
-      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">📅 {{ quiz.start_time|date:"d M Y, H:i" }} → {{
-        quiz.end_time|date:"d M Y, H:i" }}</div>
+      {% if quiz.start_time or quiz.end_time %}
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">
+        📅
+        {% if quiz.start_time %}{{ quiz.start_time|date:"d M Y, H:i" }}{% endif %}
+        {% if quiz.start_time and quiz.end_time %} → {% endif %}
+        {% if quiz.end_time %}{{ quiz.end_time|date:"d M Y, H:i" }}{% endif %}
+      </div>
       {% endif %}
       <a href="{% url 'video_app:start_quiz' quiz.id %}"
         class="btn {% if quiz.id in attempted_quiz_ids %}btn-outline{% else %}btn-primary{% endif %} btn-sm"
@@ -81,7 +85,6 @@
     </thead>
     <tbody>
       {% for result in recent_results %}
-      {% with grade=result.grade %}
       <tr>
         <td style="font-weight:500;">{{ result.quiz.title }}</td>
         <td>{{ result.score }} / {{ result.total_questions }}</td>
@@ -96,8 +99,7 @@
           </div>
         </td>
         <td><span
-            class="badge badge-{% if grade == 'F' %}danger{% elif grade == 'C' %}warning{% else %}success{% endif %}">{{
-            grade }}</span></td>
+            class="badge badge-{% if result.grade == 'F' %}danger{% elif result.grade == 'C' %}warning{% else %}success{% endif %}">{{ result.grade }}</span></td>
         <td style="font-size:13px;color:#64748b;">{{ result.completed_at|date:"d M Y" }}</td>
         <td>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -109,7 +111,6 @@
           </div>
         </td>
       </tr>
-      {% endwith %}
       {% endfor %}
     </tbody>
   </table>
