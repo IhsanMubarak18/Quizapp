@@ -672,7 +672,7 @@
                 </div>
                 <div class="result-grade">Grade: {{ result.grade }}</div>
                 <div class="result-summary">{{ result.score }} out of {{ result.total_questions }} correct</div>
-                <div class="result-details">Completed at {{ result.completed_at|date:"H:i" }}</div>
+                {% comment %} <div class="result-details">Completed at {{ result.completed_at|date:"H:i" }}</div> {% endcomment %}
             </div>
 
             <!-- Primary Stats Column -->
