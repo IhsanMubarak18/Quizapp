@@ -27,7 +27,10 @@ RUN grep -v '^pkg-resources==' /app/requirements.txt > /tmp/requirements.txt \
 
 COPY . /app
 
+# Ensure media and static files are properly copied
 RUN mkdir -p /app/.django_cache /app/data /app/media /app/staticfiles \
+    && cp -r /app/interactive_video/static/* /app/staticfiles/ 2>/dev/null || true \
+    && cp -r /app/media/* /app/media/ 2>/dev/null || true \
     && chmod +x /app/entrypoint.sh
 
 EXPOSE 8000

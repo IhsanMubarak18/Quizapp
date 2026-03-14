@@ -9,607 +9,954 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --primary: #4f46e5;
-    --primary-dark: #3730a3;
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --primary-light: #3b82f6;
     --secondary: #7c3aed;
     --accent: #06b6d4;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
     --white: #ffffff;
-    --gray-50: #f8fafc;
-    --gray-100: #f1f5f9;
-    --gray-400: #94a3b8;
-    --gray-600: #475569;
-    --gray-900: #0f172a;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   }
+  
   html { scroll-behavior: smooth; }
   body {
-    font-family: 'Inter', sans-serif;
-    background: var(--gray-900);
-    color: var(--white);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--gray-900);
     min-height: 100vh;
     overflow-x: hidden;
+    line-height: 1.6;
   }
 
-  /* ── Animated Canvas Background ── */
-  #bgCanvas {
+  /* Modern Background Pattern */
+  .bg-pattern {
     position: fixed;
-    inset: 0;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
-    pointer-events: none;
+    background-image: 
+      radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.3) 0%, transparent 50%);
+    z-index: -1;
   }
 
-  /* ── Gradient overlay for readability ── */
-  .bg-overlay {
+  /* Navigation */
+  .navbar {
     position: fixed;
-    inset: 0;
-    z-index: 1;
-    background: linear-gradient(
-      135deg,
-      rgba(15,23,42,.93) 0%,
-      rgba(30,27,75,.88) 40%,
-      rgba(15,23,42,.93) 100%
-    );
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
   }
-
-  /* ── Page wrapper ── */
-  .page { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column; }
-
-  /* ── Navbar ── */
-  nav {
+  
+  .navbar-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 20px 48px;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    background: rgba(15,23,42,.7);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-bottom: 1px solid rgba(255,255,255,.06);
   }
-  .nav-logo {
+  
+  .nav-brand {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 0.75rem;
     text-decoration: none;
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--gray-900);
+    transition: transform 0.2s ease;
   }
-  .nav-logo img {
-    height: 48px;
-    border-radius: 10px;
-    object-fit: contain;
-    background: #fff;
-    padding: 4px 8px;
+  
+  .nav-brand:hover {
+    transform: translateY(-2px);
   }
-  .nav-brand {
-    font-size: 20px;
-    font-weight: 800;
-    background: linear-gradient(90deg, #818cf8, #c4b5fd);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.3px;
+  
+  .nav-brand img {
+    height: 40px;
+    width: auto;
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
   }
-  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
     font-family: inherit;
     font-weight: 600;
-    font-size: 14px;
-    border-radius: 10px;
-    padding: 10px 22px;
+    font-size: 0.875rem;
+    border-radius: 0.5rem;
+    border: none;
     cursor: pointer;
     text-decoration: none;
-    transition: all .2s ease;
-    border: none;
-    outline: none;
+    transition: all 0.2s ease;
     white-space: nowrap;
+    position: relative;
+    overflow: hidden;
   }
-  .btn-ghost {
-    background: transparent;
-    color: rgba(255,255,255,.85);
-    border: 1.5px solid rgba(255,255,255,.15);
+  
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
   }
-  .btn-ghost:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.3); color: #fff; }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--primary), var(--secondary));
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(79,70,229,.4);
+  
+  .btn:hover::before {
+    left: 100%;
   }
-  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,70,229,.55); }
+  
   .btn-outline {
     background: transparent;
-    color: #fff;
-    border: 1.5px solid rgba(255,255,255,.25);
+    color: var(--gray-700);
+    border: 2px solid var(--gray-300);
   }
-  .btn-outline:hover { background: rgba(255,255,255,.1); border-color: #fff; }
-  .btn-admin {
-    background: rgba(239,68,68,.12);
-    color: #fca5a5;
-    border: 1.5px solid rgba(239,68,68,.25);
-    font-size: 12px;
-    padding: 8px 16px;
+  
+  .btn-outline:hover {
+    background: var(--gray-50);
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
-  .btn-admin:hover { background: rgba(239,68,68,.22); border-color: #fca5a5; color: #fff; }
-
-  /* ── Hero ── */
+  
+  .btn-primary {
+    background: var(--gradient-primary);
+    color: white;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  .btn-secondary {
+    background: var(--gradient-secondary);
+    color: white;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  /* Hero Section */
   .hero {
-    flex: 1;
+    padding: 8rem 2rem 4rem;
+    min-height: 100vh;
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 80px 24px 60px;
+    position: relative;
   }
+  
+  .hero-container {
+    max-width: 1200px;
+    width: 100%;
+  }
+  
   .hero-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    background: rgba(79,70,229,.18);
-    border: 1px solid rgba(79,70,229,.35);
-    border-radius: 50px;
-    padding: 6px 18px;
-    font-size: 13px;
-    color: #a5b4fc;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 2rem;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    margin-bottom: 28px;
-    animation: fadeUp .6s ease both;
+    color: var(--primary);
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-lg);
+    animation: float 3s ease-in-out infinite;
   }
-  .hero-badge .dot { width: 7px; height: 7px; background: #4f46e5; border-radius: 50%; animation: blink 2s infinite; }
-  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
-
+  
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  
   .hero-logo {
-    margin-bottom: 36px;
-    animation: fadeUp .5s .1s ease both;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.8s ease-out;
   }
+  
   .hero-logo img {
-    height: 100px;
-    border-radius: 18px;
-    background: #fff;
-    padding: 10px 20px;
-    box-shadow: 0 8px 40px rgba(79,70,229,.3), 0 0 0 1px rgba(255,255,255,.08);
-    transition: transform .3s ease, box-shadow .3s ease;
+    height: 120px;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-2xl);
+    transition: transform 0.3s ease;
   }
-  .hero-logo img:hover { transform: scale(1.04); box-shadow: 0 16px 60px rgba(79,70,229,.45); }
-
+  
+  .hero-logo img:hover {
+    transform: scale(1.05) rotate(2deg);
+  }
+  
   .hero-title {
-    font-size: clamp(36px, 6vw, 72px);
+    font-size: clamp(2.5rem, 5vw, 4rem);
     font-weight: 900;
     line-height: 1.1;
-    letter-spacing: -2px;
-    margin-bottom: 20px;
-    animation: fadeUp .6s .2s ease both;
-  }
-  .hero-title .grad {
-    background: linear-gradient(90deg, #818cf8, #c4b5fd, #67e8f9);
+    margin-bottom: 1.5rem;
+    background: linear-gradient(135deg, var(--gray-900) 0%, var(--primary) 50%, var(--secondary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    animation: fadeInUp 0.8s ease-out 0.2s both;
   }
-  .hero-sub {
-    font-size: clamp(16px, 2vw, 20px);
-    color: rgba(255,255,255,.6);
-    max-width: 560px;
+  
+  .hero-subtitle {
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
+    color: var(--gray-600);
+    max-width: 600px;
+    margin: 0 auto 3rem;
     line-height: 1.7;
-    margin-bottom: 40px;
-    animation: fadeUp .6s .3s ease both;
+    animation: fadeInUp 0.8s ease-out 0.4s both;
   }
-  .hero-cta {
+  
+  .hero-actions {
     display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
+    gap: 1rem;
     justify-content: center;
-    animation: fadeUp .6s .4s ease both;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.8s ease-out 0.6s both;
   }
-  .btn-hero-primary {
-    background: linear-gradient(135deg, #4f46e5, #7c3aed);
-    color: #fff;
-    font-size: 16px;
-    padding: 14px 36px;
-    border-radius: 14px;
-    box-shadow: 0 8px 32px rgba(79,70,229,.45);
+  
+  .btn-hero {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    border-radius: 0.75rem;
+    font-weight: 700;
   }
-  .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(79,70,229,.6); }
-  .btn-hero-outline {
-    background: rgba(255,255,255,.07);
-    color: #fff;
-    font-size: 16px;
-    padding: 14px 36px;
-    border-radius: 14px;
-    border: 1.5px solid rgba(255,255,255,.2);
-    backdrop-filter: blur(8px);
-  }
-  .btn-hero-outline:hover { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.4); transform: translateY(-2px); }
-
-  /* ── Stats ── */
+  
+  /* Stats Section */
   .stats {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 64px;
-    padding: 0 24px;
-    animation: fadeUp .6s .5s ease both;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    max-width: 800px;
+    margin: 4rem auto 0;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 1rem;
+    box-shadow: var(--shadow-xl);
+    animation: fadeInUp 0.8s ease-out 0.8s both;
   }
-  .stat-item { text-align: center; }
-  .stat-val {
-    font-size: 32px;
+  
+  .stat-item {
+    text-align: center;
+    padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 2.5rem;
     font-weight: 900;
-    background: linear-gradient(90deg, #818cf8, #c4b5fd);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    margin-bottom: 0.5rem;
   }
-  .stat-label { font-size: 13px; color: rgba(255,255,255,.45); margin-top: 2px; }
-  .stat-divider { width: 1px; background: rgba(255,255,255,.1); align-self: stretch; }
-
-  /* ── Features ── */
-  .features {
-    padding: 80px 48px;
-    max-width: 1100px;
-    margin: 0 auto;
-    width: 100%;
-  }
-  .section-label {
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    color: #818cf8;
+  
+  .stat-label {
+    font-size: 0.875rem;
+    color: var(--gray-600);
+    font-weight: 600;
     text-transform: uppercase;
-    margin-bottom: 12px;
+    letter-spacing: 0.05em;
   }
-  .section-title {
+  
+  /* Features Section */
+  .features {
+    padding: 6rem 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+  }
+  
+  .features-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .section-header {
     text-align: center;
-    font-size: clamp(24px, 4vw, 40px);
-    font-weight: 800;
-    letter-spacing: -1px;
-    margin-bottom: 48px;
-    color: #fff;
+    margin-bottom: 4rem;
   }
+  
+  .section-badge {
+    display: inline-block;
+    background: var(--gradient-primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 900;
+    color: var(--gray-900);
+    margin-bottom: 1rem;
+  }
+  
+  .section-subtitle {
+    font-size: 1.125rem;
+    color: var(--gray-600);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
   .features-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
   }
+  
   .feature-card {
-    background: rgba(255,255,255,.04);
-    border: 1px solid rgba(255,255,255,.08);
-    border-radius: 20px;
-    padding: 32px 28px;
-    transition: all .25s ease;
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow-lg);
+    transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    border: 1px solid var(--gray-200);
   }
+  
   .feature-card::before {
     content: '';
     position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(79,70,229,.08), transparent);
-    opacity: 0;
-    transition: opacity .25s;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--gradient-primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
   }
-  .feature-card:hover { border-color: rgba(79,70,229,.4); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
-  .feature-card:hover::before { opacity: 1; }
+  
+  .feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-2xl);
+  }
+  
+  .feature-card:hover::before {
+    transform: scaleX(1);
+  }
+  
   .feature-icon {
-    width: 56px; height: 56px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, rgba(79,70,229,.3), rgba(124,58,237,.2));
-    border: 1px solid rgba(79,70,229,.3);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 26px;
-    margin-bottom: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 1rem;
+    background: var(--gradient-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-md);
   }
-  .feature-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; color: #f1f5f9; }
-  .feature-desc { font-size: 14px; color: rgba(255,255,255,.5); line-height: 1.7; }
-
-  /* ── CTA Section ── */
-  .cta-section {
-    margin: 0 48px 80px;
-    max-width: 1100px;
-    margin-left: auto;
-    margin-right: auto;
-    background: linear-gradient(135deg, rgba(79,70,229,.2), rgba(124,58,237,.15));
-    border: 1px solid rgba(79,70,229,.3);
-    border-radius: 28px;
-    padding: 60px 48px;
+  
+  .feature-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 0.75rem;
+  }
+  
+  .feature-description {
+    color: var(--gray-600);
+    line-height: 1.7;
+  }
+  
+  /* CTA Section */
+  .cta {
+    padding: 6rem 2rem;
+    background: var(--gradient-primary);
     text-align: center;
     position: relative;
     overflow: hidden;
   }
-  .cta-section::before {
+  
+  .cta::before {
     content: '';
     position: absolute;
-    top: -80px; right: -80px;
-    width: 300px; height: 300px;
-    background: radial-gradient(circle, rgba(79,70,229,.25), transparent 70%);
-    pointer-events: none;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
   }
-  .cta-title { font-size: clamp(22px, 3vw, 36px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
-  .cta-sub { font-size: 16px; color: rgba(255,255,255,.6); margin-bottom: 32px; }
-  .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
-
-  /* ── Footer ── */
-  footer {
-    border-top: 1px solid rgba(255,255,255,.07);
-    padding: 28px 48px;
+  
+  @keyframes rotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  .cta-container {
+    max-width: 800px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .cta-title {
+    font-size: clamp(2rem, 4vw, 3rem);
+    font-weight: 900;
+    color: white;
+    margin-bottom: 1.5rem;
+  }
+  
+  .cta-subtitle {
+    font-size: 1.25rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 2rem;
+  }
+  
+  .cta-actions {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    gap: 1rem;
+    justify-content: center;
     flex-wrap: wrap;
-    gap: 12px;
   }
-  .footer-brand { display: flex; align-items: center; gap: 10px; }
-  .footer-brand img { height: 32px; border-radius: 6px; background: #fff; padding: 3px 6px; }
-  .footer-copy { font-size: 13px; color: rgba(255,255,255,.3); }
-  .footer-links { display: flex; gap: 20px; }
-  .footer-links a { font-size: 13px; color: rgba(255,255,255,.4); text-decoration: none; transition: color .2s; }
-  .footer-links a:hover { color: #818cf8; }
-
-  /* ── Animations ── */
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to { opacity: 1; transform: translateY(0); }
+  
+  .btn-cta {
+    background: white;
+    color: var(--primary);
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    box-shadow: var(--shadow-xl);
   }
-
-  /* ── Responsive ── */
+  
+  .btn-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-2xl);
+  }
+  
+  .btn-cta-outline {
+    background: transparent;
+    color: white;
+    border: 2px solid white;
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    border-radius: 0.75rem;
+  }
+  
+  .btn-cta-outline:hover {
+    background: white;
+    color: var(--primary);
+  }
+  
+  /* Footer */
+  .footer {
+    background: var(--gray-900);
+    color: white;
+    padding: 3rem 2rem 1rem;
+  }
+  
+  .footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .footer-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .footer-brand img {
+    height: 32px;
+    border-radius: 6px;
+  }
+  
+  .footer-brand-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+  }
+  
+  .footer-description {
+    color: var(--gray-400);
+    line-height: 1.6;
+  }
+  
+  .footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .footer-links h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: white;
+  }
+  
+  .footer-links a {
+    color: var(--gray-400);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .footer-links a:hover {
+    color: white;
+  }
+  
+  .footer-bottom {
+    border-top: 1px solid var(--gray-800);
+    padding-top: 2rem;
+    text-align: center;
+    color: var(--gray-400);
+    font-size: 0.875rem;
+  }
+  
+  /* Animations */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Responsive Design */
   @media (max-width: 768px) {
-    nav { padding: 16px 20px; }
-    .nav-brand { font-size: 16px; }
-    .nav-logo img { height: 36px; }
-    .hero { padding: 60px 20px 40px; }
-    .hero-logo img { height: 72px; }
-    .features { padding: 60px 20px; }
-    .cta-section { margin: 0 20px 60px; padding: 40px 24px; }
-    footer { padding: 24px 20px; flex-direction: column; text-align: center; }
-    .stat-divider { display: none; }
-  }
-  @media (max-width: 480px) {
-    .nav-actions .btn-ghost { display: none; }
-    .btn-hero-primary, .btn-hero-outline { width: 100%; font-size: 15px; }
+    .navbar-container {
+      padding: 1rem;
+    }
+    
+    .nav-brand {
+      font-size: 1rem;
+    }
+    
+    .nav-brand img {
+      height: 32px;
+    }
+    
+    .nav-actions {
+      gap: 0.5rem;
+    }
+    
+    .btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.75rem;
+    }
+    
+    .hero {
+      padding: 6rem 1rem 2rem;
+    }
+    
+    .hero-logo img {
+      height: 80px;
+    }
+    
+    .hero-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .btn-hero {
+      width: 100%;
+      max-width: 300px;
+    }
+    
+    .stats {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      padding: 1.5rem;
+    }
+    
+    .features {
+      padding: 4rem 1rem;
+    }
+    
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    
+    .feature-card {
+      padding: 1.5rem;
+    }
+    
+    .cta {
+      padding: 4rem 1rem;
+    }
+    
+    .cta-actions {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .btn-cta {
+      width: 100%;
+      max-width: 300px;
+    }
+    
+    .footer-content {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
   }
 </style>
 </head>
 <body>
+<div class="bg-pattern"></div>
 
-<!-- Animated Canvas Background -->
-<canvas id="bgCanvas"></canvas>
-<div class="bg-overlay"></div>
-
-<div class="page">
-  <!-- Navbar -->
-  <nav>
-    <a href="/" class="nav-logo">
-      <img src="/media/logo/talent_infosys_logo.jpg" alt="Talent Infosys Logo">
-      <span class="nav-brand">Talent Infosys</span>
+<!-- Navigation -->
+<nav class="navbar">
+  <div class="navbar-container">
+    <a href="/" class="nav-brand">
+      <img src="{% static 'logo/talent_infosys_logo.jpg' %}" alt="Talent Infosys">
+      <span>Talent Infosys</span>
     </a>
     <div class="nav-actions">
-      <a href="{% url 'users:admin_login' %}" class="btn btn-admin">🔐 Admin</a>
-      <a href="{% url 'users:login' %}" class="btn btn-ghost">Log In</a>
-      <a href="{% url 'users:signup' %}" class="btn btn-primary">Sign Up Free →</a>
+      <a href="{% url 'users:admin_login' %}" class="btn btn-outline">
+        <i class="fas fa-user-shield"></i> Admin
+      </a>
+      <a href="{% url 'users:login' %}" class="btn btn-outline">
+        <i class="fas fa-sign-in-alt"></i> Log In
+      </a>
+      <a href="{% url 'users:signup' %}" class="btn btn-primary">
+        <i class="fas fa-user-plus"></i> Sign Up
+      </a>
     </div>
-  </nav>
+  </div>
+</nav>
 
-  <!-- Hero -->
-  <section class="hero">
+<!-- Hero Section -->
+<section class="hero">
+  <div class="hero-container">
     <div class="hero-badge">
-      <span class="dot"></span> Online Quiz Management Platform
+      <i class="fas fa-circle" style="color: #10b981; font-size: 0.5rem;"></i>
+      Online Quiz Management Platform
     </div>
-
+    
     <div class="hero-logo">
-      <img src="/media/logo/talent_infosys_logo.jpg" alt="Talent Infosys">
+      <img src="{% static 'logo/talent_infosys_logo.jpg' %}" alt="Talent Infosys">
     </div>
-
+    
     <h1 class="hero-title">
-      Learn, Test &<br><span class="grad">Certify Your Skills</span>
+      Learn, Test &<br>Certify Your Skills
     </h1>
-    <p class="hero-sub">
-      Talent Infosys's smart quiz platform lets you take timed quizzes, get instant results, and earn certificates — anytime, anywhere.
+    <p class="hero-subtitle">
+      Transform your knowledge into professional credentials with our intelligent quiz platform. 
+      Take timed assessments, get instant results, and earn certificates that validate your expertise.
     </p>
-    <div class="hero-cta">
-      <a href="{% url 'users:signup' %}" class="btn btn-hero-primary">🚀 Get Started Free</a>
-      <a href="{% url 'users:login' %}" class="btn btn-hero-outline">Log In to Dashboard</a>
+    
+    <div class="hero-actions">
+      <a href="{% url 'users:signup' %}" class="btn btn-primary btn-hero">
+        <i class="fas fa-rocket"></i> Get Started Free
+      </a>
+      <a href="{% url 'users:login' %}" class="btn btn-secondary btn-hero">
+        <i class="fas fa-sign-in-alt"></i> Log In to Dashboard
+      </a>
     </div>
-
+    
     <!-- Stats -->
     <div class="stats">
       <div class="stat-item">
-        <div class="stat-val">∞</div>
+        <div class="stat-value">∞</div>
         <div class="stat-label">Quizzes Available</div>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
-        <div class="stat-val">⚡</div>
+        <div class="stat-value">⚡</div>
         <div class="stat-label">Instant Results</div>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
-        <div class="stat-val">🏆</div>
-        <div class="stat-label">Earn Certificates</div>
+        <div class="stat-value">🏆</div>
+        <div class="stat-label">Certificates</div>
       </div>
-      <div class="stat-divider"></div>
       <div class="stat-item">
-        <div class="stat-val">📱</div>
+        <div class="stat-value">📱</div>
         <div class="stat-label">Any Device</div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Features -->
-  <section class="features">
-    <p class="section-label">Why Talent Infosys</p>
-    <h2 class="section-title">Everything you need to excel</h2>
+<!-- Features Section -->
+<section class="features">
+  <div class="features-container">
+    <div class="section-header">
+      <div class="section-badge">Features</div>
+      <h2 class="section-title">Everything You Need to Excel</h2>
+      <p class="section-subtitle">
+        Powerful tools designed to enhance your learning experience and validate your skills
+      </p>
+    </div>
+    
     <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-icon">⏱️</div>
-        <div class="feature-title">Timed Quizzes</div>
-        <div class="feature-desc">Real exam conditions with countdown timers and auto-submission when time runs out.</div>
+        <div class="feature-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <h3 class="feature-title">Timed Quizzes</h3>
+        <p class="feature-description">
+          Experience real exam conditions with countdown timers and automatic submission when time expires, 
+          ensuring fair assessment under pressure.
+        </p>
       </div>
+      
       <div class="feature-card">
-        <div class="feature-icon">🧩</div>
-        <div class="feature-title">Multi-Answer Questions</div>
-        <div class="feature-desc">Support for single and multiple correct answer questions with clear visual feedback.</div>
+        <div class="feature-icon">
+          <i class="fas fa-check-square"></i>
+        </div>
+        <h3 class="feature-title">Multi-Answer Questions</h3>
+        <p class="feature-description">
+          Support for both single and multiple correct answer questions with clear visual feedback 
+          to enhance understanding and learning.
+        </p>
       </div>
+      
       <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-title">Detailed Results</div>
-        <div class="feature-desc">Instant score breakdown with correct answer review so you learn from every attempt.</div>
+        <div class="feature-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3 class="feature-title">Detailed Analytics</h3>
+        <p class="feature-description">
+          Get comprehensive score breakdowns with correct answer reviews so you can learn from every 
+          attempt and track your progress over time.
+        </p>
       </div>
+      
       <div class="feature-card">
-        <div class="feature-icon">📜</div>
-        <div class="feature-title">Certificates</div>
-        <div class="feature-desc">Download a PDF certificate when you meet the passing threshold — proof of your achievement.</div>
+        <div class="feature-icon">
+          <i class="fas fa-certificate"></i>
+        </div>
+        <h3 class="feature-title">Professional Certificates</h3>
+        <p class="feature-description">
+          Download authentic PDF certificates when you meet passing thresholds — perfect proof of your 
+          achievements for employers and professional profiles.
+        </p>
       </div>
+      
       <div class="feature-card">
-        <div class="feature-icon">🎛️</div>
-        <div class="feature-title">Admin Control</div>
-        <div class="feature-desc">Powerful admin panel to create/manage quizzes, questions, and view student reports.</div>
+        <div class="feature-icon">
+          <i class="fas fa-cogs"></i>
+        </div>
+        <h3 class="feature-title">Admin Dashboard</h3>
+        <p class="feature-description">
+          Powerful administration panel to create and manage quizzes, questions, and view detailed 
+          student performance reports and analytics.
+        </p>
       </div>
+      
       <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <div class="feature-title">Secure & Private</div>
-        <div class="feature-desc">Each student gets a private dashboard. Results are visible only to the student and admins.</div>
+        <div class="feature-icon">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h3 class="feature-title">Secure & Private</h3>
+        <p class="feature-description">
+          Each student gets a private dashboard with secure authentication. Results are visible 
+          only to the student and authorized administrators.
+        </p>
       </div>
-    </div>
-  </section>
-
-  <!-- CTA Banner -->
-  <div class="cta-section">
-    <h2 class="cta-title">Ready to test your knowledge?</h2>
-    <p class="cta-sub">Create a free account and start your first quiz in under a minute.</p>
-    <div class="cta-actions">
-      <a href="{% url 'users:signup' %}" class="btn btn-hero-primary">🚀 Create Free Account</a>
-      <a href="{% url 'users:login' %}" class="btn btn-hero-outline">Already have an account</a>
     </div>
   </div>
+</section>
 
-  <!-- Footer -->
-  <footer>
-    <div class="footer-brand">
-      <img src="/media/logo/talent_infosys_logo.jpg" alt="Talent Infosys">
-      <span style="font-size:13px;color:rgba(255,255,255,.4);">Talent Infosys</span>
+<!-- CTA Section -->
+<section class="cta">
+  <div class="cta-container">
+    <h2 class="cta-title">Ready to Test Your Knowledge?</h2>
+    <p class="cta-subtitle">
+      Join thousands of learners who are already advancing their careers with our platform
+    </p>
+    <div class="cta-actions">
+      <a href="{% url 'users:signup' %}" class="btn btn-cta">
+        <i class="fas fa-rocket"></i> Create Free Account
+      </a>
+      <a href="{% url 'users:login' %}" class="btn btn-cta-outline">
+        <i class="fas fa-sign-in-alt"></i> Already Have an Account
+      </a>
     </div>
-    <div class="footer-copy">© 2026 Talent Infosys. All rights reserved.</div>
-    <div class="footer-links">
-      <a href="{% url 'users:login' %}">Student Login</a>
-      <a href="{% url 'users:admin_login' %}">Admin</a>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <div class="footer-section">
+        <div class="footer-brand">
+          <img src="{% static 'logo/talent_infosys_logo.jpg' %}" alt="Talent Infosys">
+          <span class="footer-brand-name">Talent Infosys</span>
+        </div>
+        <p class="footer-description">
+          Empowering professionals and students with intelligent assessment tools 
+          to validate skills and advance careers.
+        </p>
+      </div>
+      
+      <div class="footer-section">
+        <div class="footer-links">
+          <h3>Platform</h3>
+          <a href="{% url 'users:signup' %}">Sign Up</a>
+          <a href="{% url 'users:login' %}">Student Login</a>
+          <a href="{% url 'users:admin_login' %}">Admin Portal</a>
+        </div>
+      </div>
+      
+      <div class="footer-section">
+        <div class="footer-links">
+          <h3>Features</h3>
+          <a href="#features">Timed Quizzes</a>
+          <a href="#features">Certificates</a>
+          <a href="#features">Analytics</a>
+        </div>
+      </div>
+      
+      <div class="footer-section">
+        <div class="footer-links">
+          <h3>Support</h3>
+          <a href="#">Help Center</a>
+          <a href="#">Documentation</a>
+          <a href="#">Contact Us</a>
+        </div>
+      </div>
     </div>
-  </footer>
-</div>
+    
+    <div class="footer-bottom">
+      <p>&copy; 2026 Talent Infosys. All rights reserved. | Privacy Policy | Terms of Service</p>
+    </div>
+  </div>
+</footer>
 
 <script>
-// ── Animated Particle Background ──
-const canvas = document.getElementById('bgCanvas');
-const ctx = canvas.getContext('2d');
-let W, H, particles = [], mouse = { x: -999, y: -999 };
-
-function resize() {
-  W = canvas.width = window.innerWidth;
-  H = canvas.height = window.innerHeight;
-}
-
-class Particle {
-  constructor() { this.reset(true); }
-  reset(init = false) {
-    this.x = Math.random() * W;
-    this.y = init ? Math.random() * H : H + 20;
-    this.r = Math.random() * 2 + 0.5;
-    this.speed = Math.random() * 0.4 + 0.1;
-    this.dx = (Math.random() - 0.5) * 0.3;
-    this.alpha = Math.random() * 0.5 + 0.1;
-    const hues = [220, 240, 260, 280, 190];
-    this.hue = hues[Math.floor(Math.random() * hues.length)];
-  }
-  update() {
-    this.y -= this.speed;
-    this.x += this.dx;
-    if (this.y < -10) this.reset();
-    // Mouse repel
-    const mdx = this.x - mouse.x, mdy = this.y - mouse.y;
-    const dist = Math.sqrt(mdx * mdx + mdy * mdy);
-    if (dist < 100) {
-      this.x += (mdx / dist) * 1.2;
-      this.y += (mdy / dist) * 1.2;
+// Smooth scroll behavior for navigation
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function (e) {
+    e.preventDefault();
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
     }
-  }
-  draw() {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fillStyle = `hsla(${this.hue}, 80%, 70%, ${this.alpha})`;
-    ctx.fill();
-    ctx.restore();
-  }
-}
-
-// Connecting lines between nearby particles
-function drawLines() {
-  for (let i = 0; i < particles.length; i++) {
-    for (let j = i + 1; j < particles.length; j++) {
-      const dx = particles[i].x - particles[j].x;
-      const dy = particles[i].y - particles[j].y;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 110) {
-        ctx.save();
-        ctx.beginPath();
-        ctx.moveTo(particles[i].x, particles[i].y);
-        ctx.lineTo(particles[j].x, particles[j].y);
-        ctx.strokeStyle = `rgba(129,140,248, ${(1 - dist / 110) * 0.15})`;
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-        ctx.restore();
-      }
-    }
-  }
-}
-
-// Animated gradient orbs
-let orbT = 0;
-function drawOrbs() {
-  orbT += 0.002;
-  const orbs = [
-    { cx: W * 0.2 + Math.sin(orbT) * 80, cy: H * 0.3 + Math.cos(orbT * 0.8) * 60, r: 260, color: 'rgba(79,70,229,' },
-    { cx: W * 0.8 + Math.cos(orbT * 0.7) * 100, cy: H * 0.5 + Math.sin(orbT * 1.1) * 80, r: 220, color: 'rgba(124,58,237,' },
-    { cx: W * 0.5 + Math.sin(orbT * 1.3) * 120, cy: H * 0.8 + Math.cos(orbT) * 60, r: 180, color: 'rgba(6,182,212,' },
-  ];
-  orbs.forEach(o => {
-    const g = ctx.createRadialGradient(o.cx, o.cy, 0, o.cx, o.cy, o.r);
-    g.addColorStop(0, o.color + '0.06)');
-    g.addColorStop(1, o.color + '0)');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(o.cx, o.cy, o.r, 0, Math.PI * 2);
-    ctx.fill();
   });
-}
+});
 
-function animate() {
-  ctx.clearRect(0, 0, W, H);
-  drawOrbs();
-  drawLines();
-  particles.forEach(p => { p.update(); p.draw(); });
-  requestAnimationFrame(animate);
-}
+// Navbar scroll effect
+let lastScroll = 0;
+const navbar = document.querySelector('.navbar');
 
-function init() {
-  resize();
-  particles = Array.from({ length: Math.min(120, Math.floor(W * H / 12000)) }, () => new Particle());
-  animate();
-}
+window.addEventListener('scroll', () => {
+  const currentScroll = window.pageYOffset;
+  
+  if (currentScroll <= 0) {
+    navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+  } else {
+    navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+  }
+  
+  lastScroll = currentScroll;
+});
 
-window.addEventListener('resize', () => { resize(); });
-window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-window.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
-init();
+// Intersection Observer for animations
+const observerOptions = {
+  threshold: 0.1,
+  rootMargin: '0px 0px -50px 0px'
+};
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.style.opacity = '1';
+      entry.target.style.transform = 'translateY(0)';
+    }
+  });
+}, observerOptions);
+
+// Observe feature cards
+document.querySelectorAll('.feature-card').forEach(card => {
+  card.style.opacity = '0';
+  card.style.transform = 'translateY(30px)';
+  card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+  observer.observe(card);
+});
+
+// Add hover effect to buttons
+document.querySelectorAll('.btn').forEach(button => {
+  button.addEventListener('mouseenter', function() {
+    this.style.transform = 'translateY(-2px)';
+  });
+  
+  button.addEventListener('mouseleave', function() {
+    this.style.transform = 'translateY(0)';
+  });
+});
 </script>
 </body>
 </html>

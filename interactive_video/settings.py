@@ -152,6 +152,16 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Serve static and media files during development (when DEBUG=True)
+if DEBUG:
+    from django.conf.urls.static import static
+    from django.urls import include
+    
+    # This will be added to urlpatterns in urls.py
+    STATICFILES_DIRS = [
+        os.path.join(BASE_DIR, 'interactive_video/static'),
+    ]
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # EMAIL
