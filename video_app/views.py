@@ -36,6 +36,15 @@ from reportlab.lib import colors
 import io
 
 import io
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.staticfiles import finders
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.units import inch
+
+import io
 
 AuthUser = get_user_model()
 
@@ -245,118 +254,143 @@ def quiz_result(request, attempt_id):
 
 @student_login_required
 def download_certificate(request, attempt_id):
+
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
     result = get_object_or_404(QuizResult, attempt=attempt)
 
-    # Enforce certificate minimum percentage threshold
+    # Certificate eligibility check
     min_pct = attempt.quiz.certificate_min_percentage
     if result.percentage < min_pct:
-        messages.error(request, f"Certificate not available. You need at least {min_pct:.0f}% to receive a certificate (your score: {result.percentage:.1f}%).")
+        messages.error(
+            request,
+            f"Certificate not available. You need at least {min_pct:.0f}% "
+            f"to receive a certificate (your score: {result.percentage:.1f}%)."
+        )
         return redirect('video_app:quiz_result', attempt_id=attempt_id)
 
     student_profile = getattr(request.user, 'student_profile', None)
     student_name = student_profile.student_name if student_profile else request.user.get_full_name()
     college_name = student_profile.college_name if student_profile else ''
 
-    # Generate PDF using ReportLab
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4, landscape
-    from reportlab.lib import colors
-    from reportlab.lib.units import inch
-
     buffer = io.BytesIO()
+
     page_size = landscape(A4)
     width, height = page_size
+
     pdf = canvas.Canvas(buffer, pagesize=page_size)
 
-    # Background gradient-like (white)
-    pdf.setFillColorRGB(0.98, 0.98, 1.0)
+    # Background
+    pdf.setFillColorRGB(0.97, 0.97, 0.99)
     pdf.rect(0, 0, width, height, fill=1, stroke=0)
 
-    # Outer gold border
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
+    # Outer border
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
     pdf.setLineWidth(6)
-    pdf.rect(25, 25, width - 50, height - 50, stroke=1, fill=0)
+    pdf.rect(30, 30, width - 60, height - 60)
 
     # Inner border
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
     pdf.setLineWidth(2)
-    pdf.rect(38, 38, width - 76, height - 76, stroke=1, fill=0)
+    pdf.rect(45, 45, width - 90, height - 90)
 
-    # Title
-    pdf.setFont("Helvetica-Bold", 38)
-    pdf.setFillColorRGB(0.2, 0.2, 0.5)
-    pdf.drawCentredString(width / 2, height - 100, "Certificate of Achievement")
+    # ---------------- LOGO ----------------
+    logo_path = finders.find('logo/talent_infosys_logo.jpg')
+
+    if logo_path:
+        logo_width = 160
+        logo_height = 70
+
+        pdf.drawImage(
+            logo_path,
+            width / 2 - logo_width / 2,
+            height - 110,
+            width=logo_width,
+            height=logo_height,
+            preserveAspectRatio=True,
+            mask='auto'
+        )
+
+    # ---------------- TITLE ----------------
+    pdf.setFont("Helvetica-Bold", 40)
+    pdf.setFillColorRGB(0.22, 0.22, 0.45)
+    pdf.drawCentredString(width/2, height-170, "Certificate of Achievement")
 
     # Decorative line
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
     pdf.setLineWidth(1.5)
-    pdf.line(80, height - 115, width - 80, height - 115)
+    pdf.line(120, height-185, width-120, height-185)
 
     # Subtitle
-    pdf.setFont("Helvetica", 14)
-    pdf.setFillColorRGB(0.4, 0.4, 0.4)
-    pdf.drawCentredString(width / 2, height - 140, "This is to certify that")
+    pdf.setFont("Helvetica", 15)
+    pdf.setFillColorRGB(0.4,0.4,0.4)
+    pdf.drawCentredString(width/2, height-220, "This is to certify that")
 
     # Student Name
-    pdf.setFont("Helvetica-Bold", 28)
-    pdf.setFillColorRGB(0.1, 0.1, 0.4)
-    pdf.drawCentredString(width / 2, height - 185, student_name)
+    pdf.setFont("Helvetica-Bold", 30)
+    pdf.setFillColorRGB(0.12,0.12,0.45)
+    pdf.drawCentredString(width/2, height-260, student_name)
 
     # Underline name
-    name_width = pdf.stringWidth(student_name, "Helvetica-Bold", 28)
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
-    pdf.setLineWidth(1)
-    pdf.line(width / 2 - name_width / 2, height - 190, width / 2 + name_width / 2, height - 190)
+    name_width = pdf.stringWidth(student_name, "Helvetica-Bold", 30)
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
+    pdf.line(width/2 - name_width/2, height-265, width/2 + name_width/2, height-265)
 
+    # College
     if college_name:
-        pdf.setFont("Helvetica", 13)
-        pdf.setFillColorRGB(0.4, 0.4, 0.4)
-        pdf.drawCentredString(width / 2, height - 215, f"from {college_name}")
+        pdf.setFont("Helvetica", 14)
+        pdf.setFillColorRGB(0.45,0.45,0.45)
+        pdf.drawCentredString(width/2, height-300, f"from {college_name}")
 
     # Body text
+    pdf.setFont("Helvetica", 15)
+    pdf.setFillColorRGB(0.2,0.2,0.2)
+    pdf.drawCentredString(width/2, height-340, "has successfully completed the quiz")
+
+    # Quiz title
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.setFillColorRGB(0.2,0.2,0.5)
+    pdf.drawCentredString(width/2, height-375, f'"{result.quiz.title}"')
+
+    # Score section
     pdf.setFont("Helvetica", 14)
-    pdf.setFillColorRGB(0.2, 0.2, 0.2)
-    body = f"has successfully completed the quiz"
-    pdf.drawCentredString(width / 2, height - 250, body)
-
-    # Quiz Name
-    pdf.setFont("Helvetica-Bold", 20)
-    pdf.setFillColorRGB(0.2, 0.2, 0.5)
-    pdf.drawCentredString(width / 2, height - 285, f'"{result.quiz.title}"')
-
-    # Score details
-    pdf.setFont("Helvetica", 13)
-    pdf.setFillColorRGB(0.3, 0.3, 0.3)
-    score_text = f"Score: {result.score} / {result.total_questions}   |   Percentage: {result.percentage:.1f}%   |   Grade: {result.grade}"
-    pdf.drawCentredString(width / 2, height - 325, score_text)
+    score_text = (
+        f"Score {result.score}/{result.total_questions}   |   "
+        f"Percentage {result.percentage:.1f}%   |   "
+        f"Grade {result.grade}"
+    )
+    pdf.drawCentredString(width/2, height-410, score_text)
 
     # Date
     date_str = result.completed_at.strftime("%d %B %Y")
+
     pdf.setFont("Helvetica", 12)
-    pdf.setFillColorRGB(0.5, 0.5, 0.5)
-    pdf.drawCentredString(width / 2, height - 355, f"Date of Completion: {date_str}")
+    pdf.setFillColorRGB(0.45,0.45,0.45)
+    pdf.drawCentredString(width/2, height-440, f"Date of Completion: {date_str}")
 
     # Bottom decorative line
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
     pdf.setLineWidth(1.5)
-    pdf.line(80, 100, width - 80, 100)
+    pdf.line(120, 120, width-120, 120)
 
     # Footer
     pdf.setFont("Helvetica-Oblique", 10)
-    pdf.setFillColorRGB(0.6, 0.6, 0.6)
-    pdf.drawCentredString(width / 2, 75, "Online Quiz Management System — Generated Certificate")
+    pdf.setFillColorRGB(0.6,0.6,0.6)
+    pdf.drawCentredString(
+        width/2,
+        95,
+        "Online Quiz Management System — Generated Certificate"
+    )
 
     pdf.showPage()
     pdf.save()
+
     buffer.seek(0)
 
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+
     safe_name = student_name.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="certificate_{safe_name}.pdf"'
+
     return response
-
-
 # ─── Admin Views ──────────────────────────────────────────────────────────────
 
 @staff_required
@@ -720,7 +754,7 @@ def admin_students_pdf(request):
 
     elements = []
 
-    title = "Complete Student List"
+    title = "Students List"
     elements.append(Paragraph(title, title_style))
 
     elements.append(
