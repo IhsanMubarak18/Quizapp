@@ -5,7 +5,8 @@
     style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
     <div>
         <h1>Quizzes 📝</h1>
-        <p>Manage all quizzes. Activate/deactivate to control student visibility.</p>
+        <p>Quizzes with a schedule activate and deactivate automatically. Use <em>Activate/Deactivate</em> for
+            unscheduled quizzes.</p>
     </div>
     <a href="{% url 'video_app:admin_add_quiz' %}" class="btn btn-primary">➕ Create Quiz</a>
 </div>
@@ -33,21 +34,36 @@
                 <td>{{ item.attempt_count }}</td>
                 <td style="font-size:12px;color:#64748b;">
                     {% if item.quiz.start_time %}
-                    {{ item.quiz.start_time|date:"d M, H:i" }} →<br>{{ item.quiz.end_time|date:"d M, H:i" }}
-                    {% else %}Always{% endif %}
+                    📅 {{ item.quiz.start_time|date:"d M, H:i" }}<br>
+                    <span style="color:#94a3b8;">→ {{ item.quiz.end_time|date:"d M, H:i" }}</span>
+                    {% else %}
+                    <span style="color:#94a3b8;">Always</span>
+                    {% endif %}
                 </td>
                 <td>
-                    <span class="badge badge-{% if item.quiz.is_active %}success{% else %}danger{% endif %}">
-                        {{ item.quiz.is_active|yesno:"Active,Inactive" }}
-                    </span>
+                    {% with status=item.quiz.schedule_status %}
+                    {% if status == 'live' %}
+                    <span class="badge" style="background:#dcfce7;color:#166534;">🟢 Live</span>
+                    {% elif status == 'scheduled' %}
+                    <span class="badge" style="background:#dbeafe;color:#1d4ed8;">🕐 Scheduled</span>
+                    {% elif status == 'ended' %}
+                    <span class="badge" style="background:#f1f5f9;color:#64748b;">✅ Ended</span>
+                    {% elif status == 'active' %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                    {% endif %}
+                    {% endwith %}
                 </td>
                 <td>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;">
                         <a href="{% url 'video_app:admin_quiz_questions' item.quiz.id %}" class="btn btn-sm"
                             style="background:#e0e7ff;color:#3730a3;border:none;">Questions</a>
+                        {% if not item.quiz.start_time and not item.quiz.end_time %}
                         <a href="{% url 'video_app:admin_toggle_quiz' item.quiz.id %}" class="btn btn-sm btn-warning">
                             {{ item.quiz.is_active|yesno:"Deactivate,Activate" }}
                         </a>
+                        {% endif %}
                         <a href="{% url 'video_app:admin_edit_quiz' item.quiz.id %}"
                             class="btn btn-sm btn-outline">Edit</a>
                         <a href="{% url 'video_app:admin_delete_quiz' item.quiz.id %}"

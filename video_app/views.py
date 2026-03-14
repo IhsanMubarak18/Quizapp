@@ -45,7 +45,7 @@ def home_view(request):
 @student_login_required
 def student_dashboard(request):
     student = getattr(request.user, 'student_profile', None)
-    available_quizzes = [q for q in Quiz.objects.filter(is_active=True) if q.is_available()]
+    available_quizzes = [q for q in Quiz.objects.all() if q.is_available()]
     recent_results = QuizResult.objects.filter(student=request.user).order_by('-completed_at')[:5]
     attempted_quiz_ids = set(
         QuizAttempt.objects.filter(student=request.user, is_submitted=True)
@@ -62,7 +62,7 @@ def student_dashboard(request):
 
 @student_login_required
 def quiz_list(request):
-    quizzes = Quiz.objects.filter(is_active=True).order_by('-created_at')
+    quizzes = Quiz.objects.all().order_by('-created_at')
     available = [q for q in quizzes if q.is_available()]
     # Mark which quizzes user has attempted
     attempted_ids = set(

@@ -55,14 +55,28 @@ class Quiz(models.Model):
         return self.title
 
     def is_available(self):
-        if not self.is_active:
-            return False
         now = timezone.now()
-        if self.start_time and now < self.start_time:
-            return False
-        if self.end_time and now > self.end_time:
-            return False
-        return True
+        # If a schedule is set, availability is driven purely by time
+        if self.start_time or self.end_time:
+            if self.start_time and now < self.start_time:
+                return False  # not started yet
+            if self.end_time and now > self.end_time:
+                return False  # already ended
+            return True       # within the scheduled window
+        # No schedule — use the manual is_active flag
+        return self.is_active
+
+    @property
+    def schedule_status(self):
+        """Rich status string for admin display."""
+        now = timezone.now()
+        if self.start_time or self.end_time:
+            if self.start_time and now < self.start_time:
+                return 'scheduled'   # upcoming
+            if self.end_time and now > self.end_time:
+                return 'ended'       # finished
+            return 'live'            # currently running
+        return 'active' if self.is_active else 'inactive'
 
     def total_questions(self):
         return self.quizquestion_set.count()

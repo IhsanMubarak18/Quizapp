@@ -95,7 +95,9 @@
             {{ result.percentage|floatformat:1 }}%
           </div>
         </td>
-        <td><span class="badge badge-{% if grade == 'F' %}danger{% elif grade == 'C' %}warning{% else %}success{% endif %}">{{ grade }}</span></td>
+        <td><span
+            class="badge badge-{% if grade == 'F' %}danger{% elif grade == 'C' %}warning{% else %}success{% endif %}">{{
+            grade }}</span></td>
         <td style="font-size:13px;color:#64748b;">{{ result.completed_at|date:"d M Y" }}</td>
         <td>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
