@@ -3,13 +3,15 @@ from datetime import datetime
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
+from django.core.cache import cache
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from users.models import StudentProfile
 
-from .models import Quiz, QuizAttempt, QuizResult
+from .models import Question, Quiz, QuizAttempt, QuizResult
+from .selectors import DASHBOARD_STATS_CACHE_KEY, admin_dashboard_stats
 
 
 class QuizScheduleEditTests(TestCase):
@@ -407,3 +409,22 @@ class AdminUserManagementTests(TestCase):
 
         self.assertRedirects(response, reverse('video_app:admin_users'))
         self.assertTrue(get_user_model().objects.filter(pk=self.super_admin.pk).exists())
+
+
+class PerformanceOptimizationTests(TestCase):
+    def test_dashboard_stats_cache_is_invalidated_when_related_data_changes(self):
+        cache.clear()
+
+        stats = admin_dashboard_stats()
+
+        self.assertEqual(stats['total_questions'], 0)
+        self.assertIsNotNone(cache.get(DASHBOARD_STATS_CACHE_KEY))
+
+        Question.objects.create(
+            question_text='What is 2 + 2?',
+            option_a='4',
+            option_b='5',
+            correct_answers=['A'],
+        )
+
+        self.assertIsNone(cache.get(DASHBOARD_STATS_CACHE_KEY))

@@ -51,6 +51,13 @@ class Quiz(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     questions = models.ManyToManyField(Question, through='QuizQuestion', blank=True)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['is_active']),
+            models.Index(fields=['start_time']),
+            models.Index(fields=['end_time']),
+        ]
+
     def __str__(self):
         return self.title
 
@@ -103,6 +110,13 @@ class QuizAttempt(models.Model):
     is_submitted = models.BooleanField(default=False)
     question_order = models.JSONField(default=list)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['student', 'is_submitted']),
+            models.Index(fields=['quiz', 'is_submitted']),
+            models.Index(fields=['started_at']),
+        ]
+
     def __str__(self):
         return f"{self.student.email} → {self.quiz.title}"
 
@@ -144,6 +158,12 @@ class QuizResult(models.Model):
     total_questions = models.PositiveIntegerField(default=0)
     percentage = models.FloatField(default=0.0)
     completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['student', 'completed_at']),
+            models.Index(fields=['quiz', 'completed_at']),
+        ]
 
     def __str__(self):
         return f"{self.student.email} | {self.quiz.title} | {self.percentage:.1f}%"

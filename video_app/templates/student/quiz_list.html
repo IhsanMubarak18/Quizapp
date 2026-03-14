@@ -22,7 +22,7 @@
         <div style="padding:20px;">
             <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
                 <span class="badge badge-info">⏱️ {{ item.quiz.time_limit_minutes }} min</span>
-                <span class="badge badge-info">📝 {{ item.quiz.total_questions }} questions</span>
+                <span class="badge badge-info">📝 {{ item.quiz.question_count }} questions</span>
                 {% if item.quiz.shuffle_questions %}
                 <span class="badge badge-warning">🔀 Shuffled</span>
                 {% endif %}

@@ -12,6 +12,16 @@ from django.db.models.functions import TruncDate
 from django.contrib import messages
 from .models import Question, Quiz, QuizQuestion, QuizAttempt, StudentAnswer, QuizResult
 from .forms import QuestionForm, QuizForm, RandomQuestionSelectForm
+from .selectors import (
+    admin_dashboard_stats,
+    admin_quizzes_queryset,
+    admin_students_queryset,
+    available_quizzes_queryset,
+    filtered_students_queryset,
+    ordered_questions_for_attempt,
+    question_map_for_ids,
+    student_college_options,
+)
 from users.forms import AdminUserCreationForm, AdminUserChangeForm
 from users.models import StudentProfile
 
@@ -56,8 +66,12 @@ def home_view(request):
 @student_login_required
 def student_dashboard(request):
     student = getattr(request.user, 'student_profile', None)
-    available_quizzes = [q for q in Quiz.objects.all() if q.is_available()]
-    recent_results = QuizResult.objects.filter(student=request.user).order_by('-completed_at')[:5]
+    available_quizzes = available_quizzes_queryset()
+    recent_results = (
+        QuizResult.objects.filter(student=request.user)
+        .select_related('quiz', 'attempt')
+        .order_by('-completed_at')[:5]
+    )
     attempted_quiz_ids = set(
         QuizAttempt.objects.filter(student=request.user, is_submitted=True)
         .values_list('quiz_id', flat=True)
@@ -73,8 +87,7 @@ def student_dashboard(request):
 
 @student_login_required
 def quiz_list(request):
-    quizzes = Quiz.objects.all().order_by('-created_at')
-    available = [q for q in quizzes if q.is_available()]
+    available = available_quizzes_queryset()
     # Mark which quizzes user has attempted
     attempted_ids = set(
         QuizAttempt.objects.filter(student=request.user, is_submitted=True)
@@ -117,12 +130,7 @@ def start_quiz(request, quiz_id):
             question_order=question_ids,
         )
 
-    questions = []
-    for qid in attempt.question_order:
-        try:
-            questions.append(Question.objects.get(id=qid))
-        except Question.DoesNotExist:
-            pass
+    questions = ordered_questions_for_attempt(attempt)
 
     # Load any existing answers: {question_id: list_of_selected_letters}
     existing_answers = {
@@ -149,10 +157,19 @@ def submit_quiz(request, attempt_id):
     if request.method == 'POST':
         # Collect all question keys — supports both radio (single) and checkbox (multi)
         question_keys = set(k for k in request.POST if k.startswith('q_'))
+        question_ids = []
+        for key in question_keys:
+            try:
+                question_ids.append(int(key[2:]))
+            except ValueError:
+                continue
+        question_map = question_map_for_ids(question_ids)
         for key in question_keys:
             try:
                 question_id = int(key[2:])
-                question = Question.objects.get(id=question_id)
+                question = question_map.get(question_id)
+                if question is None:
+                    continue
                 # getlist returns all checked values for the same name (checkboxes)
                 values = [v.upper() for v in request.POST.getlist(key) if v]
                 StudentAnswer.objects.update_or_create(
@@ -176,11 +193,11 @@ def _compute_result(attempt):
     """Evaluate attempt answers and save QuizResult."""
     attempt.is_submitted = True
     attempt.submitted_at = timezone.now()
-    attempt.save()
+    attempt.save(update_fields=['is_submitted', 'submitted_at'])
 
     total = len(attempt.question_order)
     score = sum(
-        1 for a in StudentAnswer.objects.filter(attempt=attempt) if a.is_correct
+        1 for a in StudentAnswer.objects.filter(attempt=attempt).select_related('question') if a.is_correct
     )
     percentage = (score / total * 100) if total > 0 else 0.0
 
@@ -332,18 +349,7 @@ def download_certificate(request, attempt_id):
 
 @staff_required
 def admin_dashboard(request):
-    total_questions = Question.objects.count()
-    total_quizzes = Quiz.objects.count()
-    total_students = AuthUser.objects.filter(is_staff=False).count()
-    total_attempts = QuizAttempt.objects.filter(is_submitted=True).count()
-    total_admin_users = AuthUser.objects.filter(is_staff=True).count()
-    return render(request, 'admin_panel/dashboard.html', {
-        'total_questions': total_questions,
-        'total_quizzes': total_quizzes,
-        'total_students': total_students,
-        'total_attempts': total_attempts,
-        'total_admin_users': total_admin_users,
-    })
+    return render(request, 'admin_panel/dashboard.html', admin_dashboard_stats())
 
 
 # ── Question Bank ──
@@ -442,14 +448,7 @@ def admin_edit_quiz_question(request, quiz_id, question_id):
 
 @staff_required
 def admin_quizzes(request):
-    quizzes = Quiz.objects.all().order_by('-created_at')
-    quiz_data = []
-    for q in quizzes:
-        quiz_data.append({
-            'quiz': q,
-            'question_count': q.total_questions(),
-            'attempt_count': QuizAttempt.objects.filter(quiz=q, is_submitted=True).count(),
-        })
+    quiz_data = admin_quizzes_queryset()
     return render(request, 'admin_panel/quiz_list.html', {'quiz_data': quiz_data})
 
 
@@ -518,18 +517,27 @@ def admin_add_question_to_quiz(request, quiz_id):
     """Add specific questions from bank to quiz."""
     quiz = get_object_or_404(Quiz, id=quiz_id)
     if request.method == 'POST':
-        question_ids = request.POST.getlist('question_ids')
-        current_max = QuizQuestion.objects.filter(quiz=quiz).count()
-        for i, qid in enumerate(question_ids):
+        question_ids = []
+        for qid in request.POST.getlist('question_ids'):
             try:
-                question = Question.objects.get(id=qid)
-                QuizQuestion.objects.get_or_create(
-                    quiz=quiz, question=question,
-                    defaults={'order': current_max + i + 1}
-                )
-            except Question.DoesNotExist:
-                pass
-        messages.success(request, f"{len(question_ids)} question(s) added to quiz.")
+                question_ids.append(int(qid))
+            except ValueError:
+                continue
+        existing_ids = set(
+            QuizQuestion.objects.filter(quiz=quiz, question_id__in=question_ids)
+            .values_list('question_id', flat=True)
+        )
+        new_question_ids = [qid for qid in question_ids if qid not in existing_ids]
+        valid_question_ids = list(
+            Question.objects.filter(id__in=new_question_ids).values_list('id', flat=True)
+        )
+        current_max = QuizQuestion.objects.filter(quiz=quiz).count()
+        quiz_questions = [
+            QuizQuestion(quiz=quiz, question_id=qid, order=current_max + index + 1)
+            for index, qid in enumerate(valid_question_ids)
+        ]
+        QuizQuestion.objects.bulk_create(quiz_questions)
+        messages.success(request, f"{len(valid_question_ids)} question(s) added to quiz.")
     return redirect('video_app:admin_quiz_questions', quiz_id=quiz_id)
 
 
@@ -544,8 +552,10 @@ def admin_add_random_questions(request, quiz_id):
         candidates = list(Question.objects.exclude(id__in=existing_ids))
         selected = random.sample(candidates, min(count, len(candidates)))
         current_max = QuizQuestion.objects.filter(quiz=quiz).count()
-        for i, q in enumerate(selected):
-            QuizQuestion.objects.create(quiz=quiz, question=q, order=current_max + i + 1)
+        QuizQuestion.objects.bulk_create([
+            QuizQuestion(quiz=quiz, question=q, order=current_max + i + 1)
+            for i, q in enumerate(selected)
+        ])
         messages.success(request, f"{len(selected)} random question(s) added.")
     return redirect('video_app:admin_quiz_questions', quiz_id=quiz_id)
 
@@ -633,38 +643,13 @@ def admin_delete_user(request, user_id):
     })
 
 
-# ── Student Management ──
-
-def _filtered_students(search='', college=''):
-    students = StudentProfile.objects.select_related('user')
-    if search:
-        students = students.filter(
-            Q(student_name__icontains=search) |
-            Q(user__email__icontains=search) |
-            Q(college_name__icontains=search) |
-            Q(mobile_number__icontains=search)
-        )
-    if college:
-        students = students.filter(college_name=college)
-    return students
-
-
 @staff_required
 def admin_students(request):
     search = request.GET.get('search', '')
     selected_college = request.GET.get('college', '')
-    students = _filtered_students(search=search, college=selected_college).order_by('-user__date_joined')
-    college_options = (
-        StudentProfile.objects.exclude(college_name='')
-        .order_by('college_name')
-        .values_list('college_name', flat=True)
-        .distinct()
-    )
-    # Count attempts per student
-    student_data = []
-    for sp in students:
-        attempts = QuizAttempt.objects.filter(student=sp.user, is_submitted=True).count()
-        student_data.append({'profile': sp, 'attempts': attempts})
+    students = admin_students_queryset(search=search, college=selected_college)
+    college_options = student_college_options()
+    student_data = [{'profile': sp, 'attempts': sp.attempts_count} for sp in students]
     return render(request, 'admin_panel/students.html', {
         'student_data': student_data,
         'search': search,
@@ -694,7 +679,7 @@ def admin_students_pdf(request):
     from reportlab.lib import colors
 
     selected_college = request.GET.get('college', '')
-    students = _filtered_students(college=selected_college).order_by('student_name')
+    students = filtered_students_queryset(college=selected_college).order_by('student_name')
     buffer = io.BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4

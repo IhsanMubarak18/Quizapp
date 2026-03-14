@@ -27,10 +27,10 @@ RUN grep -v '^pkg-resources==' /app/requirements.txt > /tmp/requirements.txt \
 
 COPY . /app
 
-RUN mkdir -p /app/data /app/media /app/staticfiles \
+RUN mkdir -p /app/.django_cache /app/data /app/media /app/staticfiles \
     && chmod +x /app/entrypoint.sh
 
 EXPOSE 8000
 
 ENTRYPOINT ["/app/entrypoint.sh"]
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["gunicorn", "interactive_video.wsgi:application", "-c", "/app/gunicorn.conf.py"]

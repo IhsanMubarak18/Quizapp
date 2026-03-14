@@ -91,6 +91,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.getenv('SQLITE_NAME', str(BASE_DIR / 'db.sqlite3')),
+        'CONN_MAX_AGE': int(os.getenv('DB_CONN_MAX_AGE', '60')),
     }
 }
 
@@ -120,6 +121,23 @@ USE_L10N = True
 USE_TZ = True
 SITE_ID = 1
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# CACHING
+# ──────────────────────────────────────────────────────────────────────────────
+
+CACHES = {
+    'default': {
+        'BACKEND': os.getenv('CACHE_BACKEND', 'django.core.cache.backends.filebased.FileBasedCache'),
+        'LOCATION': os.getenv('CACHE_LOCATION', str(BASE_DIR / '.django_cache')),
+        'TIMEOUT': int(os.getenv('CACHE_TIMEOUT', '300')),
+    }
+}
+
+SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
+SESSION_CACHE_ALIAS = 'default'
+CONN_MAX_AGE = int(os.getenv('CONN_MAX_AGE', '60'))
 
 
 # ──────────────────────────────────────────────────────────────────────────────

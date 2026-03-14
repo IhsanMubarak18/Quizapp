@@ -78,6 +78,16 @@ Notes:
 - `docker-compose.yml` stores SQLite data in a named Docker volume at `/app/data/db.sqlite3`
 - media uploads and collected static files are also persisted in named Docker volumes
 - the compose setup reads environment variables from the project `.env` file
+- Gunicorn concurrency, shared cache settings, and database connection reuse can be tuned with `WEB_CONCURRENCY`, `GUNICORN_THREADS`, `CACHE_TIMEOUT`, and `CONN_MAX_AGE`
+
+### ⚡ Performance Notes
+
+- shared selector/query refactors reduce repeated database work on student quiz lists, admin quiz lists, and student tables
+- file-based Django caching is enabled by default for cross-worker cache sharing on a single host
+- dashboard and college filter data are cached and invalidated automatically when related records change
+- database indexes are included for the busiest quiz, attempt, result, and student lookup paths
+
+> Supporting 100+ concurrent users still depends on real-world traffic patterns, container CPU/RAM limits, and load testing in the target environment.
 
 ---
 

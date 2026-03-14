@@ -49,5 +49,11 @@ class StudentProfile(models.Model):
     college_name = models.CharField(max_length=300)
     mobile_number = models.CharField(max_length=15)
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['college_name']),
+            models.Index(fields=['student_name']),
+        ]
+
     def __str__(self):
         return f"{self.student_name} ({self.user.email})"
