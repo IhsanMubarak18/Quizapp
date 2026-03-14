@@ -1,0 +1,61 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}Students — Admin{% endblock %}
+{% block admin_content %}
+<div class="page-header"
+    style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1>Students 👥</h1>
+        <p>{{ student_data|length }} registered student(s)</p>
+    </div>
+    <a href="{% url 'video_app:admin_students_pdf' %}" class="btn btn-success">📄 Download PDF</a>
+</div>
+
+<div class="card">
+    <form method="get" style="display:flex;gap:10px;margin-bottom:20px;">
+        <input type="text" name="search" value="{{ search }}" placeholder="Search by name, email, college..."
+            style="max-width:380px;">
+        <button type="submit" class="btn btn-outline btn-sm">Search</button>
+        {% if search %}<a href="{% url 'video_app:admin_students' %}" class="btn btn-sm"
+            style="background:#f1f5f9;border:none;">Clear</a>{% endif %}
+    </form>
+
+    {% if student_data %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>College</th>
+                <th>Mobile</th>
+                <th>Email</th>
+                <th>Attempts</th>
+                <th>Joined</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in student_data %}
+            <tr>
+                <td style="font-size:13px;color:#94a3b8;">{{ forloop.counter }}</td>
+                <td style="font-weight:600;color:#1e293b;">{{ item.profile.student_name }}</td>
+                <td style="font-size:13px;color:#64748b;">{{ item.profile.college_name }}</td>
+                <td style="font-size:13px;">{{ item.profile.mobile_number }}</td>
+                <td style="font-size:13px;color:#64748b;">{{ item.profile.user.email }}</td>
+                <td><span class="badge badge-info">{{ item.attempts }}</span></td>
+                <td style="font-size:12px;color:#94a3b8;">{{ item.profile.user.date_joined|date:"d M Y" }}</td>
+                <td>
+                    <a href="{% url 'video_app:admin_delete_student' item.profile.user.id %}"
+                        class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center;padding:48px;color:#94a3b8;">
+        <div style="font-size:48px;margin-bottom:12px;">👤</div>
+        <p>No students found{% if search %} matching "{{ search }}"{% endif %}.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

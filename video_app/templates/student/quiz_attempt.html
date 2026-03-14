@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% load quiz_tags %}
+{% block title %}{{ quiz.title }} — Attempt{% endblock %}
+{% block extra_css %}
+<style>
+body { background: #f1f5f9; }
+.quiz-wrap { max-width: 860px; margin: 0 auto; padding: 28px 16px; }
+.quiz-header { background: linear-gradient(90deg, #4f46e5, #7c3aed); color: #fff; border-radius: 16px; padding: 24px 28px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.timer-box { background: rgba(255,255,255,.15); border-radius: 10px; padding: 12px 20px; text-align: center; min-width: 130px; }
+.timer-box #timer { font-size: 28px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.q-card { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.07); padding: 24px 28px; margin-bottom: 16px; border-left: 4px solid #4f46e5; }
+.q-num { font-size: 12px; font-weight: 700; color: #4f46e5; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+.q-hint { font-size: 11px; color: #7c3aed; background: #ede9fe; border-radius: 4px; padding: 2px 8px; display: inline-block; margin-bottom: 10px; font-weight: 600; }
+.q-text { font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 18px; line-height: 1.5; }
+.option-label { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; border: 2px solid #e2e8f0; cursor: pointer; margin-bottom: 8px; transition: .2s; background: #fafbff; }
+.option-label:hover { border-color: #4f46e5; background: #f0f4ff; }
+.opt-letter { width: 32px; height: 32px; border-radius: 8px; background: #e0e7ff; color: #4f46e5; font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+input[type=radio], input[type=checkbox] { display: none; }
+.option-label input:checked + .opt-letter { background: #4f46e5; color: #fff; }
+.submit-bar { background: #fff; border-radius: 14px; box-shadow: 0 2px 12px rgba(0,0,0,.07); padding: 20px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+.timer-danger { color: #ef4444 !important; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+
+/* Custom confirm modal */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.5); backdrop-filter: blur(4px); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.active { display: flex; }
+.modal-card { background: #fff; border-radius: 20px; padding: 36px 32px; max-width: 440px; width: 90%; text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,.18); animation: modalIn .2s ease; }
+@keyframes modalIn { from { transform: scale(.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-icon { font-size: 52px; margin-bottom: 16px; }
+.modal-title { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 10px; }
+.modal-msg { font-size: 14px; color: #64748b; line-height: 1.7; margin-bottom: 28px; }
+.modal-actions { display: flex; gap: 12px; justify-content: center; }
+</style>
+{% endblock %}
+{% block body %}
+<div class="quiz-wrap">
+  <div class="quiz-header">
+    <div>
+      <div style="font-size:20px;font-weight:800;">{{ quiz.title }}</div>
+      <div style="font-size:13px;opacity:.75;margin-top:4px;">{{ questions|length }} questions</div>
+    </div>
+    <div class="timer-box">
+      <div style="font-size:11px;opacity:.8;margin-bottom:2px;">Time Remaining</div>
+      <div id="timer">--:--</div>
+    </div>
+  </div>
+
+  <form method="post" action="{% url 'video_app:submit_quiz' attempt.id %}" id="quizForm">
+    {% csrf_token %}
+    {% for question in questions %}
+    {% with multi=question.correct_answers|length %}
+    <div class="q-card">
+      <div class="q-num">Question {{ forloop.counter }} of {{ questions|length }}</div>
+      {% if multi > 1 %}<div class="q-hint">✅ Select all correct answers ({{ multi }} expected)</div>{% endif %}
+      <div class="q-text">{{ question.question_text }}</div>
+      {% for opt_letter, opt_text in question|option_pairs %}
+      <label class="option-label">
+        {% if multi > 1 %}
+        <input type="checkbox" name="q_{{ question.id }}" value="{{ opt_letter }}" {% if opt_letter in existing_answers|get_item:question.id %}checked{% endif %}>
+        {% else %}
+        <input type="radio" name="q_{{ question.id }}" value="{{ opt_letter }}" {% if existing_answers|get_item:question.id == opt_letter %}checked{% endif %}>
+        {% endif %}
+        <div class="opt-letter">{{ opt_letter }}</div>
+        <div style="font-size:14px;color:#334155;">{{ opt_text }}</div>
+      </label>
+      {% endfor %}
+    </div>
+    {% endwith %}
+    {% endfor %}
+
+    <div class="submit-bar">
+      <div style="font-size:13px;color:#64748b;"><span id="answered">0</span> of {{ questions|length }} answered</div>
+      <button type="button" class="btn btn-primary" style="padding:13px 32px;font-size:15px;" onclick="showSubmitModal()">Submit Quiz ✓</button>
+    </div>
+  </form>
+</div>
+
+<!-- Custom Submit Confirmation Modal -->
+<div class="modal-overlay" id="submitModal">
+  <div class="modal-card">
+    <div class="modal-icon">📋</div>
+    <div class="modal-title">Submit Quiz?</div>
+    <div class="modal-msg">
+      You answered <strong id="modalAnswered">0</strong> of <strong>{{ questions|length }}</strong> questions.<br>
+      <span style="color:#ef4444;">You cannot change your answers after submission.</span>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" style="padding:11px 28px;" onclick="closeSubmitModal()">← Go Back</button>
+      <button type="button" class="btn btn-primary" style="padding:11px 28px;" onclick="document.getElementById('quizForm').submit()">Submit Now ✓</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+const timeRemaining = {{ time_remaining }};
+let seconds = timeRemaining;
+function updateTimer() {
+  const m = Math.floor(seconds / 60), s = seconds % 60;
+  const el = document.getElementById('timer');
+  el.textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  if (seconds <= 60) el.classList.add('timer-danger');
+  if (seconds <= 0) { el.textContent = '00:00'; document.getElementById('quizForm').submit(); return; }
+  seconds--;
+  setTimeout(updateTimer, 1000);
+}
+function countAnswered() {
+  const names = new Set([
+    ...document.querySelectorAll('input[type=radio]'),
+    ...document.querySelectorAll('input[type=checkbox]')
+  ].map(i => i.name));
+  let count = 0;
+  names.forEach(name => { if (document.querySelector(`input[name="${name}"]:checked`)) count++; });
+  return count;
+}
+function updateAnswered() {
+  document.getElementById('answered').textContent = countAnswered();
+}
+function showSubmitModal() {
+  document.getElementById('modalAnswered').textContent = countAnswered();
+  document.getElementById('submitModal').classList.add('active');
+}
+function closeSubmitModal() {
+  document.getElementById('submitModal').classList.remove('active');
+}
+// Close on backdrop click
+document.getElementById('submitModal').addEventListener('click', function(e) {
+  if (e.target === this) closeSubmitModal();
+});
+document.querySelectorAll('input[type=radio], input[type=checkbox]').forEach(i => i.addEventListener('change', updateAnswered));
+updateAnswered();
+updateTimer();
+</script>
+{% endblock %}

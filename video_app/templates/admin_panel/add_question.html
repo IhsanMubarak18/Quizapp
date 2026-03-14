@@ -1,0 +1,212 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}{{ action }} Question — Admin{% endblock %}
+{% block extra_css %}
+<style>
+.option-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.option-letter { width:36px; height:36px; border-radius:8px; background:#e0e7ff; color:#4f46e5; font-weight:800; font-size:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.option-input { flex:1; }
+.correct-cb { display:flex; align-items:center; gap:6px; padding:6px 12px; border:2px solid #e2e8f0; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; transition:.15s; }
+.correct-cb:has(input:checked) { border-color:#22c55e; background:#f0fdf4; color:#166534; }
+.remove-opt-btn { background:none; border:none; font-size:18px; color:#94a3b8; cursor:pointer; padding:4px 8px; border-radius:6px; }
+.remove-opt-btn:hover { background:#fee2e2; color:#ef4444; }
+.add-opt-btn { background:#f1f5f9; border:2px dashed #cbd5e1; border-radius:10px; padding:10px; width:100%; font-size:13px; color:#64748b; cursor:pointer; font-weight:600; transition:.2s; }
+.add-opt-btn:hover { background:#e0e7ff; border-color:#4f46e5; color:#4f46e5; }
+</style>
+{% endblock %}
+{% block admin_content %}
+<div class="page-header" style="display:flex;align-items:center;gap:16px;">
+  {% if back_url %}
+  <a href="{{ back_url }}" style="background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#64748b;font-size:13px;">{{ back_label|default:"← Back" }}</a>
+  {% else %}
+  <a href="{% url 'video_app:admin_question_bank' %}" style="background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#64748b;font-size:13px;">← Back to Question Bank</a>
+  {% endif %}
+  <div>
+    <h1>{{ action }} Question</h1>
+    <p>Add question text, define answer options (min 2, max 6), and mark correct answer(s).</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:760px;">
+  <form method="post" id="questionForm">
+    {% csrf_token %}
+    {% if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
+    {% if add_to_quiz_id %}<input type="hidden" name="add_to_quiz" value="{{ add_to_quiz_id }}">{% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="form-error" style="margin-bottom:16px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <!-- Question text -->
+    <div class="form-group">
+      <label>Question</label>
+      {{ form.question_text }}
+      {% if form.question_text.errors %}<div class="form-error">{{ form.question_text.errors.0 }}</div>{% endif %}
+    </div>
+
+    <!-- Dynamic Options -->
+    <div class="form-group">
+      <label style="margin-bottom:12px;display:block;">Answer Options <span style="font-size:12px;color:#94a3b8;font-weight:400;">(min 2, max 6 — check box to mark as correct)</span></label>
+
+      {% if form.errors %}
+        {% if form.correct_answers.errors %}
+        <div class="form-error" style="margin-bottom:10px;">{{ form.correct_answers.errors.0 }}</div>
+        {% endif %}
+      {% endif %}
+
+      <div id="optionsContainer">
+        {% with letters="ABCDEF" %}
+        {% for letter in "ABCDEF" %}
+        {% if letter == "A" %}
+        <div class="option-row" id="row-{{ letter }}" data-letter="{{ letter }}">
+          <div class="option-letter">{{ letter }}</div>
+          <input class="option-input" type="text" name="option_{{ letter|lower }}" placeholder="Option {{ letter }} (required)"
+                 value="{{ form.option_a.value|default:'' }}">
+          <label class="correct-cb" title="Mark as correct">
+            <input type="checkbox" name="correct_answers" value="{{ letter }}"
+              {% if letter in form.correct_answers.value %}checked{% endif %}> ✓
+          </label>
+          <button type="button" class="remove-opt-btn" onclick="removeOption('{{ letter }}')" title="Remove">✕</button>
+        </div>
+        {% elif letter == "B" %}
+        <div class="option-row" id="row-{{ letter }}" data-letter="{{ letter }}">
+          <div class="option-letter">{{ letter }}</div>
+          <input class="option-input" type="text" name="option_{{ letter|lower }}" placeholder="Option {{ letter }} (required)"
+                 value="{{ form.option_b.value|default:'' }}">
+          <label class="correct-cb" title="Mark as correct">
+            <input type="checkbox" name="correct_answers" value="{{ letter }}"
+              {% if letter in form.correct_answers.value %}checked{% endif %}> ✓
+          </label>
+          <button type="button" class="remove-opt-btn" onclick="removeOption('{{ letter }}')" title="Remove">✕</button>
+        </div>
+        {% elif letter == "C" %}
+        <div class="option-row" id="row-{{ letter }}" data-letter="{{ letter }}"
+             {% if not form.option_c.value %}style="display:none"{% endif %}>
+          <div class="option-letter">{{ letter }}</div>
+          <input class="option-input" type="text" name="option_{{ letter|lower }}" placeholder="Option {{ letter }}"
+                 value="{{ form.option_c.value|default:'' }}">
+          <label class="correct-cb" title="Mark as correct">
+            <input type="checkbox" name="correct_answers" value="{{ letter }}"
+              {% if letter in form.correct_answers.value %}checked{% endif %}> ✓
+          </label>
+          <button type="button" class="remove-opt-btn" onclick="removeOption('{{ letter }}')" title="Remove">✕</button>
+        </div>
+        {% elif letter == "D" %}
+        <div class="option-row" id="row-{{ letter }}" data-letter="{{ letter }}"
+             {% if not form.option_d.value %}style="display:none"{% endif %}>
+          <div class="option-letter">{{ letter }}</div>
+          <input class="option-input" type="text" name="option_{{ letter|lower }}" placeholder="Option {{ letter }}"
+                 value="{{ form.option_d.value|default:'' }}">
+          <label class="correct-cb" title="Mark as correct">
+            <input type="checkbox" name="correct_answers" value="{{ letter }}"
+              {% if letter in form.correct_answers.value %}checked{% endif %}> ✓
+          </label>
+          <button type="button" class="remove-opt-btn" onclick="removeOption('{{ letter }}')" title="Remove">✕</button>
+        </div>
+        {% elif letter == "E" %}
+        <div class="option-row" id="row-{{ letter }}" data-letter="{{ letter }}"
+             {% if not form.option_e.value %}style="display:none"{% endif %}>
+          <div class="option-letter">{{ letter }}</div>
+          <input class="option-input" type="text" name="option_{{ letter|lower }}" placeholder="Option {{ letter }}"
+                 value="{{ form.option_e.value|default:'' }}">
+          <label class="correct-cb" title="Mark as correct">
+            <input type="checkbox" name="correct_answers" value="{{ letter }}"
+              {% if letter in form.correct_answers.value %}checked{% endif %}> ✓
+          </label>
+          <button type="button" class="remove-opt-btn" onclick="removeOption('{{ letter }}')" title="Remove">✕</button>
+        </div>
+        {% elif letter == "F" %}
+        <div class="option-row" id="row-{{ letter }}" data-letter="{{ letter }}"
+             {% if not form.option_f.value %}style="display:none"{% endif %}>
+          <div class="option-letter">{{ letter }}</div>
+          <input class="option-input" type="text" name="option_{{ letter|lower }}" placeholder="Option {{ letter }}"
+                 value="{{ form.option_f.value|default:'' }}">
+          <label class="correct-cb" title="Mark as correct">
+            <input type="checkbox" name="correct_answers" value="{{ letter }}"
+              {% if letter in form.correct_answers.value %}checked{% endif %}> ✓
+          </label>
+          <button type="button" class="remove-opt-btn" onclick="removeOption('{{ letter }}')" title="Remove">✕</button>
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endwith %}
+      </div>
+
+      <button type="button" class="add-opt-btn" id="addOptionBtn" onclick="addOption()">➕ Add Another Option</button>
+    </div>
+
+    <!-- Submit -->
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <button type="submit" class="btn btn-primary" style="padding:12px 28px;">{{ action }} Question</button>
+      {% if back_url %}
+      <a href="{{ back_url }}" class="btn btn-outline" style="padding:12px 28px;">Cancel</a>
+      {% else %}
+      <a href="{% url 'video_app:admin_question_bank' %}" class="btn btn-outline" style="padding:12px 28px;">Cancel</a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+{% endblock %}
+{% block extra_js %}
+<script>
+const LETTERS = ['A','B','C','D','E','F'];
+const REQUIRED = ['A','B'];
+
+function getVisibleRows() {
+  return LETTERS.filter(l => {
+    const row = document.getElementById('row-' + l);
+    return row && row.style.display !== 'none';
+  });
+}
+
+function updateRemoveButtons() {
+  const visible = getVisibleRows();
+  visible.forEach(l => {
+    const btn = document.querySelector(`#row-${l} .remove-opt-btn`);
+    if (btn) btn.disabled = REQUIRED.includes(l) || visible.length <= 2;
+  });
+}
+
+function updateAddButton() {
+  const btn = document.getElementById('addOptionBtn');
+  const visible = getVisibleRows();
+  btn.style.display = visible.length >= 6 ? 'none' : 'block';
+}
+
+function addOption() {
+  const visible = getVisibleRows();
+  if (visible.length >= 6) return;
+  // Find next hidden letter
+  const next = LETTERS.find(l => {
+    const row = document.getElementById('row-' + l);
+    return row && row.style.display === 'none';
+  });
+  if (!next) return;
+  const row = document.getElementById('row-' + next);
+  const input = row.querySelector('.option-input');
+  input.value = '';
+  row.style.display = 'flex';
+  updateRemoveButtons();
+  updateAddButton();
+  input.focus();
+}
+
+function removeOption(letter) {
+  if (REQUIRED.includes(letter)) return;
+  const visible = getVisibleRows();
+  if (visible.length <= 2) return;
+  const row = document.getElementById('row-' + letter);
+  const input = row.querySelector('.option-input');
+  const cb = row.querySelector('input[type=checkbox]');
+  input.value = '';
+  if (cb) cb.checked = false;
+  row.style.display = 'none';
+  updateRemoveButtons();
+  updateAddButton();
+}
+
+// Init
+updateRemoveButtons();
+updateAddButton();
+</script>
+{% endblock %}

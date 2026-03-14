@@ -1,0 +1,116 @@
+{% extends "student/base_student.html" %}
+{% block title %}My Dashboard — Quiz Portal{% endblock %}
+{% block student_content %}
+<div class="page-header">
+  <h1>Welcome, {{ student.student_name|default:request.user.first_name }} 👋</h1>
+  <p>{{ student.college_name|default:"" }}</p>
+</div>
+
+<!-- Stats row -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:32px;">
+  <div class="card" style="text-align:center;border-top:4px solid #4f46e5;">
+    <div style="font-size:32px;font-weight:800;color:#4f46e5;">{{ available_quizzes|length }}</div>
+    <div style="font-size:13px;color:#64748b;margin-top:4px;">Available Quizzes</div>
+  </div>
+  <div class="card" style="text-align:center;border-top:4px solid #22c55e;">
+    <div style="font-size:32px;font-weight:800;color:#22c55e;">{{ recent_results|length }}</div>
+    <div style="font-size:13px;color:#64748b;margin-top:4px;">Quizzes Taken</div>
+  </div>
+  {% if recent_results %}
+  <div class="card" style="text-align:center;border-top:4px solid #f59e0b;">
+    <div style="font-size:32px;font-weight:800;color:#f59e0b;">{{ recent_results.0.percentage|floatformat:1 }}%</div>
+    <div style="font-size:13px;color:#64748b;margin-top:4px;">Latest Score</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Available Quizzes — no "View All" -->
+<div class="card" style="margin-bottom:24px;">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:20px;">Available Quizzes</h2>
+  {% if available_quizzes %}
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+    {% for quiz in available_quizzes %}
+    <div
+      style="border:1px solid {% if quiz.id in attempted_quiz_ids %}#a5b4fc{% else %}#e2e8f0{% endif %};border-radius:12px;padding:20px;background:{% if quiz.id in attempted_quiz_ids %}#f5f3ff{% else %}#fafbff{% endif %};transition:.2s;position:relative;"
+      onmouseover="this.style.borderColor='#4f46e5';this.style.background='#f0f4ff'"
+      onmouseout="this.style.borderColor='{% if quiz.id in attempted_quiz_ids %}#a5b4fc{% else %}#e2e8f0{% endif %}';this.style.background='{% if quiz.id in attempted_quiz_ids %}#f5f3ff{% else %}#fafbff{% endif %}'">
+      {% if quiz.id in attempted_quiz_ids %}
+      <div
+        style="position:absolute;top:12px;right:12px;background:#ede9fe;color:#5b21b6;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">
+        ✅ Already Attempted</div>
+      {% endif %}
+      <div
+        style="font-weight:700;font-size:15px;color:#1e293b;margin-bottom:8px;padding-right:{% if quiz.id in attempted_quiz_ids %}110px{% else %}0{% endif %};">
+        {{ quiz.title }}</div>
+      <div style="font-size:13px;color:#64748b;margin-bottom:12px;">⏱️ {{ quiz.time_limit_minutes }} minutes
+        &nbsp;|&nbsp; 📝 {{ quiz.total_questions }} questions</div>
+      {% if quiz.start_time %}
+      <div style="font-size:12px;color:#94a3b8;margin-bottom:10px;">📅 {{ quiz.start_time|date:"d M Y, H:i" }} → {{
+        quiz.end_time|date:"d M Y, H:i" }}</div>
+      {% endif %}
+      <a href="{% url 'video_app:start_quiz' quiz.id %}"
+        class="btn {% if quiz.id in attempted_quiz_ids %}btn-outline{% else %}btn-primary{% endif %} btn-sm"
+        style="width:100%;justify-content:center;">
+        {% if quiz.id in attempted_quiz_ids %}🔁 Retake Quiz{% else %}Start Quiz →{% endif %}
+      </a>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:32px;color:#94a3b8;">
+    <div style="font-size:40px;margin-bottom:12px;">📭</div>
+    <p>No quizzes available right now. Check back later.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Recent Results -->
+{% if recent_results %}
+<div class="card">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:20px;">Recent Results</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Quiz</th>
+        <th>Score</th>
+        <th>Percentage</th>
+        <th>Grade</th>
+        <th>Date</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for result in recent_results %}
+      {% with grade=result.grade %}
+      <tr>
+        <td style="font-weight:500;">{{ result.quiz.title }}</td>
+        <td>{{ result.score }} / {{ result.total_questions }}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;height:6px;background:#f1f5f9;border-radius:3px;max-width:80px;">
+              <div
+                style="height:100%;background:{% if result.percentage >= 60 %}#22c55e{% else %}#ef4444{% endif %};border-radius:3px;width:{{ result.percentage }}%;">
+              </div>
+            </div>
+            {{ result.percentage|floatformat:1 }}%
+          </div>
+        </td>
+        <td><span class="badge badge-{% if grade == 'F' %}danger{% elif grade == 'C' %}warning{% else %}success{% endif %}">{{ grade }}</span></td>
+        <td style="font-size:13px;color:#64748b;">{{ result.completed_at|date:"d M Y" }}</td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <a href="{% url 'video_app:quiz_result' result.attempt.id %}" class="btn btn-sm btn-outline">📊 Results</a>
+            {% if result.percentage >= result.quiz.certificate_min_percentage %}
+            <a href="{% url 'video_app:download_certificate' result.attempt.id %}" class="btn btn-sm btn-success">📜
+              Cert</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endwith %}
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

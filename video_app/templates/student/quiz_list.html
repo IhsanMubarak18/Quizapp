@@ -1,0 +1,55 @@
+{% extends "student/base_student.html" %}
+{% block title %}Available Quizzes — Quiz Portal{% endblock %}
+{% block student_content %}
+<div class="page-header">
+    <h1>Available Quizzes 📝</h1>
+    <p>Choose a quiz to attempt. All times are in your local timezone.</p>
+</div>
+
+{% if quiz_data %}
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
+    {% for item in quiz_data %}
+    <div style="background:#fff;border-radius:16px;box-shadow:var(--shadow);border:1px solid #e2e8f0;
+    overflow:hidden;transition:.2s;"
+        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 32px rgba(79,70,229,.15)'"
+        onmouseout="this.style.transform='none';this.style.boxShadow='var(--shadow)'">
+        <div style="background:linear-gradient(90deg,#4f46e5,#7c3aed);padding:20px;">
+            <div style="font-size:18px;font-weight:800;color:#fff;">{{ item.quiz.title }}</div>
+            {% if item.quiz.description %}
+            <div style="font-size:13px;color:rgba(255,255,255,.75);margin-top:4px;">{{ item.quiz.description }}</div>
+            {% endif %}
+        </div>
+        <div style="padding:20px;">
+            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+                <span class="badge badge-info">⏱️ {{ item.quiz.time_limit_minutes }} min</span>
+                <span class="badge badge-info">📝 {{ item.quiz.total_questions }} questions</span>
+                {% if item.quiz.shuffle_questions %}
+                <span class="badge badge-warning">🔀 Shuffled</span>
+                {% endif %}
+            </div>
+            {% if item.quiz.start_time %}
+            <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">
+                📅 {{ item.quiz.start_time|date:"d M Y, H:i" }} — {{ item.quiz.end_time|date:"d M Y, H:i" }}
+            </div>
+            {% endif %}
+            {% if item.attempted %}
+            <div style="margin-bottom:12px;">
+                <span class="badge badge-success">✅ Already attempted</span>
+            </div>
+            {% endif %}
+            <a href="{% url 'video_app:start_quiz' item.quiz.id %}" class="btn btn-primary"
+                style="width:100%;justify-content:center;">
+                {% if item.attempted %}Retry Quiz{% else %}Start Quiz{% endif %} →
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:60px;">
+    <div style="font-size:56px;margin-bottom:16px;">📭</div>
+    <h2 style="color:#64748b;font-weight:600;margin-bottom:8px;">No quizzes available</h2>
+    <p style="color:#94a3b8;">The admin hasn't activated any quizzes yet. Please check back later.</p>
+</div>
+{% endif %}
+{% endblock %}

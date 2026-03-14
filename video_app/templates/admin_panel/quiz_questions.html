@@ -1,0 +1,77 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}Manage Questions — {{ quiz.title }}{% endblock %}
+{% block admin_content %}
+<div class="page-header" style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+  <a href="{% url 'video_app:admin_quizzes' %}" style="background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#64748b;font-size:13px;">← Back to Quizzes</a>
+  <div>
+    <h1>{{ quiz.title }} — Questions</h1>
+    <p>{{ quiz.total_questions }} question(s) assigned to this quiz</p>
+  </div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;color:#1e293b;">✅ In This Quiz</h3>
+    {% if quiz_questions %}
+    <table>
+      <thead>
+        <tr><th>#</th><th>Question</th><th>Correct</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for qq in quiz_questions %}
+        <tr>
+          <td style="font-size:12px;color:#94a3b8;">{{ forloop.counter }}</td>
+          <td style="font-size:13px;color:#374151;max-width:200px;">{{ qq.question.question_text|truncatechars:60 }}</td>
+          <td><span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:20px;font-weight:700;font-size:13px;">{{ qq.question.correct_answer }}</span></td>
+          <td>
+            <div style="display:flex;gap:5px;">
+              <a href="{% url 'video_app:admin_edit_quiz_question' quiz.id qq.question.id %}" class="btn btn-sm btn-outline">Edit</a>
+              <a href="{% url 'video_app:admin_remove_question_from_quiz' quiz.id qq.question.id %}" class="btn btn-sm btn-danger" onclick="return confirm('Remove this question from the quiz?')">✕</a>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p style="color:#94a3b8;font-size:14px;">No questions added yet.</p>
+    {% endif %}
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;">
+      <h4 style="font-size:14px;font-weight:700;color:#374151;margin-bottom:10px;">🎲 Add Random Questions</h4>
+      <form method="post" action="{% url 'video_app:admin_add_random_questions' quiz.id %}" style="display:flex;gap:8px;">
+        {% csrf_token %}
+        {{ random_form.count }}
+        <button type="submit" class="btn btn-primary btn-sm" style="white-space:nowrap;">Add Random</button>
+      </form>
+    </div>
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid #e2e8f0;">
+      <a href="{% url 'video_app:admin_add_question' %}?next={% url 'video_app:admin_quiz_questions' quiz.id %}&add_to_quiz={{ quiz.id }}" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;display:flex;">➕ Create &amp; Add a New Question</a>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;color:#1e293b;">📚 Question Bank</h3>
+    {% if available_questions %}
+    <form method="post" action="{% url 'video_app:admin_add_question_to_quiz' quiz.id %}">
+      {% csrf_token %}
+      <div style="max-height:420px;overflow-y:auto;border:1px solid #e2e8f0;border-radius:10px;margin-bottom:12px;">
+        {% for q in available_questions %}
+        <label style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;background:#fff;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='#fff'">
+          <input type="checkbox" name="question_ids" value="{{ q.id }}" style="width:auto;margin-top:3px;">
+          <div>
+            <div style="font-size:13px;color:#374151;font-weight:500;">{{ q.question_text|truncatechars:70 }}</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">Correct: <strong>{{ q.correct_answer }}</strong></div>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+      <button type="submit" class="btn btn-primary btn-sm">Add Selected Questions</button>
+    </form>
+    {% else %}
+    <div style="text-align:center;padding:24px;color:#94a3b8;font-size:14px;">
+      <div style="font-size:36px;margin-bottom:10px;">📭</div>
+      All questions are already in this quiz or the bank is empty.<br><br>
+      <a href="{% url 'video_app:admin_add_question' %}?next={% url 'video_app:admin_quiz_questions' quiz.id %}" class="btn btn-primary btn-sm">➕ Create New Question</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

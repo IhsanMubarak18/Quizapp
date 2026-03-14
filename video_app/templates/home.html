@@ -1,205 +1,615 @@
-{% extends 'layout.html' %}
-{% block title %}Welcome | EduVideoQuiz{% endblock %}
-{% block extra_head %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Talent Infosys Online Quiz Portal — Test your knowledge, track results, earn certificates.">
+<title>Talent Infosys — Online Quiz Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --primary: #4f46e5;
+    --primary-dark: #3730a3;
+    --secondary: #7c3aed;
+    --accent: #06b6d4;
+    --white: #ffffff;
+    --gray-50: #f8fafc;
+    --gray-100: #f1f5f9;
+    --gray-400: #94a3b8;
+    --gray-600: #475569;
+    --gray-900: #0f172a;
+  }
+  html { scroll-behavior: smooth; }
   body {
-    background-image:
-      radial-gradient(ellipse at 15% 25%, rgba(99, 102, 241, 0.18) 0%, transparent 55%),
-      radial-gradient(ellipse at 85% 75%, rgba(34, 211, 238, 0.12) 0%, transparent 55%);
+    font-family: 'Inter', sans-serif;
+    background: var(--gray-900);
+    color: var(--white);
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 
-  .hero {
-    text-align: center;
-    padding: 60px 20px 40px;
+  /* ── Animated Canvas Background ── */
+  #bgCanvas {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
   }
 
-  .hero h1 {
-    font-size: clamp(2rem, 5vw, 3.2rem);
+  /* ── Gradient overlay for readability ── */
+  .bg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+      135deg,
+      rgba(15,23,42,.93) 0%,
+      rgba(30,27,75,.88) 40%,
+      rgba(15,23,42,.93) 100%
+    );
+    pointer-events: none;
+  }
+
+  /* ── Page wrapper ── */
+  .page { position: relative; z-index: 2; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── Navbar ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 48px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(15,23,42,.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255,255,255,.06);
+  }
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+  }
+  .nav-logo img {
+    height: 48px;
+    border-radius: 10px;
+    object-fit: contain;
+    background: #fff;
+    padding: 4px 8px;
+  }
+  .nav-brand {
+    font-size: 20px;
     font-weight: 800;
-    line-height: 1.2;
-    margin-bottom: 18px;
-    background: linear-gradient(135deg, #f1f5f9 30%, #6366f1);
+    background: linear-gradient(90deg, #818cf8, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.3px;
+  }
+  .nav-actions { display: flex; align-items: center; gap: 12px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 14px;
+    border-radius: 10px;
+    padding: 10px 22px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .2s ease;
+    border: none;
+    outline: none;
+    white-space: nowrap;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: rgba(255,255,255,.85);
+    border: 1.5px solid rgba(255,255,255,.15);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.3); color: #fff; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(79,70,229,.4);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(79,70,229,.55); }
+  .btn-outline {
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255,255,255,.25);
+  }
+  .btn-outline:hover { background: rgba(255,255,255,.1); border-color: #fff; }
+  .btn-admin {
+    background: rgba(239,68,68,.12);
+    color: #fca5a5;
+    border: 1.5px solid rgba(239,68,68,.25);
+    font-size: 12px;
+    padding: 8px 16px;
+  }
+  .btn-admin:hover { background: rgba(239,68,68,.22); border-color: #fca5a5; color: #fff; }
+
+  /* ── Hero ── */
+  .hero {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 80px 24px 60px;
+  }
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(79,70,229,.18);
+    border: 1px solid rgba(79,70,229,.35);
+    border-radius: 50px;
+    padding: 6px 18px;
+    font-size: 13px;
+    color: #a5b4fc;
+    font-weight: 600;
+    margin-bottom: 28px;
+    animation: fadeUp .6s ease both;
+  }
+  .hero-badge .dot { width: 7px; height: 7px; background: #4f46e5; border-radius: 50%; animation: blink 2s infinite; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:.3;} }
+
+  .hero-logo {
+    margin-bottom: 36px;
+    animation: fadeUp .5s .1s ease both;
+  }
+  .hero-logo img {
+    height: 100px;
+    border-radius: 18px;
+    background: #fff;
+    padding: 10px 20px;
+    box-shadow: 0 8px 40px rgba(79,70,229,.3), 0 0 0 1px rgba(255,255,255,.08);
+    transition: transform .3s ease, box-shadow .3s ease;
+  }
+  .hero-logo img:hover { transform: scale(1.04); box-shadow: 0 16px 60px rgba(79,70,229,.45); }
+
+  .hero-title {
+    font-size: clamp(36px, 6vw, 72px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+    animation: fadeUp .6s .2s ease both;
+  }
+  .hero-title .grad {
+    background: linear-gradient(90deg, #818cf8, #c4b5fd, #67e8f9);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-
-  .hero p {
-    font-size: 1.05rem;
-    color: #94a3b8;
-    max-width: 520px;
-    margin: 0 auto 32px;
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 20px);
+    color: rgba(255,255,255,.6);
+    max-width: 560px;
     line-height: 1.7;
+    margin-bottom: 40px;
+    animation: fadeUp .6s .3s ease both;
   }
-
-  .hero-btns {
+  .hero-cta {
     display: flex;
-    gap: 12px;
+    gap: 14px;
+    flex-wrap: wrap;
+    justify-content: center;
+    animation: fadeUp .6s .4s ease both;
+  }
+  .btn-hero-primary {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff;
+    font-size: 16px;
+    padding: 14px 36px;
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(79,70,229,.45);
+  }
+  .btn-hero-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 48px rgba(79,70,229,.6); }
+  .btn-hero-outline {
+    background: rgba(255,255,255,.07);
+    color: #fff;
+    font-size: 16px;
+    padding: 14px 36px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,.2);
+    backdrop-filter: blur(8px);
+  }
+  .btn-hero-outline:hover { background: rgba(255,255,255,.13); border-color: rgba(255,255,255,.4); transform: translateY(-2px); }
+
+  /* ── Stats ── */
+  .stats {
+    display: flex;
+    gap: 24px;
     justify-content: center;
     flex-wrap: wrap;
+    margin-top: 64px;
+    padding: 0 24px;
+    animation: fadeUp .6s .5s ease both;
   }
-
-  .points-section {
-    margin-top: 60px;
+  .stat-item { text-align: center; }
+  .stat-val {
+    font-size: 32px;
+    font-weight: 900;
+    background: linear-gradient(90deg, #818cf8, #c4b5fd);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
+  .stat-label { font-size: 13px; color: rgba(255,255,255,.45); margin-top: 2px; }
+  .stat-divider { width: 1px; background: rgba(255,255,255,.1); align-self: stretch; }
 
-  .points-section h2 {
-    text-align: center;
-    font-size: 1.4rem;
-    font-weight: 700;
-    margin-bottom: 24px;
-  }
-
-  .points-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-    max-width: 720px;
-    margin: 0 auto;
-  }
-
-  .point-card {
-    background: rgba(30, 41, 59, 0.7);
-    border: 1px solid #334155;
-    border-radius: 14px;
-    padding: 20px;
-    text-align: center;
-    transition: all 0.25s;
-    backdrop-filter: blur(10px);
-  }
-
-  .point-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(99, 102, 241, 0.5);
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
-  }
-
-  .point-card .range {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #6366f1;
-    margin-bottom: 6px;
-  }
-
-  .point-card .pts {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #f1f5f9;
-  }
-
-  .point-card .pts span {
-    font-size: 1rem;
-    color: #94a3b8;
-    font-weight: 500;
-  }
-
+  /* ── Features ── */
   .features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 60px;
+    padding: 80px 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+    width: 100%;
   }
-
-  .feat {
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid #334155;
-    border-radius: 14px;
-    padding: 24px;
-    transition: all 0.2s;
-  }
-
-  .feat:hover {
-    border-color: rgba(99, 102, 241, 0.4);
-  }
-
-  .feat-icon {
-    font-size: 2rem;
+  .section-label {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #818cf8;
+    text-transform: uppercase;
     margin-bottom: 12px;
   }
-
-  .feat h3 {
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 6px;
+  .section-title {
+    text-align: center;
+    font-size: clamp(24px, 4vw, 40px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 48px;
+    color: #fff;
   }
-
-  .feat p {
-    font-size: 0.875rem;
-    color: #94a3b8;
-    line-height: 1.6;
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
   }
-
-  .fade-up {
-    animation: fadeUp 0.8s ease both;
+  .feature-card {
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 20px;
+    padding: 32px 28px;
+    transition: all .25s ease;
+    position: relative;
+    overflow: hidden;
   }
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(79,70,229,.08), transparent);
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .feature-card:hover { border-color: rgba(79,70,229,.4); transform: translateY(-4px); box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+  .feature-card:hover::before { opacity: 1; }
+  .feature-icon {
+    width: 56px; height: 56px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, rgba(79,70,229,.3), rgba(124,58,237,.2));
+    border: 1px solid rgba(79,70,229,.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    margin-bottom: 20px;
+  }
+  .feature-title { font-size: 17px; font-weight: 700; margin-bottom: 10px; color: #f1f5f9; }
+  .feature-desc { font-size: 14px; color: rgba(255,255,255,.5); line-height: 1.7; }
 
+  /* ── CTA Section ── */
+  .cta-section {
+    margin: 0 48px 80px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+    background: linear-gradient(135deg, rgba(79,70,229,.2), rgba(124,58,237,.15));
+    border: 1px solid rgba(79,70,229,.3);
+    border-radius: 28px;
+    padding: 60px 48px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(79,70,229,.25), transparent 70%);
+    pointer-events: none;
+  }
+  .cta-title { font-size: clamp(22px, 3vw, 36px); font-weight: 800; letter-spacing: -1px; margin-bottom: 14px; }
+  .cta-sub { font-size: 16px; color: rgba(255,255,255,.6); margin-bottom: 32px; }
+  .cta-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+  /* ── Footer ── */
+  footer {
+    border-top: 1px solid rgba(255,255,255,.07);
+    padding: 28px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .footer-brand { display: flex; align-items: center; gap: 10px; }
+  .footer-brand img { height: 32px; border-radius: 6px; background: #fff; padding: 3px 6px; }
+  .footer-copy { font-size: 13px; color: rgba(255,255,255,.3); }
+  .footer-links { display: flex; gap: 20px; }
+  .footer-links a { font-size: 13px; color: rgba(255,255,255,.4); text-decoration: none; transition: color .2s; }
+  .footer-links a:hover { color: #818cf8; }
+
+  /* ── Animations ── */
   @keyframes fadeUp {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    nav { padding: 16px 20px; }
+    .nav-brand { font-size: 16px; }
+    .nav-logo img { height: 36px; }
+    .hero { padding: 60px 20px 40px; }
+    .hero-logo img { height: 72px; }
+    .features { padding: 60px 20px; }
+    .cta-section { margin: 0 20px 60px; padding: 40px 24px; }
+    footer { padding: 24px 20px; flex-direction: column; text-align: center; }
+    .stat-divider { display: none; }
+  }
+  @media (max-width: 480px) {
+    .nav-actions .btn-ghost { display: none; }
+    .btn-hero-primary, .btn-hero-outline { width: 100%; font-size: 15px; }
   }
 </style>
-{% endblock %}
+</head>
+<body>
 
-{% block content %}
-<div class="container">
-  <div class="hero fade-up">
-    <h1>Learn. Quiz. Achieve.</h1>
-    <p>Watch interactive video lessons, test your knowledge, and earn certificates based on your performance.</p>
-    <div class="hero-btns">
-      {% if user.is_authenticated %}
-      <a href="{% url 'video_app:video_list' %}" class="btn btn-primary">📽️ Go to Videos</a>
-      {% else %}
-      <a href="{% url 'users:signup' %}" class="btn btn-primary">🚀 Get Started</a>
-      <a href="{% url 'users:login' %}" class="btn btn-ghost">👤 Sign In</a>
-      {% endif %}
+<!-- Animated Canvas Background -->
+<canvas id="bgCanvas"></canvas>
+<div class="bg-overlay"></div>
+
+<div class="page">
+  <!-- Navbar -->
+  <nav>
+    <a href="/" class="nav-logo">
+      <img src="/media/logo/talent_infosys_logo.jpg" alt="Talent Infosys Logo">
+      <span class="nav-brand">Talent Infosys</span>
+    </a>
+    <div class="nav-actions">
+      <a href="{% url 'users:admin_login' %}" class="btn btn-admin">🔐 Admin</a>
+      <a href="{% url 'users:login' %}" class="btn btn-ghost">Log In</a>
+      <a href="{% url 'users:signup' %}" class="btn btn-primary">Sign Up Free →</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-badge">
+      <span class="dot"></span> Online Quiz Management Platform
+    </div>
+
+    <div class="hero-logo">
+      <img src="/media/logo/talent_infosys_logo.jpg" alt="Talent Infosys">
+    </div>
+
+    <h1 class="hero-title">
+      Learn, Test &<br><span class="grad">Certify Your Skills</span>
+    </h1>
+    <p class="hero-sub">
+      Talent Infosys's smart quiz platform lets you take timed quizzes, get instant results, and earn certificates — anytime, anywhere.
+    </p>
+    <div class="hero-cta">
+      <a href="{% url 'users:signup' %}" class="btn btn-hero-primary">🚀 Get Started Free</a>
+      <a href="{% url 'users:login' %}" class="btn btn-hero-outline">Log In to Dashboard</a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-val">∞</div>
+        <div class="stat-label">Quizzes Available</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-val">⚡</div>
+        <div class="stat-label">Instant Results</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-val">🏆</div>
+        <div class="stat-label">Earn Certificates</div>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <div class="stat-val">📱</div>
+        <div class="stat-label">Any Device</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <p class="section-label">Why Talent Infosys</p>
+    <h2 class="section-title">Everything you need to excel</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">⏱️</div>
+        <div class="feature-title">Timed Quizzes</div>
+        <div class="feature-desc">Real exam conditions with countdown timers and auto-submission when time runs out.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🧩</div>
+        <div class="feature-title">Multi-Answer Questions</div>
+        <div class="feature-desc">Support for single and multiple correct answer questions with clear visual feedback.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Detailed Results</div>
+        <div class="feature-desc">Instant score breakdown with correct answer review so you learn from every attempt.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📜</div>
+        <div class="feature-title">Certificates</div>
+        <div class="feature-desc">Download a PDF certificate when you meet the passing threshold — proof of your achievement.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎛️</div>
+        <div class="feature-title">Admin Control</div>
+        <div class="feature-desc">Powerful admin panel to create/manage quizzes, questions, and view student reports.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-title">Secure & Private</div>
+        <div class="feature-desc">Each student gets a private dashboard. Results are visible only to the student and admins.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <div class="cta-section">
+    <h2 class="cta-title">Ready to test your knowledge?</h2>
+    <p class="cta-sub">Create a free account and start your first quiz in under a minute.</p>
+    <div class="cta-actions">
+      <a href="{% url 'users:signup' %}" class="btn btn-hero-primary">🚀 Create Free Account</a>
+      <a href="{% url 'users:login' %}" class="btn btn-hero-outline">Already have an account</a>
     </div>
   </div>
 
-  <div class="points-section fade-up" style="animation-delay:0.2s;">
-    <h2>🏆 Credit Points System</h2>
-    <div class="points-grid">
-      <div class="point-card">
-        <div class="range">60 – 69%</div>
-        <div class="pts">3 <span>points</span></div>
-      </div>
-      <div class="point-card">
-        <div class="range">70 – 79%</div>
-        <div class="pts">4 <span>points</span></div>
-      </div>
-      <div class="point-card">
-        <div class="range">80 – 90%</div>
-        <div class="pts">5 <span>points</span></div>
-      </div>
-      <div class="point-card">
-        <div class="range">91 – 100%</div>
-        <div class="pts">6 <span>points</span></div>
-      </div>
+  <!-- Footer -->
+  <footer>
+    <div class="footer-brand">
+      <img src="/media/logo/talent_infosys_logo.jpg" alt="Talent Infosys">
+      <span style="font-size:13px;color:rgba(255,255,255,.4);">Talent Infosys</span>
     </div>
-  </div>
-
-  <div class="features fade-up" style="animation-delay:0.4s;">
-    <div class="feat">
-      <div class="feat-icon">🎬</div>
-      <h3>Interactive Videos</h3>
-      <p>Engage with curated video lessons designed to keep you focused and learning.</p>
+    <div class="footer-copy">© 2026 Talent Infosys. All rights reserved.</div>
+    <div class="footer-links">
+      <a href="{% url 'users:login' %}">Student Login</a>
+      <a href="{% url 'users:admin_login' %}">Admin</a>
     </div>
-    <div class="feat">
-      <div class="feat-icon">📝</div>
-      <h3>Knowledge Quizzes</h3>
-      <p>Test what you've learned with multiple-choice quizzes after each video.</p>
-    </div>
-    <div class="feat">
-      <div class="feat-icon">🎓</div>
-      <h3>Earn Certificates</h3>
-      <p>Complete all lessons and receive a verified certificate with your credit points.</p>
-    </div>
-  </div>
+  </footer>
 </div>
-{% endblock %}
+
+<script>
+// ── Animated Particle Background ──
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let W, H, particles = [], mouse = { x: -999, y: -999 };
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+
+class Particle {
+  constructor() { this.reset(true); }
+  reset(init = false) {
+    this.x = Math.random() * W;
+    this.y = init ? Math.random() * H : H + 20;
+    this.r = Math.random() * 2 + 0.5;
+    this.speed = Math.random() * 0.4 + 0.1;
+    this.dx = (Math.random() - 0.5) * 0.3;
+    this.alpha = Math.random() * 0.5 + 0.1;
+    const hues = [220, 240, 260, 280, 190];
+    this.hue = hues[Math.floor(Math.random() * hues.length)];
+  }
+  update() {
+    this.y -= this.speed;
+    this.x += this.dx;
+    if (this.y < -10) this.reset();
+    // Mouse repel
+    const mdx = this.x - mouse.x, mdy = this.y - mouse.y;
+    const dist = Math.sqrt(mdx * mdx + mdy * mdy);
+    if (dist < 100) {
+      this.x += (mdx / dist) * 1.2;
+      this.y += (mdy / dist) * 1.2;
+    }
+  }
+  draw() {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${this.hue}, 80%, 70%, ${this.alpha})`;
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// Connecting lines between nearby particles
+function drawLines() {
+  for (let i = 0; i < particles.length; i++) {
+    for (let j = i + 1; j < particles.length; j++) {
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 110) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(particles[i].x, particles[i].y);
+        ctx.lineTo(particles[j].x, particles[j].y);
+        ctx.strokeStyle = `rgba(129,140,248, ${(1 - dist / 110) * 0.15})`;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+  }
+}
+
+// Animated gradient orbs
+let orbT = 0;
+function drawOrbs() {
+  orbT += 0.002;
+  const orbs = [
+    { cx: W * 0.2 + Math.sin(orbT) * 80, cy: H * 0.3 + Math.cos(orbT * 0.8) * 60, r: 260, color: 'rgba(79,70,229,' },
+    { cx: W * 0.8 + Math.cos(orbT * 0.7) * 100, cy: H * 0.5 + Math.sin(orbT * 1.1) * 80, r: 220, color: 'rgba(124,58,237,' },
+    { cx: W * 0.5 + Math.sin(orbT * 1.3) * 120, cy: H * 0.8 + Math.cos(orbT) * 60, r: 180, color: 'rgba(6,182,212,' },
+  ];
+  orbs.forEach(o => {
+    const g = ctx.createRadialGradient(o.cx, o.cy, 0, o.cx, o.cy, o.r);
+    g.addColorStop(0, o.color + '0.06)');
+    g.addColorStop(1, o.color + '0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(o.cx, o.cy, o.r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  drawOrbs();
+  drawLines();
+  particles.forEach(p => { p.update(); p.draw(); });
+  requestAnimationFrame(animate);
+}
+
+function init() {
+  resize();
+  particles = Array.from({ length: Math.min(120, Math.floor(W * H / 12000)) }, () => new Particle());
+  animate();
+}
+
+window.addEventListener('resize', () => { resize(); });
+window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+window.addEventListener('mouseleave', () => { mouse.x = -999; mouse.y = -999; });
+init();
+</script>
+</body>
+</html>

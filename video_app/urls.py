@@ -1,29 +1,48 @@
+# video_app/urls.py
 from django.urls import path
 from . import views
 
 app_name = 'video_app'
 
 urlpatterns = [
-    # Public & User views
+    # ── Home ──────────────────────────────────────────────────────
     path('', views.home_view, name='home'),
-    path('video_list/', views.video_list, name='video_list'),
-    path('lesson/<int:video_id>/', views.video_quiz_page, name='video_quiz_page'),
-    path('api/questions/<int:video_id>/', views.questions_for_video, name='questions_for_video'),
-    path('api/validate-answer/', views.validate_answer, name='validate_answer'),
-    path('submit-quiz/', views.submit_quiz_result, name='submit_quiz_result'),
-    path('final-certificate/', views.generate_final_certificate, name='generate_final_certificate'),
-    path('verify-certificate/<int:user_id>/', views.verify_certificate, name='verify_certificate'),
 
-    # Custom Admin Dashboard
-    path('custom-admin/', views.admin_dashboard, name='admin_dashboard'),
-    path('custom-admin/videos/', views.admin_videos, name='admin_videos'),
-    path('custom-admin/videos/add/', views.admin_add_video, name='admin_add_video'),
-    path('custom-admin/videos/<int:video_id>/edit/', views.admin_edit_video, name='admin_edit_video'),
-    path('custom-admin/videos/<int:video_id>/delete/', views.admin_delete_video, name='admin_delete_video'),
-    path('custom-admin/videos/<int:video_id>/questions/', views.admin_questions, name='admin_questions'),
-    path('custom-admin/videos/<int:video_id>/questions/add/', views.admin_add_question, name='admin_add_question'),
-    path('custom-admin/questions/<int:question_id>/edit/', views.admin_edit_question, name='admin_edit_question'),
-    path('custom-admin/questions/<int:question_id>/delete/', views.admin_delete_question, name='admin_delete_question'),
-    path('custom-admin/certificate-config/', views.admin_certificate_config, name='admin_certificate_config'),
-    path('custom-admin/users/', views.admin_users, name='admin_users'),
+    # ── Student ───────────────────────────────────────────────────
+    path('dashboard/', views.student_dashboard, name='student_dashboard'),
+    path('quizzes/', views.quiz_list, name='quiz_list'),
+    path('quiz/<int:quiz_id>/start/', views.start_quiz, name='start_quiz'),
+    path('quiz/submit/<int:attempt_id>/', views.submit_quiz, name='submit_quiz'),
+    path('quiz/result/<int:attempt_id>/', views.quiz_result, name='quiz_result'),
+    path('quiz/certificate/<int:attempt_id>/', views.download_certificate, name='download_certificate'),
+
+    # ── Admin Dashboard ────────────────────────────────────────────
+    path('admin-panel/', views.admin_dashboard, name='admin_dashboard'),
+
+    # ── Question Bank ──────────────────────────────────────────────
+    path('admin-panel/questions/', views.admin_question_bank, name='admin_question_bank'),
+    path('admin-panel/questions/add/', views.admin_add_question, name='admin_add_question'),
+    path('admin-panel/questions/<int:question_id>/edit/', views.admin_edit_question, name='admin_edit_question'),
+    path('admin-panel/questions/<int:question_id>/delete/', views.admin_delete_question, name='admin_delete_question'),
+
+    # ── Quiz Management ────────────────────────────────────────────
+    path('admin-panel/quizzes/', views.admin_quizzes, name='admin_quizzes'),
+    path('admin-panel/quizzes/add/', views.admin_add_quiz, name='admin_add_quiz'),
+    path('admin-panel/quizzes/<int:quiz_id>/edit/', views.admin_edit_quiz, name='admin_edit_quiz'),
+    path('admin-panel/quizzes/<int:quiz_id>/delete/', views.admin_delete_quiz, name='admin_delete_quiz'),
+    path('admin-panel/quizzes/<int:quiz_id>/toggle/', views.admin_toggle_quiz, name='admin_toggle_quiz'),
+    path('admin-panel/quizzes/<int:quiz_id>/questions/', views.admin_quiz_questions, name='admin_quiz_questions'),
+    path('admin-panel/quizzes/<int:quiz_id>/questions/add/', views.admin_add_question_to_quiz, name='admin_add_question_to_quiz'),
+    path('admin-panel/quizzes/<int:quiz_id>/questions/random/', views.admin_add_random_questions, name='admin_add_random_questions'),
+    path('admin-panel/quizzes/<int:quiz_id>/questions/<int:question_id>/remove/', views.admin_remove_question_from_quiz, name='admin_remove_question_from_quiz'),
+    path('admin-panel/quizzes/<int:quiz_id>/questions/<int:question_id>/edit/', views.admin_edit_quiz_question, name='admin_edit_quiz_question'),
+
+
+    # ── Students ───────────────────────────────────────────────────
+    path('admin-panel/students/', views.admin_students, name='admin_students'),
+    path('admin-panel/students/<int:user_id>/delete/', views.admin_delete_student, name='admin_delete_student'),
+    path('admin-panel/students/pdf/', views.admin_students_pdf, name='admin_students_pdf'),
+
+    # ── Reports ────────────────────────────────────────────────────
+    path('admin-panel/reports/', views.admin_reports, name='admin_reports'),
 ]

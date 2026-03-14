@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Student Registration — Quiz Portal{% endblock %}
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
+    }
+
+    .auth-wrap {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 16px;
+    }
+
+    .auth-card {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 8px 40px rgba(79, 70, 229, .12);
+        padding: 44px 40px;
+        width: 100%;
+        max-width: 480px;
+    }
+
+    .auth-card h2 {
+        font-size: 26px;
+        font-weight: 800;
+        color: #1e1b4b;
+        margin-bottom: 4px;
+    }
+
+    .auth-card p {
+        color: #64748b;
+        font-size: 14px;
+        margin-bottom: 28px;
+    }
+
+    .auth-logo {
+        font-size: 40px;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+{% block body %}
+<div class="auth-wrap">
+    <div class="auth-card">
+        <div class="auth-logo">🎓</div>
+        <h2>Create Account</h2>
+        <p>Register to start attempting quizzes. Your password will be mailed to you.</p>
+        {% if form.errors %}
+        <div class="alert alert-error" style="margin-bottom:16px;">Please fix the errors below.</div>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="form-error">{{ field.errors.0 }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <button class="btn btn-primary" type="submit"
+                style="width:100%;padding:13px;font-size:15px;border-radius:10px;margin-top:4px;">
+                Register &amp; Get Password via Email
+            </button>
+        </form>
+        <p style="text-align:center;margin-top:20px;font-size:14px;color:#64748b;">
+            Already have an account? <a href="{% url 'users:login' %}" style="color:#4f46e5;font-weight:600;">Login</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

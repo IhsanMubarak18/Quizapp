@@ -1,0 +1,79 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}{{ action }} Quiz — Admin{% endblock %}
+{% block admin_content %}
+<div class="page-header" style="display:flex;align-items:center;gap:16px;">
+    <a href="{% url 'video_app:admin_quizzes' %}"
+        style="background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#64748b;font-size:13px;">← Back</a>
+    <div>
+        <h1>{{ action }} Quiz</h1>
+        <p>Configure quiz settings. You'll add questions on the next step.</p>
+    </div>
+</div>
+
+<div class="card" style="max-width:680px;">
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>{{ form.title.label }}</label>{{ form.title }}
+            {% if form.title.errors %}<div class="form-error">{{ form.title.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="form-group">
+            <label>{{ form.description.label }}</label>{{ form.description }}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>{{ form.time_limit_minutes.label }}</label>{{ form.time_limit_minutes }}
+                {% if form.time_limit_minutes.errors %}<div class="form-error">{{ form.time_limit_minutes.errors.0 }}
+                </div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label style="margin-bottom:12px;">Options</label>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
+                        {{ form.shuffle_questions }} Shuffle questions for each student
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
+                        {{ form.is_active }} Make quiz active (visible to students)
+                    </label>
+                </div>
+            </div>
+        </div>
+        <!-- Certificate Threshold -->
+        <div class="form-group">
+            <label>{{ form.certificate_min_percentage.label }}</label>
+            {{ form.certificate_min_percentage }}
+            {% if form.certificate_min_percentage.errors %}
+            <div class="form-error">{{ form.certificate_min_percentage.errors.0 }}</div>
+            {% endif %}
+            <p style="font-size:12px;color:#94a3b8;margin-top:6px;">Minimum % score a student needs to download a
+                certificate. Set to 0 to allow everyone.</p>
+        </div>
+        <!-- Optional Scheduling -->
+        <div style="background:#f8fafc;border-radius:12px;padding:20px;margin-bottom:20px;border:1px solid #e2e8f0;">
+            <div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:14px;">📅 Scheduling (Optional)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>{{ form.start_time.label }}</label>{{ form.start_time }}
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                    <label>{{ form.end_time.label }}</label>{{ form.end_time }}
+                </div>
+            </div>
+            <p style="font-size:12px;color:#94a3b8;margin-top:10px;">Leave blank to make the quiz always available (when
+                active).</p>
+        </div>
+        {% if form.non_field_errors %}
+        <div
+            style="background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#991b1b;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+        <div style="display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary" style="padding:12px 28px;">
+                {% if action == 'Create' %}Create &amp; Add Questions →{% else %}Save Changes{% endif %}
+            </button>
+            <a href="{% url 'video_app:admin_quizzes' %}" class="btn btn-outline" style="padding:12px 28px;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

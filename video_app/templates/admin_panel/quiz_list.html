@@ -1,0 +1,69 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}Quizzes — Admin{% endblock %}
+{% block admin_content %}
+<div class="page-header"
+    style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1>Quizzes 📝</h1>
+        <p>Manage all quizzes. Activate/deactivate to control student visibility.</p>
+    </div>
+    <a href="{% url 'video_app:admin_add_quiz' %}" class="btn btn-primary">➕ Create Quiz</a>
+</div>
+
+<div class="card">
+    {% if quiz_data %}
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Time</th>
+                <th>Questions</th>
+                <th>Attempts</th>
+                <th>Schedule</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in quiz_data %}
+            <tr>
+                <td style="font-weight:600;color:#1e293b;">{{ item.quiz.title }}</td>
+                <td>{{ item.quiz.time_limit_minutes }} min</td>
+                <td>{{ item.question_count }}</td>
+                <td>{{ item.attempt_count }}</td>
+                <td style="font-size:12px;color:#64748b;">
+                    {% if item.quiz.start_time %}
+                    {{ item.quiz.start_time|date:"d M, H:i" }} →<br>{{ item.quiz.end_time|date:"d M, H:i" }}
+                    {% else %}Always{% endif %}
+                </td>
+                <td>
+                    <span class="badge badge-{% if item.quiz.is_active %}success{% else %}danger{% endif %}">
+                        {{ item.quiz.is_active|yesno:"Active,Inactive" }}
+                    </span>
+                </td>
+                <td>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <a href="{% url 'video_app:admin_quiz_questions' item.quiz.id %}" class="btn btn-sm"
+                            style="background:#e0e7ff;color:#3730a3;border:none;">Questions</a>
+                        <a href="{% url 'video_app:admin_toggle_quiz' item.quiz.id %}" class="btn btn-sm btn-warning">
+                            {{ item.quiz.is_active|yesno:"Deactivate,Activate" }}
+                        </a>
+                        <a href="{% url 'video_app:admin_edit_quiz' item.quiz.id %}"
+                            class="btn btn-sm btn-outline">Edit</a>
+                        <a href="{% url 'video_app:admin_delete_quiz' item.quiz.id %}"
+                            class="btn btn-sm btn-danger">Delete</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center;padding:48px;color:#94a3b8;">
+        <div style="font-size:48px;margin-bottom:12px;">📭</div>
+        <p>No quizzes yet. <a href="{% url 'video_app:admin_add_quiz' %}" style="color:#4f46e5;">Create your first
+                quiz</a>.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

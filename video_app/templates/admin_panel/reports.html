@@ -1,0 +1,71 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}Reports — Admin{% endblock %}
+{% block admin_content %}
+<div class="page-header">
+    <h1>Reports 📈</h1>
+    <p>View quiz submission results across all students.</p>
+</div>
+
+<div class="card" style="margin-bottom:20px;">
+    <form method="get" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <label style="margin:0;font-size:14px;font-weight:600;white-space:nowrap;">Filter by Quiz:</label>
+        <select name="quiz_id" style="max-width:280px;">
+            <option value="">— All Quizzes —</option>
+            {% for quiz in quizzes %}
+            <option value="{{ quiz.id }}" {% if selected_quiz_id == quiz.id %}selected{% endif %}>{{ quiz.title }}
+            </option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+        {% if selected_quiz_id %}<a href="{% url 'video_app:admin_reports' %}" class="btn btn-sm"
+            style="background:#f1f5f9;border:none;">Clear</a>{% endif %}
+    </form>
+</div>
+
+<div class="card">
+    <div style="margin-bottom:16px;font-size:13px;color:#64748b;">{{ results|length }} result(s)</div>
+    {% if results %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Student</th>
+                <th>College</th>
+                <th>Quiz</th>
+                <th>Score</th>
+                <th>%</th>
+                <th>Grade</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results %}
+            <tr>
+                <td style="font-size:13px;color:#94a3b8;">{{ forloop.counter }}</td>
+                <td style="font-weight:500;">{{ r.student.student_profile.student_name|default:r.student.email }}</td>
+                <td style="font-size:13px;color:#64748b;">{{ r.student.student_profile.college_name|default:"—" }}</td>
+                <td>{{ r.quiz.title }}</td>
+                <td>{{ r.score }} / {{ r.total_questions }}</td>
+                <td>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="width:60px;height:6px;background:#f1f5f9;border-radius:3px;">
+                            <div style="height:100%;background:{% if r.percentage >= 60 %}#22c55e{% else %}#ef4444{% endif %};
+                border-radius:3px;width:{{ r.percentage }}%;max-width:100%;"></div>
+                        </div>
+                        <span style="font-size:13px;">{{ r.percentage|floatformat:1 }}%</span>
+                    </div>
+                </td>
+                <td>{% with grade=r.grade %}<span class="badge badge-{% if grade == 'F' %}danger{% elif grade == 'C' %}warning{% else %}success{% endif %}">{{ grade }}</span>{% endwith %}</td>
+                <td style="font-size:12px;color:#94a3b8;">{{ r.completed_at|date:"d M Y, H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center;padding:48px;color:#94a3b8;">
+        <div style="font-size:48px;margin-bottom:12px;">📭</div>
+        <p>No results yet.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
