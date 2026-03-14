@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from users.models import StudentProfile
 
-from .models import Question, Quiz, QuizAttempt, QuizResult
+from .models import Question, Quiz, QuizAttempt, QuizResult, StudentAnswer
 from .selectors import DASHBOARD_STATS_CACHE_KEY, admin_dashboard_stats
 
 
@@ -163,6 +163,55 @@ class StudentTemplateRenderingTests(TestCase):
         self.assertNotIn('{{ quiz.end_time|date:"d M Y, H:i" }}', quiz_list_html)
         self.assertIn(timezone.localtime(quiz.start_time).strftime('%d %b %Y, %H:%M'), quiz_list_html)
         self.assertIn(timezone.localtime(quiz.end_time).strftime('%d %b %Y, %H:%M'), quiz_list_html)
+
+    def test_quiz_review_preserves_attempt_question_order(self):
+        question_one = Question.objects.create(
+            question_text='First question text',
+            option_a='Alpha',
+            option_b='Beta',
+            correct_answers=['A'],
+        )
+        question_two = Question.objects.create(
+            question_text='Second question text',
+            option_a='Gamma',
+            option_b='Delta',
+            correct_answers=['B'],
+        )
+        quiz = Quiz.objects.create(
+            title='Ordered Review Quiz',
+            time_limit_minutes=20,
+            is_active=True,
+        )
+        attempt = QuizAttempt.objects.create(
+            student=self.student_user,
+            quiz=quiz,
+            is_submitted=True,
+            submitted_at=timezone.now(),
+            question_order=[question_two.id, question_one.id],
+        )
+        StudentAnswer.objects.create(
+            attempt=attempt,
+            question=question_one,
+            selected_answers=['A'],
+        )
+        QuizResult.objects.create(
+            attempt=attempt,
+            student=self.student_user,
+            quiz=quiz,
+            score=1,
+            total_questions=2,
+            percentage=50.0,
+        )
+
+        self.client.force_login(self.student_user)
+        response = self.client.get(reverse('video_app:quiz_result', args=[attempt.id]))
+
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        second_index = html.index('Second question text')
+        first_index = html.index('First question text')
+        self.assertLess(second_index, first_index)
+        self.assertIn('Not answered', html)
 
 
 class AdminReportsFilterTests(TestCase):

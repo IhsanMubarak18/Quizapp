@@ -20,6 +20,7 @@ from .selectors import (
     filtered_students_queryset,
     ordered_questions_for_attempt,
     question_map_for_ids,
+    review_items_for_attempt,
     student_college_options,
 )
 from users.forms import AdminUserCreationForm, AdminUserChangeForm
@@ -219,13 +220,13 @@ def quiz_result(request, attempt_id):
     if not attempt.is_submitted:
         return redirect('video_app:start_quiz', quiz_id=attempt.quiz.id)
     result = get_object_or_404(QuizResult, attempt=attempt)
-    answers = StudentAnswer.objects.filter(attempt=attempt).select_related('question')
+    review_items = review_items_for_attempt(attempt)
     min_pct = attempt.quiz.certificate_min_percentage
     certificate_eligible = result.percentage >= min_pct
     return render(request, 'student/quiz_result.html', {
         'result': result,
         'attempt': attempt,
-        'answers': answers,
+        'review_items': review_items,
         'certificate_eligible': certificate_eligible,
         'min_pct': min_pct,
     })

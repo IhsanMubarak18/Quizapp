@@ -100,3 +100,26 @@ def ordered_questions_for_attempt(attempt):
 
 def question_map_for_ids(question_ids):
     return Question.objects.in_bulk(question_ids)
+
+
+def review_items_for_attempt(attempt):
+    question_map = question_map_for_ids(attempt.question_order)
+    answer_map = {
+        answer.question_id: answer
+        for answer in attempt.answers.select_related('question')
+    }
+    items = []
+    for question_id in attempt.question_order:
+        question = question_map.get(question_id)
+        if question is None:
+            continue
+        answer = answer_map.get(question_id)
+        selected_answers = answer.selected_answers if answer else []
+        correct_answers = set(a.upper() for a in (question.correct_answers or []))
+        selected_set = set(a.upper() for a in selected_answers)
+        items.append({
+            'question': question,
+            'selected_answers': selected_answers,
+            'is_correct': selected_set == correct_answers and len(selected_set) > 0,
+        })
+    return items
