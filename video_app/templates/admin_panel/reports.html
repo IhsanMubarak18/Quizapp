@@ -1,15 +1,229 @@
 {% extends "admin_panel/base_admin.html" %}
 {% block title %}Reports — Admin{% endblock %}
 {% block admin_content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .page-header {
+        margin-bottom: 32px;
+        padding: 24px;
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #06B6D4, #22D3EE);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #22D3EE, #06B6D4);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+    }
+
+    .filter-form {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-label {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        white-space: nowrap;
+        color: var(--text-primary);
+    }
+
+    .form-select {
+        padding: 10px 16px;
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        cursor: pointer;
+        min-width: 320px;
+        max-width: 420px;
+    }
+
+    .form-select:focus {
+        outline: none;
+        border-color: var(--brand-orange);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    .results-count {
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-card);
+    }
+
+    .data-table th {
+        background: var(--bg-hover);
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .data-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .data-table tr:hover {
+        background: var(--bg-hover);
+    }
+
+    .progress-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .progress-track {
+        width: 60px;
+        height: 6px;
+        background: var(--bg-hover);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        border-radius: 3px;
+        transition: width 0.3s ease;
+    }
+
+    .progress-fill.success {
+        background: #22C55E;
+    }
+
+    .progress-fill.danger {
+        background: #EF4444;
+    }
+
+    .progress-text {
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .badge {
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .badge-success {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+    }
+
+    .badge-warning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #D97706;
+    }
+
+    .badge-danger {
+        background: rgba(244, 63, 94, 0.1);
+        color: #DC2626;
+    }
+
+    @media (max-width: 768px) {
+        .filter-form {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .form-select {
+            width: 100%;
+            min-width: unset;
+            max-width: unset;
+        }
+    }
+</style>
+
+<!-- Page Header -->
 <div class="page-header">
-    <h1>Reports 📈</h1>
-    <p>View quiz submission results across all students.</p>
+    <div class="page-title">
+        <i class="fas fa-chart-bar" style="color: #06B6D4;"></i>
+        Reports
+    </div>
+    <div class="page-subtitle">View quiz submission results across all students.</div>
 </div>
 
-<div class="card" style="margin-bottom:20px;">
-    <form method="get" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
-        <label style="margin:0;font-size:14px;font-weight:600;white-space:nowrap;">Filter by Quiz Attempt:</label>
-        <select name="quiz_attempt" style="min-width:320px;max-width:420px;">
+<!-- Filter Card -->
+<div class="card">
+    <form method="get" class="filter-form">
+        <label class="filter-label">Filter by Quiz Attempt:</label>
+        <select name="quiz_attempt" class="form-select">
             <option value="">— All Quiz Attempts —</option>
             {% for item in report_filters %}
             <option value="{{ item.value }}" {% if selected_quiz_attempt == item.value %}selected{% endif %}>
@@ -17,54 +231,72 @@
             </option>
             {% endfor %}
         </select>
-        <button type="submit" class="btn btn-primary btn-sm">Filter</button>
-        {% if selected_quiz_attempt %}<a href="{% url 'video_app:admin_reports' %}" class="btn btn-sm"
-            style="background:#f1f5f9;border:none;">Clear</a>{% endif %}
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="fas fa-filter"></i>
+            Filter
+        </button>
+        {% if selected_quiz_attempt %}
+        <a href="{% url 'video_app:admin_reports' %}" class="btn btn-sm" style="background:var(--bg-hover);border:none;">
+            <i class="fas fa-times"></i>
+            Clear
+        </a>
+        {% endif %}
     </form>
 </div>
 
+<!-- Results Table -->
 <div class="card">
-    <div style="margin-bottom:16px;font-size:13px;color:#64748b;">{{ results|length }} result(s)</div>
+    <div class="results-count">{{ results|length }} result(s)</div>
     {% if results %}
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Student</th>
-                <th>College</th>
-                <th>Quiz</th>
-                <th>Score</th>
-                <th>%</th>
-                <th>Grade</th>
-                <th>Attempt Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for r in results %}
-            <tr>
-                <td style="font-size:13px;color:#94a3b8;">{{ forloop.counter }}</td>
-                <td style="font-weight:500;">{{ r.student.student_profile.student_name|default:r.student.email }}</td>
-                <td style="font-size:13px;color:#64748b;">{{ r.student.student_profile.college_name|default:"—" }}</td>
-                <td>{{ r.quiz.title }}</td>
-                <td>{{ r.score }} / {{ r.total_questions }}</td>
-                <td>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div style="width:60px;height:6px;background:#f1f5f9;border-radius:3px;">
-                            <div style="height:100%;background:{% if r.percentage >= 60 %}#22c55e{% else %}#ef4444{% endif %};
-                border-radius:3px;width:{{ r.percentage }}%;max-width:100%;"></div>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Student</th>
+                    <th>College</th>
+                    <th>Quiz</th>
+                    <th>Score</th>
+                    <th>%</th>
+                    <th>Grade</th>
+                    <th>Attempt Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td style="font-size:13px;color:var(--text-muted);">{{ forloop.counter }}</td>
+                    <td style="font-weight:500;color:var(--text-primary);">{{ r.student.student_profile.student_name|default:r.student.email }}</td>
+                    <td style="font-size:13px;color:var(--text-secondary);">{{ r.student.student_profile.college_name|default:"—" }}</td>
+                    <td style="color:var(--text-primary);">{{ r.quiz.title }}</td>
+                    <td style="color:var(--text-secondary);">{{ r.score }} / {{ r.total_questions }}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-track">
+                                <div class="progress-fill {% if r.percentage >= 60 %}success{% else %}danger{% endif %}"
+                                     style="width:{{ r.percentage }}%;max-width:100%;"></div>
+                            </div>
+                            <span class="progress-text">{{ r.percentage|floatformat:1 }}%</span>
                         </div>
-                        <span style="font-size:13px;">{{ r.percentage|floatformat:1 }}%</span>
-                    </div>
-                </td>
-                <td>{% with grade=r.grade %}<span class="badge badge-{% if grade == 'F' %}danger{% elif grade == 'C' %}warning{% else %}success{% endif %}">{{ grade }}</span>{% endwith %}</td>
-                <td style="font-size:12px;color:#94a3b8;">{{ r.attempt.started_at|date:"d M Y, H:i" }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                    <td>
+                        {% with grade=r.grade %}
+                        <span class="badge {% if grade == 'F' %}badge-danger{% elif grade == 'C' %}badge-warning{% else %}badge-success{% endif %}">
+                            {{ grade }}
+                        </span>
+                        {% endwith %}
+                    </td>
+                    <td style="font-size:12px;color:var(--text-muted);">{{ r.attempt.started_at|date:"d M Y, H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <div style="text-align:center;padding:48px;color:#94a3b8;">
-        <div style="font-size:48px;margin-bottom:12px;">📭</div>
+    <div style="text-align:center;padding:48px;color:var(--text-muted);">
+        <div style="font-size:48px;margin-bottom:12px;opacity:0.5;">
+            <i class="fas fa-chart-line"></i>
+        </div>
         <p>No results yet.</p>
     </div>
     {% endif %}

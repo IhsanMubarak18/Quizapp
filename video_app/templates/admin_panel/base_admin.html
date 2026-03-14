@@ -2,83 +2,348 @@
 {% block body %}
 {% block admin_body %}
 <style>
+    :root {
+        --primary-dark: #1E40AF;
+        --primary-medium: #3B82F6;
+        --primary-light: #60A5FA;
+        --accent-blue: #3B82F6;
+        --accent-purple: #8B5CF6;
+        --accent-emerald: #10B981;
+        --accent-amber: #F59E0B;
+        --accent-rose: #F43F5E;
+        --text-primary: #1F2937;
+        --text-secondary: #4B5563;
+        --text-muted: #6B7280;
+        --border-light: rgba(0, 0, 0, 0.1);
+        --bg-card: #FFFFFF;
+        --bg-hover: #F9FAFB;
+        --bg-sidebar: #F8FAFC;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        --brand-orange: #F97316;
+        --brand-blue: #1E40AF;
+        --brand-light-orange: #FB923C;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .sidebar {
+        width: 280px;
+        background: linear-gradient(180deg, var(--bg-sidebar) 0%, #F1F5F9 100%);
+        border-right: 1px solid var(--border-light);
+        color: var(--text-primary);
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        height: 100vh;
+        z-index: 100;
+        box-shadow: var(--shadow-md);
+    }
+
+    .sidebar-header {
+        padding: 32px 24px 24px;
+        border-bottom: 1px solid var(--border-light);
+        background: linear-gradient(135deg, var(--brand-blue) 0%, var(--primary-medium) 100%);
+        color: white;
+    }
+
+    .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    .brand-icon {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--brand-orange), var(--brand-light-orange));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        box-shadow: var(--shadow-md);
+    }
+
+    .brand-name {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+        color: var(--text-primary);
+    }
+
+    .sidebar-header .brand-name {
+        color: white;
+    }
+
+    .brand-subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-left: 52px;
+        font-weight: 500;
+    }
+
+    .sidebar-header .brand-subtitle {
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        padding: 24px 16px;
+        overflow-y: auto;
+        background: var(--bg-sidebar);
+    }
+
+    .nav-section {
+        margin-bottom: 32px;
+    }
+
+    .nav-section-title {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        margin-bottom: 12px;
+        padding: 0 12px;
+    }
+
     .sidebar-link {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 11px 14px;
-        border-radius: 8px;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 10px;
         margin-bottom: 4px;
         font-size: 14px;
         font-weight: 500;
-        color: #e0e7ff;
-        transition: .2s;
+        color: var(--text-secondary);
         text-decoration: none;
+        transition: all 0.2s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sidebar-link::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 3px;
+        height: 100%;
+        background: var(--brand-blue);
+        transform: translateX(-100%);
+        transition: transform 0.2s ease;
     }
 
     .sidebar-link:hover {
-        background: rgba(255, 255, 255, .1);
+        background: var(--bg-hover);
+        color: var(--brand-blue);
+        transform: translateX(2px);
+    }
+
+    .sidebar-link:hover::before {
+        transform: translateX(0);
     }
 
     .sidebar-link.active {
-        background: rgba(255, 255, 255, .15);
+        background: linear-gradient(135deg, var(--brand-blue) 0%, var(--primary-medium) 100%);
+        color: white;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .sidebar-link.active::before {
+        transform: translateX(0);
+        background: white;
+    }
+
+    .sidebar-icon {
+        font-size: 18px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .sidebar-footer {
+        padding: 24px 16px;
+        border-top: 1px solid var(--border-light);
+        background: var(--bg-sidebar);
+    }
+
+    .logout-btn {
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--border-light);
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .logout-btn:hover {
+        background: var(--bg-hover);
+        color: var(--accent-rose);
+        border-color: var(--accent-rose);
+        transform: translateY(-1px);
+    }
+
+    .main-content {
+        flex: 1;
+        margin-left: 280px;
+        padding: 32px;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+    }
+
+    .messages {
+        margin-bottom: 24px;
+    }
+
+    .alert {
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #059669;
+    }
+
+    .alert-error {
+        background: rgba(244, 63, 94, 0.1);
+        border-color: rgba(244, 63, 94, 0.3);
+        color: #DC2626;
+    }
+
+    .alert-info {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: var(--brand-blue);
+    }
+
+    .alert-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #D97706;
+    }
+
+    /* Scrollbar Styling */
+    .sidebar-nav::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb {
+        background: var(--border-light);
+        border-radius: 3px;
+    }
+
+    .sidebar-nav::-webkit-scrollbar-thumb:hover {
+        background: rgba(0, 0, 0, 0.2);
     }
 </style>
 <div style="display:flex;min-height:100vh;">
     <!-- Sidebar -->
-    <aside style="width:240px;background:linear-gradient(160deg,#1e1b4b 0%,#312e81 100%);
-    color:#fff;display:flex;flex-direction:column;position:fixed;height:100vh;z-index:100;">
-        <div style="padding:28px 20px 20px;">
-            <div style="font-size:20px;font-weight:800;letter-spacing:-0.5px;color:#c7d2fe;">🎓 QuizPortal</div>
-            <div style="font-size:12px;color:#a5b4fc;margin-top:4px;">Admin Panel</div>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand">
+                <div class="brand-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="brand-name">QuizPortal</div>
+            </div>
+            <div class="brand-subtitle">Admin Panel</div>
         </div>
-        <nav style="flex:1;padding:0 12px;">
-            {% with request.resolver_match.url_name as url_name %}
-            <a href="{% url 'video_app:admin_dashboard' %}"
-                class="sidebar-link {% if url_name == 'admin_dashboard' %}active{% endif %}">
-                📊 Dashboard
-            </a>
-            <a href="{% url 'video_app:admin_question_bank' %}"
-                class="sidebar-link {% if 'question' in url_name %}active{% endif %}">
-                📚 Question Bank
-            </a>
-            <a href="{% url 'video_app:admin_quizzes' %}"
-                class="sidebar-link {% if 'quiz' in url_name and 'question' not in url_name %}active{% endif %}">
-                📝 Quizzes
-            </a>
-            {% if request.user.is_superuser %}
-            <a href="{% url 'video_app:admin_users' %}"
-                class="sidebar-link {% if 'admin_user' in url_name %}active{% endif %}">
-                🛡️ Admin Users
-            </a>
-            {% endif %}
-            <a href="{% url 'video_app:admin_students' %}"
-                class="sidebar-link {% if 'student' in url_name %}active{% endif %}">
-                👥 Students
-            </a>
-            <a href="{% url 'video_app:admin_reports' %}"
-                class="sidebar-link {% if url_name == 'admin_reports' %}active{% endif %}">
-                📈 Reports
-            </a>
-            {% endwith %}
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                {% with request.resolver_match.url_name as url_name %}
+                <a href="{% url 'video_app:admin_dashboard' %}"
+                    class="sidebar-link {% if url_name == 'admin_dashboard' %}active{% endif %}">
+                    <span class="sidebar-icon"><i class="fas fa-chart-pie"></i></span>
+                    <span>Dashboard</span>
+                </a>
+                </div>
+                
+                <div class="nav-section">
+                <div class="nav-section-title">Content Management</div>
+                <a href="{% url 'video_app:admin_question_bank' %}"
+                    class="sidebar-link {% if 'question' in url_name %}active{% endif %}">
+                    <span class="sidebar-icon"><i class="fas fa-database"></i></span>
+                    <span>Question Bank</span>
+                </a>
+                <a href="{% url 'video_app:admin_quizzes' %}"
+                    class="sidebar-link {% if 'quiz' in url_name and 'question' not in url_name %}active{% endif %}">
+                    <span class="sidebar-icon"><i class="fas fa-clipboard-list"></i></span>
+                    <span>Quizzes</span>
+                </a>
+                </div>
+                
+                <div class="nav-section">
+                <div class="nav-section-title">User Management</div>
+                {% if request.user.is_superuser %}
+                <a href="{% url 'video_app:admin_users' %}"
+                    class="sidebar-link {% if 'admin_user' in url_name %}active{% endif %}">
+                    <span class="sidebar-icon"><i class="fas fa-user-shield"></i></span>
+                    <span>Admin Users</span>
+                </a>
+                {% endif %}
+                <a href="{% url 'video_app:admin_students' %}"
+                    class="sidebar-link {% if 'student' in url_name %}active{% endif %}">
+                    <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                    <span>Students</span>
+                </a>
+                </div>
+                
+                <div class="nav-section">
+                <div class="nav-section-title">Analytics</div>
+                <a href="{% url 'video_app:admin_reports' %}"
+                    class="sidebar-link {% if url_name == 'admin_reports' %}active{% endif %}">
+                    <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                    <span>Reports</span>
+                </a>
+                {% endwith %}
+            </div>
         </nav>
-        <div style="padding:20px 12px;border-top:1px solid rgba(255,255,255,.1);">
+        <div class="sidebar-footer">
             <form method="post" action="{% url 'users:logout' %}">{% csrf_token %}
-                <button type="submit" style="width:100%;padding:10px;border-radius:8px;
-          border:1px solid rgba(255,255,255,.2);background:transparent;
-          color:#e0e7ff;cursor:pointer;font-size:13px;font-weight:500;">
-                    🚪 Logout
+                <button type="submit" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
                 </button>
             </form>
         </div>
     </aside>
+    
     <!-- Main content -->
-    <main style="flex:1;margin-left:240px;padding:32px;min-height:100vh;">
+    <main class="main-content">
         {% if messages %}
         <div class="messages">
             {% for msg in messages %}
-            <div class="alert alert-{% if msg.tags == 'error' %}error{% else %}{{ msg.tags }}{% endif %}">{{ msg }}
-            </div>
+            <div class="alert alert-{% if msg.tags == 'error' %}error{% else %}{{ msg.tags }}{% endif %}">{{ msg }}</div>
             {% endfor %}
         </div>
         {% endif %}

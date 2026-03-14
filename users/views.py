@@ -58,7 +58,7 @@ def student_register(request):
                     f"Your login credentials:\n"
                     f"  Email   : {email}\n"
                     f"  Password: {raw_password}\n\n"
-                    f"Please log in at: http://127.0.0.1:8000/login/\n\n"
+                    f"Please log in at: {request.build_absolute_uri('/login/')}\n\n"
                     f"Regards,\nQuiz Portal Team"
                 ),
                 from_email=settings.DEFAULT_FROM_EMAIL,
