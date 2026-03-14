@@ -993,9 +993,63 @@
   
   .footer-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
     margin-bottom: 2rem;
+  }
+  
+  .footer-brand-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .footer-info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .footer-info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .footer-info-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-2px);
+  }
+  
+  .info-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--brand-orange), var(--brand-light-orange));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+  }
+  
+  .info-content h4 {
+    color: var(--brand-orange);
+    font-size: 1.125rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .info-content p {
+    color: var(--gray-400);
+    font-size: 0.875rem;
+    line-height: 1.5;
   }
   
   .footer-brand {
@@ -1048,8 +1102,20 @@
     border-top: 1px solid var(--gray-800);
     padding-top: 2rem;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .footer-bottom p {
     color: var(--gray-400);
     font-size: 0.875rem;
+  }
+  
+  .footer-tagline {
+    color: var(--brand-orange) !important;
+    font-weight: 600;
+    font-style: italic;
   }
   
   /* Responsive Design */
@@ -1221,12 +1287,16 @@
       gap: 2rem;
     }
     
-    .footer-links {
+    .footer-brand {
+      justify-content: center;
+    }
+    
+    .footer-info-section {
       align-items: center;
     }
     
-    .footer-brand {
-      justify-content: center;
+    .footer-info-card {
+      max-width: 400px;
     }
   }
   
@@ -1516,16 +1586,13 @@
 <!-- CTA Section -->
 <section class="cta">
   <div class="cta-container">
-    <h2 class="cta-title">Ready to Transform Your College's Assessment Process?</h2>
+    <h2 class="cta-title">Elevate Your Educational Assessment Experience</h2>
     <p class="cta-subtitle">
-      Join educators who are already enhancing student learning with our intuitive platform
+      Discover how institutions are revolutionizing student evaluation with our comprehensive assessment platform
     </p>
     <div class="cta-actions">
       <a href="{% url 'users:signup' %}" class="btn btn-cta">
-        <i class="fas fa-graduation-cap"></i> Start Free for Your College
-      </a>
-      <a href="#" class="btn btn-cta-outline">
-        <i class="fas fa-phone"></i> Schedule Demo
+        <i class="fas fa-rocket"></i> Get Started Today
       </a>
     </div>
   </div>
@@ -1535,7 +1602,7 @@
 <footer class="footer">
   <div class="footer-container">
     <div class="footer-content">
-      <div class="footer-section">
+      <div class="footer-brand-section">
         <div class="footer-brand">
           <img src="{% static 'logo/talent_infosys_logo.jpg' %}" alt="Talent Infosys">
           <span class="footer-brand-name">Talent Infosys</span>
@@ -1546,39 +1613,42 @@
         </p>
       </div>
       
-      <div class="footer-section">
-        <div class="footer-links">
-          <h3>Platform</h3>
-          <a href="#">Features</a>
-          <a href="#">Student Portal</a>
-          <a href="#">Instructor Dashboard</a>
-          <a href="#">Pricing</a>
+      <div class="footer-info-section">
+        <div class="footer-info-card">
+          <div class="info-icon">
+            <i class="fas fa-graduation-cap"></i>
+          </div>
+          <div class="info-content">
+            <h4>Educational Focus</h4>
+            <p>Designed specifically for higher education institutions</p>
+          </div>
         </div>
-      </div>
-      
-      <div class="footer-section">
-        <div class="footer-links">
-          <h3>Solutions</h3>
-          <a href="#">Universities</a>
-          <a href="#">Community Colleges</a>
-          <a href="#">K-12 Schools</a>
-          <a href="#">Online Learning</a>
+        
+        <div class="footer-info-card">
+          <div class="info-icon">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div class="info-content">
+            <h4>Secure & Reliable</h4>
+            <p>Enterprise-grade security for academic integrity</p>
+          </div>
         </div>
-      </div>
-      
-      <div class="footer-section">
-        <div class="footer-links">
-          <h3>Resources</h3>
-          <a href="#">Help Center</a>
-          <a href="#">Documentation</a>
-          <a href="#">Blog</a>
-          <a href="https://www.talentinfosys.com/contact.html">Contact</a>
+        
+        <div class="footer-info-card">
+          <div class="info-icon">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="info-content">
+            <h4>User-Friendly</h4>
+            <p>Intuitive interface for students and instructors</p>
+          </div>
         </div>
       </div>
     </div>
     
     <div class="footer-bottom">
-      <p>&copy; 2026 Talent Infosys. All rights reserved. | Privacy Policy | Terms of Service | SOC 2 Report</p>
+      <p>&copy; 2026 Talent Infosys. All rights reserved.</p>
+      <p class="footer-tagline">Empowering Education Through Technology</p>
     </div>
   </div>
 </footer>
