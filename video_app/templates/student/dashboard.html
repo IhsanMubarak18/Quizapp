@@ -438,6 +438,85 @@
         .data-table td {
             padding: 12px 8px;
         }
+        
+        /* Responsive table styles */
+        .data-table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .data-table thead {
+            display: none;
+        }
+        
+        .data-table tbody,
+        .data-table tr,
+        .data-table td {
+            display: block;
+            width: 100% !important;
+        }
+        
+        .data-table tr {
+            margin-bottom: 16px;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 16px;
+            background: white;
+        }
+        
+        .data-table td {
+            border: none !important;
+            padding: 8px 0 !important;
+            position: relative;
+            padding-left: 100px !important;
+        }
+        
+        .data-table td:before {
+            content: attr(data-label);
+            position: absolute;
+            left: 16px;
+            top: 8px;
+            font-weight: 600;
+            color: #64748B;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .data-table td:first-child {
+            font-weight: 600;
+            color: #0F172A;
+            margin-bottom: 4px;
+        }
+        
+        .data-table td:nth-child(2):before {
+            content: "Score";
+        }
+        
+        .data-table td:nth-child(3):before {
+            content: "Percentage";
+        }
+        
+        .data-table td:nth-child(4):before {
+            content: "Grade";
+        }
+        
+        .data-table td:nth-child(5):before {
+            content: "Date";
+        }
+        
+        .data-table td:nth-child(6):before {
+            content: "Actions";
+        }
+        
+        .action-buttons {
+            justify-content: flex-start;
+        }
+        
+        .progress-track {
+            max-width: 120px;
+        }
     }
 </style>
 
@@ -578,9 +657,9 @@
             <tbody>
                 {% for result in recent_results %}
                 <tr>
-                    <td style="font-weight: 600;">{{ result.quiz.title }}</td>
-                    <td>{{ result.score }} / {{ result.total_questions }}</td>
-                    <td>
+                    <td data-label="Quiz" style="font-weight: 600;">{{ result.quiz.title }}</td>
+                    <td data-label="Score">{{ result.score }} / {{ result.total_questions }}</td>
+                    <td data-label="Percentage">
                         <div class="progress-bar">
                             <div class="progress-track">
                                 <div class="progress-fill {% if result.percentage >= 60 %}success{% else %}danger{% endif %}"
@@ -589,13 +668,13 @@
                             <span class="progress-text">{{ result.percentage|floatformat:1 }}%</span>
                         </div>
                     </td>
-                    <td>
+                    <td data-label="Grade">
                         <span class="grade-badge {% if result.grade == 'F' %}danger{% elif result.grade == 'C' %}warning{% else %}success{% endif %}">
                             {{ result.grade }}
                         </span>
                     </td>
-                    <td style="font-size: 13px; color: #64748B;">{{ result.completed_at|date:"d M Y" }}</td>
-                    <td>
+                    <td data-label="Date" style="font-size: 13px; color: #64748B;">{{ result.completed_at|date:"d M Y" }}</td>
+                    <td data-label="Actions">
                         <div class="action-buttons">
                             <a href="{% url 'video_app:quiz_result' result.attempt.id %}" class="btn btn-sm btn-secondary">
                                 <i class="fas fa-chart-pie"></i>
@@ -615,5 +694,8 @@
         </table>
     </div>
     {% endif %}
+    
+    <!-- Bottom spacing -->
+    <div style="height: 40px;"></div>
 </div>
 {% endblock %}

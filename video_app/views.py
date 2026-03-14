@@ -26,6 +26,26 @@ from .selectors import (
 from users.forms import AdminUserCreationForm, AdminUserChangeForm
 from users.models import StudentProfile
 
+from django.http import HttpResponse
+from django.utils import timezone
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import cm
+from reportlab.lib import colors
+import io
+
+import io
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.staticfiles import finders
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4, landscape
+from reportlab.lib.units import inch
+
+import io
+
 AuthUser = get_user_model()
 
 
@@ -234,118 +254,143 @@ def quiz_result(request, attempt_id):
 
 @student_login_required
 def download_certificate(request, attempt_id):
+
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
     result = get_object_or_404(QuizResult, attempt=attempt)
 
-    # Enforce certificate minimum percentage threshold
+    # Certificate eligibility check
     min_pct = attempt.quiz.certificate_min_percentage
     if result.percentage < min_pct:
-        messages.error(request, f"Certificate not available. You need at least {min_pct:.0f}% to receive a certificate (your score: {result.percentage:.1f}%).")
+        messages.error(
+            request,
+            f"Certificate not available. You need at least {min_pct:.0f}% "
+            f"to receive a certificate (your score: {result.percentage:.1f}%)."
+        )
         return redirect('video_app:quiz_result', attempt_id=attempt_id)
 
     student_profile = getattr(request.user, 'student_profile', None)
     student_name = student_profile.student_name if student_profile else request.user.get_full_name()
     college_name = student_profile.college_name if student_profile else ''
 
-    # Generate PDF using ReportLab
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4, landscape
-    from reportlab.lib import colors
-    from reportlab.lib.units import inch
-
     buffer = io.BytesIO()
+
     page_size = landscape(A4)
     width, height = page_size
+
     pdf = canvas.Canvas(buffer, pagesize=page_size)
 
-    # Background gradient-like (white)
-    pdf.setFillColorRGB(0.98, 0.98, 1.0)
+    # Background
+    pdf.setFillColorRGB(0.97, 0.97, 0.99)
     pdf.rect(0, 0, width, height, fill=1, stroke=0)
 
-    # Outer gold border
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
+    # Outer border
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
     pdf.setLineWidth(6)
-    pdf.rect(25, 25, width - 50, height - 50, stroke=1, fill=0)
+    pdf.rect(30, 30, width - 60, height - 60)
 
     # Inner border
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
     pdf.setLineWidth(2)
-    pdf.rect(38, 38, width - 76, height - 76, stroke=1, fill=0)
+    pdf.rect(45, 45, width - 90, height - 90)
 
-    # Title
-    pdf.setFont("Helvetica-Bold", 38)
-    pdf.setFillColorRGB(0.2, 0.2, 0.5)
-    pdf.drawCentredString(width / 2, height - 100, "Certificate of Achievement")
+    # ---------------- LOGO ----------------
+    logo_path = finders.find('logo/talent_infosys_logo.jpg')
+
+    if logo_path:
+        logo_width = 160
+        logo_height = 70
+
+        pdf.drawImage(
+            logo_path,
+            width / 2 - logo_width / 2,
+            height - 110,
+            width=logo_width,
+            height=logo_height,
+            preserveAspectRatio=True,
+            mask='auto'
+        )
+
+    # ---------------- TITLE ----------------
+    pdf.setFont("Helvetica-Bold", 40)
+    pdf.setFillColorRGB(0.22, 0.22, 0.45)
+    pdf.drawCentredString(width/2, height-170, "Certificate of Achievement")
 
     # Decorative line
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
     pdf.setLineWidth(1.5)
-    pdf.line(80, height - 115, width - 80, height - 115)
+    pdf.line(120, height-185, width-120, height-185)
 
     # Subtitle
-    pdf.setFont("Helvetica", 14)
-    pdf.setFillColorRGB(0.4, 0.4, 0.4)
-    pdf.drawCentredString(width / 2, height - 140, "This is to certify that")
+    pdf.setFont("Helvetica", 15)
+    pdf.setFillColorRGB(0.4,0.4,0.4)
+    pdf.drawCentredString(width/2, height-220, "This is to certify that")
 
     # Student Name
-    pdf.setFont("Helvetica-Bold", 28)
-    pdf.setFillColorRGB(0.1, 0.1, 0.4)
-    pdf.drawCentredString(width / 2, height - 185, student_name)
+    pdf.setFont("Helvetica-Bold", 30)
+    pdf.setFillColorRGB(0.12,0.12,0.45)
+    pdf.drawCentredString(width/2, height-260, student_name)
 
     # Underline name
-    name_width = pdf.stringWidth(student_name, "Helvetica-Bold", 28)
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
-    pdf.setLineWidth(1)
-    pdf.line(width / 2 - name_width / 2, height - 190, width / 2 + name_width / 2, height - 190)
+    name_width = pdf.stringWidth(student_name, "Helvetica-Bold", 30)
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
+    pdf.line(width/2 - name_width/2, height-265, width/2 + name_width/2, height-265)
 
+    # College
     if college_name:
-        pdf.setFont("Helvetica", 13)
-        pdf.setFillColorRGB(0.4, 0.4, 0.4)
-        pdf.drawCentredString(width / 2, height - 215, f"from {college_name}")
+        pdf.setFont("Helvetica", 14)
+        pdf.setFillColorRGB(0.45,0.45,0.45)
+        pdf.drawCentredString(width/2, height-300, f"from {college_name}")
 
     # Body text
+    pdf.setFont("Helvetica", 15)
+    pdf.setFillColorRGB(0.2,0.2,0.2)
+    pdf.drawCentredString(width/2, height-340, "has successfully completed the quiz")
+
+    # Quiz title
+    pdf.setFont("Helvetica-Bold", 22)
+    pdf.setFillColorRGB(0.2,0.2,0.5)
+    pdf.drawCentredString(width/2, height-375, f'"{result.quiz.title}"')
+
+    # Score section
     pdf.setFont("Helvetica", 14)
-    pdf.setFillColorRGB(0.2, 0.2, 0.2)
-    body = f"has successfully completed the quiz"
-    pdf.drawCentredString(width / 2, height - 250, body)
-
-    # Quiz Name
-    pdf.setFont("Helvetica-Bold", 20)
-    pdf.setFillColorRGB(0.2, 0.2, 0.5)
-    pdf.drawCentredString(width / 2, height - 285, f'"{result.quiz.title}"')
-
-    # Score details
-    pdf.setFont("Helvetica", 13)
-    pdf.setFillColorRGB(0.3, 0.3, 0.3)
-    score_text = f"Score: {result.score} / {result.total_questions}   |   Percentage: {result.percentage:.1f}%   |   Grade: {result.grade}"
-    pdf.drawCentredString(width / 2, height - 325, score_text)
+    score_text = (
+        f"Score {result.score}/{result.total_questions}   |   "
+        f"Percentage {result.percentage:.1f}%   |   "
+        f"Grade {result.grade}"
+    )
+    pdf.drawCentredString(width/2, height-410, score_text)
 
     # Date
     date_str = result.completed_at.strftime("%d %B %Y")
+
     pdf.setFont("Helvetica", 12)
-    pdf.setFillColorRGB(0.5, 0.5, 0.5)
-    pdf.drawCentredString(width / 2, height - 355, f"Date of Completion: {date_str}")
+    pdf.setFillColorRGB(0.45,0.45,0.45)
+    pdf.drawCentredString(width/2, height-440, f"Date of Completion: {date_str}")
 
     # Bottom decorative line
-    pdf.setStrokeColorRGB(0.72, 0.58, 0.12)
+    pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
     pdf.setLineWidth(1.5)
-    pdf.line(80, 100, width - 80, 100)
+    pdf.line(120, 120, width-120, 120)
 
     # Footer
     pdf.setFont("Helvetica-Oblique", 10)
-    pdf.setFillColorRGB(0.6, 0.6, 0.6)
-    pdf.drawCentredString(width / 2, 75, "Online Quiz Management System — Generated Certificate")
+    pdf.setFillColorRGB(0.6,0.6,0.6)
+    pdf.drawCentredString(
+        width/2,
+        95,
+        "Online Quiz Management System — Generated Certificate"
+    )
 
     pdf.showPage()
     pdf.save()
+
     buffer.seek(0)
 
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+
     safe_name = student_name.replace(' ', '_')
     response['Content-Disposition'] = f'attachment; filename="certificate_{safe_name}.pdf"'
+
     return response
-
-
 # ─── Admin Views ──────────────────────────────────────────────────────────────
 
 @staff_required
@@ -674,279 +719,127 @@ def admin_delete_student(request, user_id):
 
 @staff_required
 def admin_students_pdf(request):
-    """Download student list as PDF."""
-    from reportlab.pdfgen import canvas
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib import colors
-    from reportlab.lib.units import inch
-    from reportlab.lib.utils import ImageReader
-    import io
 
     selected_college = request.GET.get('college', '')
     students = filtered_students_queryset(college=selected_college).order_by('student_name')
+
     buffer = io.BytesIO()
-    pdf = canvas.Canvas(buffer, pagesize=A4)
-    width, height = A4
 
-    # Professional background with subtle gradient effect
-    pdf.setFillColorRGB(0.98, 0.98, 1.0)
-    pdf.rect(0, 0, width, height, fill=1, stroke=0)
-    
-    # Professional header background with gradient effect
-    header_gradient_height = 140
-    for i in range(header_gradient_height):
-        color_intensity = 0.95 - (i * 0.0002)
-        pdf.setFillColorRGB(color_intensity, color_intensity + 0.02, 1.0)
-        pdf.rect(0, height - i, width, 1, fill=1, stroke=0)
-    
-    # Professional border
-    pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-    pdf.setLineWidth(2)
-    pdf.rect(20, 20, width - 40, height - 40, stroke=1, fill=0)
-    
-    # Inner decorative border
-    pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-    pdf.setLineWidth(0.5)
-    pdf.rect(30, 30, width - 60, height - 60, stroke=1, fill=0)
-    
-    # Header decorative line
-    pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-    pdf.setLineWidth(1.5)
-    pdf.line(50, height - 140, width - 50, height - 140)
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=2*cm,
+        rightMargin=2*cm,
+        topMargin=2.5*cm,
+        bottomMargin=2*cm
+    )
 
-    # Company/Institution Name (Header)
-    pdf.setFont("Helvetica-Bold", 16)
-    pdf.setFillColorRGB(0.1, 0.2, 0.5)
-    pdf.drawCentredString(width / 2, height - 30, "Quiz Management System")
-    
-    # Document type
-    pdf.setFont("Helvetica-Oblique", 12)
-    pdf.setFillColorRGB(0.4, 0.5, 0.7)
-    pdf.drawCentredString(width / 2, height - 50, "Official Student Report")
-    
-    # Professional title with better typography
-    pdf.setFont("Helvetica-Bold", 24)
-    pdf.setFillColorRGB(0.1, 0.2, 0.5)
-    title = f"Student List - {selected_college}" if selected_college else "Complete Student List"
-    pdf.drawCentredString(width / 2, height - 90, title)
-    
-    # Subtitle with generation info
-    pdf.setFont("Helvetica", 11)
-    pdf.setFillColorRGB(0.5, 0.5, 0.6)
-    pdf.drawCentredString(width / 2, height - 115, f"Generated on {timezone.now().strftime('%d %B %Y at %I:%M %p')}")
-    
-    # Student count badge with enhanced styling
-    pdf.setFillColorRGB(0.9, 0.95, 1.0)
-    pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-    pdf.setLineWidth(1.5)
-    badge_width = 180
-    badge_height = 30
-    badge_x = (width - badge_width) / 2
-    badge_y = height - 135
-    pdf.roundRect(badge_x, badge_y, badge_width, badge_height, 8, fill=1, stroke=1)
-    
-    pdf.setFont("Helvetica-Bold", 12)
-    pdf.setFillColorRGB(0.1, 0.2, 0.5)
-    count_text = f"Total Students: {len(students)}"
-    pdf.drawCentredString(width / 2, badge_y + 10, count_text)
+    styles = getSampleStyleSheet()
 
-    # Professional table header
-    y = height - 180
-    headers = ["#", "Student Name", "College Name", "Phone Number", "Email"]
-    col_x = [40, 70, 230, 380, 460]
-    col_widths = [30, 160, 150, 80, 100]
-    
-    # Table header background with gradient
-    header_bg_height = 25
-    for i in range(header_bg_height):
-        color_intensity = 0.1 + (i * 0.002)
-        pdf.setFillColorRGB(color_intensity, color_intensity + 0.1, 0.5)
-        pdf.rect(40, y - 5 - i, width - 80, 1, fill=1, stroke=0)
-    
-    # Table header text
-    pdf.setFont("Helvetica-Bold", 11)
-    pdf.setFillColorRGB(1.0, 1.0, 1.0)
-    for h, x in zip(headers, col_x):
-        pdf.drawString(x, y, h)
-    
-    # Header underline
-    pdf.setStrokeColorRGB(0.1, 0.2, 0.5)
-    pdf.setLineWidth(2)
-    pdf.line(40, y - 5, width - 40, y - 5)
-    y -= 30
+    title_style = ParagraphStyle(
+        'title',
+        parent=styles['Title'],
+        alignment=1,
+        fontSize=18,
+        spaceAfter=6
+    )
 
-    # Table rows with alternating colors
-    pdf.setFont("Helvetica", 9)
-    row_count = 0
-    for i, sp in enumerate(students, 1):
-        if y < 100:  # New page when reaching bottom
-            # Footer for current page
-            pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-            pdf.setLineWidth(1)
-            pdf.line(40, 70, width - 40, 70)
-            
-            # Footer background
-            pdf.setFillColorRGB(0.95, 0.97, 1.0)
-            pdf.rect(40, 20, width - 80, 50, fill=1, stroke=0)
-            
-            pdf.setFont("Helvetica-Oblique", 8)
-            pdf.setFillColorRGB(0.5, 0.5, 0.6)
-            pdf.drawCentredString(width / 2, 45, f"Page {pdf.getPageNumber()} - Student List")
-            pdf.setFont("Helvetica-Oblique", 7)
-            pdf.drawCentredString(width / 2, 30, "Confidential - For Internal Use Only")
-            
-            pdf.showPage()
-            
-            # New page setup with header
-            # Background
-            pdf.setFillColorRGB(0.98, 0.98, 1.0)
-            pdf.rect(0, 0, width, height, fill=1, stroke=0)
-            
-            # Header gradient
-            for i in range(header_gradient_height):
-                color_intensity = 0.95 - (i * 0.0002)
-                pdf.setFillColorRGB(color_intensity, color_intensity + 0.02, 1.0)
-                pdf.rect(0, height - i, width, 1, fill=1, stroke=0)
-            
-            # Borders
-            pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-            pdf.setLineWidth(2)
-            pdf.rect(20, 20, width - 40, height - 40, stroke=1, fill=0)
-            pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-            pdf.setLineWidth(0.5)
-            pdf.rect(30, 30, width - 60, height - 60, stroke=1, fill=0)
-            
-            # Header content
-            pdf.setFont("Helvetica-Bold", 16)
-            pdf.setFillColorRGB(0.1, 0.2, 0.5)
-            pdf.drawCentredString(width / 2, height - 30, "Quiz Management System")
-            
-            pdf.setFont("Helvetica-Oblique", 12)
-            pdf.setFillColorRGB(0.4, 0.5, 0.7)
-            pdf.drawCentredString(width / 2, height - 50, "Official Student Report")
-            
-            pdf.setFont("Helvetica-Bold", 20)
-            pdf.setFillColorRGB(0.1, 0.2, 0.5)
-            pdf.drawCentredString(width / 2, height - 85, title)
-            
-            # Header line
-            pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-            pdf.setLineWidth(1.5)
-            pdf.line(50, height - 100, width - 50, height - 100)
-            
-            # Table header on new page
-            y = height - 130
-            for i in range(header_bg_height):
-                color_intensity = 0.1 + (i * 0.002)
-                pdf.setFillColorRGB(color_intensity, color_intensity + 0.1, 0.5)
-                pdf.rect(40, y - 5 - i, width - 80, 1, fill=1, stroke=0)
-            
-            pdf.setFont("Helvetica-Bold", 11)
-            pdf.setFillColorRGB(1.0, 1.0, 1.0)
-            for h, x in zip(headers, col_x):
-                pdf.drawString(x, y, h)
-            pdf.setStrokeColorRGB(0.1, 0.2, 0.5)
-            pdf.setLineWidth(2)
-            pdf.line(40, y - 5, width - 40, y - 5)
-            y -= 30
+    meta_style = ParagraphStyle(
+        'meta',
+        parent=styles['Normal'],
+        alignment=1,
+        textColor=colors.grey,
+        fontSize=9
+    )
 
-        # Alternating row colors with subtle gradient
-        if i % 2 == 0:
-            pdf.setFillColorRGB(0.97, 0.97, 0.99)
-            pdf.rect(40, y - 2, width - 80, 18, fill=1, stroke=0)
-            # Add subtle row highlight
-            pdf.setFillColorRGB(0.98, 0.98, 1.0)
-            pdf.rect(40, y + 8, width - 80, 8, fill=1, stroke=0)
-        
-        # Row data with better styling
-        pdf.setFont("Helvetica", 9)
-        pdf.setFillColorRGB(0.1, 0.1, 0.1)
-        
-        # Truncate text with ellipsis if too long
-        student_name = sp.student_name[:28] + "..." if len(sp.student_name) > 28 else sp.student_name
-        college_name = sp.college_name[:22] + "..." if len(sp.college_name) > 22 else sp.college_name
-        email = sp.user.email[:25] + "..." if len(sp.user.email) > 25 else sp.user.email
-        
-        # Row number with special styling
-        pdf.setFont("Helvetica-Bold", 9)
-        pdf.setFillColorRGB(0.2, 0.3, 0.6)
-        pdf.drawString(col_x[0], y, str(i))
-        
-        # Other data
-        pdf.setFont("Helvetica", 9)
-        pdf.setFillColorRGB(0.1, 0.1, 0.1)
-        row_data = [student_name, college_name, sp.mobile_number or "N/A", email]
-        for val, x in zip(row_data, col_x[1:]):
-            pdf.drawString(x, y, val)
-        
-        # Row separator line
-        pdf.setStrokeColorRGB(0.8, 0.8, 0.85)
-        pdf.setLineWidth(0.3)
-        pdf.line(40, y - 3, width - 40, y - 3)
-        y -= 18
-        row_count += 1
+    elements = []
 
-    # Enhanced footer section
-    footer_y = 80
-    pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-    pdf.setLineWidth(1)
-    pdf.line(40, footer_y + 10, width - 40, footer_y + 10)
-    
-    # Footer background
-    pdf.setFillColorRGB(0.95, 0.97, 1.0)
-    pdf.rect(40, 20, width - 80, 70, fill=1, stroke=0)
-    
-    # Footer border
-    pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-    pdf.setLineWidth(0.5)
-    pdf.rect(40, 20, width - 80, 70, stroke=1, fill=0)
-    
-    # Footer text
-    pdf.setFont("Helvetica-Oblique", 9)
-    pdf.setFillColorRGB(0.5, 0.5, 0.6)
-    pdf.drawCentredString(width / 2, footer_y, f"Generated by Quiz Management System - Page {pdf.getPageNumber()}")
-    pdf.setFont("Helvetica-Oblique", 7)
-    pdf.setFillColorRGB(0.6, 0.6, 0.7)
-    pdf.drawCentredString(width / 2, footer_y - 15, "Confidential - For Internal Use Only")
-    pdf.setFont("Helvetica-Oblique", 7)
-    pdf.setFillColorRGB(0.6, 0.6, 0.7)
-    pdf.drawCentredString(width / 2, footer_y - 30, f"Report ID: QMS-{timezone.now().strftime('%Y%m%d%H%M')}")
-    
-    # Enhanced summary box
-    if len(students) > 0:
-        # Summary background with gradient
-        summary_y = footer_y - 45
-        summary_width = 200
-        summary_height = 25
-        
-        pdf.setFillColorRGB(0.1, 0.2, 0.5)
-        pdf.roundRect(width - summary_width - 40, summary_y, summary_width, summary_height, 5, fill=1, stroke=0)
-        
-        pdf.setFillColorRGB(0.9, 0.95, 1.0)
-        pdf.roundRect(width - summary_width - 38, summary_y + 2, summary_width - 4, summary_height - 4, 4, fill=1, stroke=0)
-        
-        pdf.setStrokeColorRGB(0.2, 0.3, 0.6)
-        pdf.setLineWidth(1)
-        pdf.roundRect(width - summary_width - 40, summary_y, summary_width, summary_height, 5, fill=0, stroke=1)
-        
-        pdf.setFont("Helvetica-Bold", 10)
-        pdf.setFillColorRGB(0.1, 0.2, 0.5)
-        pdf.drawString(width - summary_width - 35, summary_y + 8, f"Total Students: {len(students)}")
-        pdf.setFont("Helvetica", 8)
-        pdf.drawString(width - summary_width - 35, summary_y - 2, f"Rows: {row_count}")
+    title = "Students List"
+    elements.append(Paragraph(title, title_style))
 
-    pdf.showPage()
-    pdf.save()
+    elements.append(
+        Paragraph(
+            f"Generated on {timezone.now().strftime('%d %B %Y')} | Total Students: {students.count()}",
+            meta_style
+        )
+    )
+
+    elements.append(Spacer(1, 20))
+
+    data = [
+        ["#", "Student Name", "College Name", "Phone Number", "Email"]
+    ]
+
+    for i, s in enumerate(students, 1):
+        data.append([
+            i,
+            Paragraph(s.student_name, styles['BodyText']),
+            Paragraph(s.college_name, styles['BodyText']),
+            s.mobile_number or "N/A",
+            Paragraph(s.user.email, styles['BodyText'])
+        ])
+
+    table = Table(
+        data,
+        colWidths=[1.2*cm, 4*cm, 5*cm, 3.5*cm, 5.5*cm]
+    )
+
+    table.setStyle(TableStyle([
+
+        # Header
+        ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#F3C79E")),
+        ("TEXTCOLOR",(0,0),(-1,0),colors.black),
+        ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
+        ("FONTSIZE",(0,0),(-1,0),10),
+
+        # Grid
+        ("LINEBELOW",(0,0),(-1,0),1,colors.grey),
+        ("GRID",(0,1),(-1,-1),0.3,colors.lightgrey),
+
+        # Alignment
+        ("ALIGN",(0,0),(0,-1),"CENTER"),
+
+        # Padding
+        ("LEFTPADDING",(0,0),(-1,-1),8),
+        ("RIGHTPADDING",(0,0),(-1,-1),8),
+        ("TOPPADDING",(0,0),(-1,-1),6),
+        ("BOTTOMPADDING",(0,0),(-1,-1),6),
+
+        # Zebra rows
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white, colors.whitesmoke]),
+    ]))
+
+    elements.append(table)
+
+    def footer(canvas, doc):
+        canvas.saveState()
+        canvas.setFont('Helvetica', 8)
+        canvas.setFillColor(colors.grey)
+
+        page_num = canvas.getPageNumber()
+
+        canvas.drawCentredString(
+            A4[0] / 2,
+            1.5 * cm,
+            f"Quiz Management System • Page {page_num}"
+        )
+
+        canvas.restoreState()
+
+    doc.build(elements, onFirstPage=footer, onLaterPages=footer)
+
     buffer.seek(0)
 
-    response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-    filename = 'students_list.pdf'
-    if selected_college:
-        safe_college = selected_college.strip().lower().replace(' ', '_')
-        filename = f"students_{safe_college}.pdf"
-    response['Content-Disposition'] = f'attachment; filename="{filename}"'
-    return response
+    response = HttpResponse(buffer, content_type='application/pdf')
 
+    filename = "students_list.pdf"
+    if selected_college:
+        safe_college = selected_college.strip().lower().replace(" ", "_")
+        filename = f"students_{safe_college}.pdf"
+
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    return response
 
 # ── Reports ──
 
