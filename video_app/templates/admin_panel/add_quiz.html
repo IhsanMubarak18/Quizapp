@@ -1,5 +1,39 @@
 {% extends "admin_panel/base_admin.html" %}
 {% block title %}{{ action }} Quiz — Admin{% endblock %}
+{% block extra_css %}
+<style>
+    .schedule-active-toggle {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        transition: .2s;
+    }
+
+    .schedule-active-toggle.is-locked {
+        background: #f8fafc;
+        opacity: .55;
+        filter: grayscale(.2);
+    }
+
+    .schedule-active-toggle.is-locked label {
+        cursor: not-allowed;
+    }
+
+    .schedule-active-toggle-note {
+        font-size: 12px;
+        color: #64748b;
+        margin: 0;
+        display: none;
+    }
+
+    .schedule-active-toggle.is-locked .schedule-active-toggle-note {
+        display: block;
+    }
+</style>
+{% endblock %}
 {% block admin_content %}
 <div class="page-header" style="display:flex;align-items:center;gap:16px;">
     <a href="{% url 'video_app:admin_quizzes' %}"
@@ -32,9 +66,16 @@
                     <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
                         {{ form.shuffle_questions }} Shuffle questions for each student
                     </label>
-                    <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
-                        {{ form.is_active }} Make quiz active (visible to students)
-                    </label>
+                    <div id="schedule-active-toggle" class="schedule-active-toggle{% if form.start_time.value or form.end_time.value %} is-locked{% endif %}">
+                        <label id="schedule-active-toggle-label"
+                            style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
+                            {{ form.is_active }} Make quiz active (visible to students)
+                        </label>
+                        <p id="schedule-active-toggle-note" class="schedule-active-toggle-note">
+                            Scheduling controls quiz visibility automatically.
+                        </p>
+                    </div>
+                    <input type="hidden" id="schedule-active-toggle-mirror" disabled>
                 </div>
             </div>
         </div>
@@ -76,4 +117,42 @@
         </div>
     </form>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script>
+    (function () {
+        const startInput = document.getElementById('id_start_time');
+        const endInput = document.getElementById('id_end_time');
+        const activeInput = document.getElementById('id_is_active');
+        const activeToggle = document.getElementById('schedule-active-toggle');
+        const activeNote = document.getElementById('schedule-active-toggle-note');
+        const activeMirror = document.getElementById('schedule-active-toggle-mirror');
+
+        if (!startInput || !endInput || !activeInput || !activeToggle || !activeNote || !activeMirror) {
+            return;
+        }
+
+        function syncScheduleActiveToggle() {
+            const scheduleLocked = Boolean(startInput.value || endInput.value);
+
+            activeToggle.classList.toggle('is-locked', scheduleLocked);
+            activeToggle.setAttribute('aria-disabled', scheduleLocked ? 'true' : 'false');
+            activeInput.disabled = scheduleLocked;
+            activeInput.tabIndex = scheduleLocked ? -1 : 0;
+            activeNote.style.display = scheduleLocked ? 'block' : 'none';
+
+            activeMirror.name = scheduleLocked ? 'is_active' : '';
+            activeMirror.disabled = !scheduleLocked;
+            activeMirror.value = activeInput.checked ? 'on' : '';
+        }
+
+        startInput.addEventListener('input', syncScheduleActiveToggle);
+        endInput.addEventListener('input', syncScheduleActiveToggle);
+        startInput.addEventListener('change', syncScheduleActiveToggle);
+        endInput.addEventListener('change', syncScheduleActiveToggle);
+        activeInput.addEventListener('change', syncScheduleActiveToggle);
+
+        syncScheduleActiveToggle();
+    }());
+</script>
 {% endblock %}

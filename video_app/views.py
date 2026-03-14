@@ -548,10 +548,8 @@ def admin_remove_question_from_quiz(request, quiz_id, question_id):
 
 # ── Student Management ──
 
-@staff_required
-def admin_students(request):
-    search = request.GET.get('search', '')
-    students = StudentProfile.objects.select_related('user').order_by('-user__date_joined')
+def _filtered_students(search='', college=''):
+    students = StudentProfile.objects.select_related('user')
     if search:
         students = students.filter(
             Q(student_name__icontains=search) |
@@ -559,6 +557,22 @@ def admin_students(request):
             Q(college_name__icontains=search) |
             Q(mobile_number__icontains=search)
         )
+    if college:
+        students = students.filter(college_name=college)
+    return students
+
+
+@staff_required
+def admin_students(request):
+    search = request.GET.get('search', '')
+    selected_college = request.GET.get('college', '')
+    students = _filtered_students(search=search, college=selected_college).order_by('-user__date_joined')
+    college_options = (
+        StudentProfile.objects.exclude(college_name='')
+        .order_by('college_name')
+        .values_list('college_name', flat=True)
+        .distinct()
+    )
     # Count attempts per student
     student_data = []
     for sp in students:
@@ -567,6 +581,8 @@ def admin_students(request):
     return render(request, 'admin_panel/students.html', {
         'student_data': student_data,
         'search': search,
+        'college_options': college_options,
+        'selected_college': selected_college,
     })
 
 
@@ -590,14 +606,16 @@ def admin_students_pdf(request):
     from reportlab.lib.pagesizes import A4
     from reportlab.lib import colors
 
-    students = StudentProfile.objects.select_related('user').order_by('student_name')
+    selected_college = request.GET.get('college', '')
+    students = _filtered_students(college=selected_college).order_by('student_name')
     buffer = io.BytesIO()
     pdf = canvas.Canvas(buffer, pagesize=A4)
     width, height = A4
 
     pdf.setFont("Helvetica-Bold", 18)
     pdf.setFillColorRGB(0.2, 0.2, 0.5)
-    pdf.drawCentredString(width / 2, height - 50, "Student List")
+    title = f"Student List - {selected_college}" if selected_college else "Student List"
+    pdf.drawCentredString(width / 2, height - 50, title)
 
     pdf.setFont("Helvetica", 10)
     pdf.setFillColorRGB(0.5, 0.5, 0.5)
@@ -605,7 +623,7 @@ def admin_students_pdf(request):
 
     # Table header
     y = height - 110
-    headers = ["#", "Name", "College", "Mobile", "Email"]
+    headers = ["#", "Student Name", "College Name", "Phone Number", "Email"]
     col_x = [40, 70, 230, 380, 460]
     pdf.setFont("Helvetica-Bold", 10)
     pdf.setFillColorRGB(0.2, 0.2, 0.5)
@@ -633,7 +651,11 @@ def admin_students_pdf(request):
     buffer.seek(0)
 
     response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="students_list.pdf"'
+    filename = 'students_list.pdf'
+    if selected_college:
+        safe_college = selected_college.strip().lower().replace(' ', '_')
+        filename = f"students_{safe_college}.pdf"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
     return response
 
 

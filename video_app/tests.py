@@ -82,6 +82,26 @@ class QuizScheduleEditTests(TestCase):
         self.assertEqual(quiz.start_time, original_start)
         self.assertEqual(quiz.end_time, original_end)
 
+    def test_edit_quiz_with_schedule_renders_locked_active_toggle_ui(self):
+        local_tz = timezone.get_current_timezone()
+        quiz = Quiz.objects.create(
+            title='Scheduled Quiz',
+            time_limit_minutes=30,
+            is_active=True,
+            start_time=timezone.make_aware(datetime(2026, 3, 21, 9, 0), local_tz),
+            end_time=timezone.make_aware(datetime(2026, 3, 21, 11, 0), local_tz),
+        )
+
+        self.client.force_login(self.admin_user)
+        response = self.client.get(reverse('video_app:admin_edit_quiz', args=[quiz.id]))
+
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('id="schedule-active-toggle"', html)
+        self.assertIn('schedule-active-toggle is-locked', html)
+        self.assertIn('Scheduling controls quiz visibility automatically.', html)
+        self.assertIn('id="schedule-active-toggle-mirror"', html)
+
 
 class StudentTemplateRenderingTests(TestCase):
     def setUp(self):
@@ -260,3 +280,59 @@ class AdminReportsFilterTests(TestCase):
         self.assertIn('Alice Example', filtered_html)
         self.assertNotIn('Bob Example', filtered_html)
         self.assertNotIn('<td>Math Quiz</td>', filtered_html)
+
+
+class AdminStudentsExportTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.admin_user = user_model.objects.create_user(
+            email='students-admin@example.com',
+            first_name='Students',
+            password='testpass123',
+        )
+        self.admin_user.is_staff = True
+        self.admin_user.is_superuser = True
+        self.admin_user.save()
+
+        self._create_student('alice@example.com', 'Alice Example', 'North College', '1111111111')
+        self._create_student('bob@example.com', 'Bob Example', 'North College', '2222222222')
+        self._create_student('carol@example.com', 'Carol Example', 'South College', '3333333333')
+
+    def _create_student(self, email, student_name, college_name, mobile_number):
+        user_model = get_user_model()
+        student = user_model.objects.create_user(
+            email=email,
+            first_name=student_name.split()[0],
+            password='testpass123',
+        )
+        StudentProfile.objects.create(
+            user=student,
+            student_name=student_name,
+            college_name=college_name,
+            mobile_number=mobile_number,
+        )
+        return student
+
+    def test_students_page_and_pdf_can_be_filtered_by_college(self):
+        self.client.force_login(self.admin_user)
+
+        response = self.client.get(reverse('video_app:admin_students'), {
+            'college': 'North College',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        html = response.content.decode()
+        self.assertIn('Alice Example', html)
+        self.assertIn('Bob Example', html)
+        self.assertNotIn('Carol Example', html)
+        self.assertIn('value="North College" selected', html)
+        self.assertIn('?college=North%20College', html)
+
+        pdf_response = self.client.get(reverse('video_app:admin_students_pdf'), {
+            'college': 'North College',
+        })
+
+        self.assertEqual(pdf_response.status_code, 200)
+        self.assertEqual(pdf_response['Content-Type'], 'application/pdf')
+        self.assertIn('students_north_college.pdf', pdf_response['Content-Disposition'])
+        self.assertGreater(len(pdf_response.content), 0)

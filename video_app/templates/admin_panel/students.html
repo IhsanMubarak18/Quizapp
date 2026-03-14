@@ -7,15 +7,24 @@
         <h1>Students 👥</h1>
         <p>{{ student_data|length }} registered student(s)</p>
     </div>
-    <a href="{% url 'video_app:admin_students_pdf' %}" class="btn btn-success">📄 Download PDF</a>
+    <a href="{% url 'video_app:admin_students_pdf' %}{% if selected_college %}?college={{ selected_college|urlencode }}{% endif %}"
+        class="btn btn-success">
+        📄 Download PDF{% if selected_college %} for {{ selected_college }}{% endif %}
+    </a>
 </div>
 
 <div class="card">
-    <form method="get" style="display:flex;gap:10px;margin-bottom:20px;">
+    <form method="get" style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;align-items:center;">
         <input type="text" name="search" value="{{ search }}" placeholder="Search by name, email, college..."
             style="max-width:380px;">
+        <select name="college" style="max-width:280px;">
+            <option value="">All colleges</option>
+            {% for college in college_options %}
+            <option value="{{ college }}" {% if selected_college == college %}selected{% endif %}>{{ college }}</option>
+            {% endfor %}
+        </select>
         <button type="submit" class="btn btn-outline btn-sm">Search</button>
-        {% if search %}<a href="{% url 'video_app:admin_students' %}" class="btn btn-sm"
+        {% if search or selected_college %}<a href="{% url 'video_app:admin_students' %}" class="btn btn-sm"
             style="background:#f1f5f9;border:none;">Clear</a>{% endif %}
     </form>
 
@@ -54,7 +63,7 @@
     {% else %}
     <div style="text-align:center;padding:48px;color:#94a3b8;">
         <div style="font-size:48px;margin-bottom:12px;">👤</div>
-        <p>No students found{% if search %} matching "{{ search }}"{% endif %}.</p>
+        <p>No students found{% if search %} matching "{{ search }}"{% endif %}{% if selected_college %} in {{ selected_college }}{% endif %}.</p>
     </div>
     {% endif %}
 </div>
