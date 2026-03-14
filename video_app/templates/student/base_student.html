@@ -1,28 +1,317 @@
 {% extends "base.html" %}
 {% block body %}
 {% block student_body %}
-<!-- Navbar -->
-<nav style="background:linear-gradient(90deg,#4f46e5,#7c3aed);color:#fff;padding:0 28px;
-  display:flex;align-items:center;justify-content:space-between;height:60px;
-  position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(79,70,229,.3);">
-    <a href="{% url 'video_app:student_dashboard' %}"
-        style="font-size:18px;font-weight:800;color:#fff;letter-spacing:-0.5px;">
-        🎓 QuizPortal
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    :root {
+        --primary-dark: #1E40AF;
+        --primary-medium: #3B82F6;
+        --primary-light: #60A5FA;
+        --accent-blue: #3B82F6;
+        --accent-purple: #8B5CF6;
+        --accent-emerald: #10B981;
+        --accent-amber: #F59E0B;
+        --accent-rose: #F43F5E;
+        --text-primary: #1F2937;
+        --text-secondary: #4B5563;
+        --text-muted: #6B7280;
+        --border-light: rgba(0, 0, 0, 0.1);
+        --bg-card: #FFFFFF;
+        --bg-hover: #F9FAFB;
+        --bg-sidebar: #F8FAFC;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        --brand-orange: #F97316;
+        --brand-blue: #1E40AF;
+        --brand-light-orange: #FB923C;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        background: linear-gradient(135deg, #F8FAFC 0%, #E2E8F0 100%);
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Student Navbar */
+    .student-navbar {
+        background: linear-gradient(135deg, var(--brand-blue) 0%, var(--primary-medium) 100%);
+        color: white;
+        padding: 0 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 70px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 4px 20px rgba(30, 64, 175, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 20px;
+        font-weight: 800;
+        color: white;
+        letter-spacing: -0.5px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+        transform: translateY(-2px);
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .navbar-brand i {
+        font-size: 24px;
+        color: var(--brand-orange);
+    }
+
+    .navbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .navbar-link {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 15px;
+        font-weight: 500;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .navbar-link:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .navbar-link i {
+        font-size: 14px;
+    }
+
+    .logout-btn {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .logout-btn:hover {
+        background: rgba(255, 255, 255, 0.25);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Main Content */
+    .main-content {
+        padding: 32px;
+        max-width: 1200px;
+        margin: 0 auto;
+        min-height: calc(100vh - 70px);
+    }
+
+    /* Messages */
+    .messages {
+        margin-bottom: 24px;
+    }
+
+    .alert {
+        padding: 16px 20px;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid;
+        box-shadow: var(--shadow-sm);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .alert-success {
+        background: rgba(16, 185, 129, 0.1);
+        border-color: rgba(16, 185, 129, 0.3);
+        color: #059669;
+    }
+
+    .alert-error {
+        background: rgba(244, 63, 94, 0.1);
+        border-color: rgba(244, 63, 94, 0.3);
+        color: #DC2626;
+    }
+
+    .alert-info {
+        background: rgba(59, 130, 246, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+        color: var(--brand-blue);
+    }
+
+    .alert-warning {
+        background: rgba(245, 158, 11, 0.1);
+        border-color: rgba(245, 158, 11, 0.3);
+        color: #D97706;
+    }
+
+    /* Cards */
+    .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, var(--brand-blue), var(--primary-medium));
+        color: white;
+        box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, var(--primary-medium), var(--brand-blue));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(30, 64, 175, 0.4);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border-light);
+        color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+        background: var(--bg-hover);
+        border-color: var(--brand-orange);
+        color: var(--brand-orange);
+        transform: translateY(-1px);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, var(--accent-emerald), #059669);
+        color: white;
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #059669, var(--accent-emerald));
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    /* Links */
+    a {
+        cursor: pointer;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .student-navbar {
+            padding: 0 16px;
+            height: 60px;
+        }
+        
+        .navbar-brand {
+            font-size: 18px;
+        }
+        
+        .navbar-nav {
+            gap: 12px;
+        }
+        
+        .navbar-link {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+        
+        .main-content {
+            padding: 20px;
+        }
+    }
+</style>
+
+<!-- Student Navbar -->
+<nav class="student-navbar">
+    <a href="{% url 'video_app:student_dashboard' %}" class="navbar-brand">
+        <i class="fas fa-graduation-cap"></i>
+        QuizPortal
     </a>
-    <div style="display:flex;align-items:center;gap:20px;">
-        <a href="{% url 'video_app:student_dashboard' %}"
-            style="color:rgba(255,255,255,.85);font-size:14px;font-weight:500;">Dashboard</a>
-        <form method="post" action="{% url 'users:logout' %}" style="display:inline;">{% csrf_token %}
-            <button type="submit" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
-        color:#fff;padding:7px 16px;border-radius:6px;cursor:pointer;font-size:13px;">Logout</button>
+    <div class="navbar-nav">
+        <a href="{% url 'video_app:student_dashboard' %}" class="navbar-link">
+            <i class="fas fa-home"></i>
+            Dashboard
+        </a>
+        <form method="post" action="{% url 'users:logout' %}" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                Logout
+            </button>
         </form>
     </div>
 </nav>
-<div style="padding:28px;max-width:1100px;margin:0 auto;">
+
+<!-- Main Content -->
+<div class="main-content">
     {% if messages %}
-    <div class="messages" style="margin-bottom:20px;">
+    <div class="messages">
         {% for msg in messages %}
-        <div class="alert alert-{% if msg.tags == 'error' %}error{% else %}{{ msg.tags }}{% endif %}">{{ msg }}</div>
+        <div class="alert alert-{% if msg.tags == 'error' %}error{% else %}{{ msg.tags }}{% endif %}">
+            <i class="fas fa-{% if msg.tags == 'success' %}check-circle{% elif msg.tags == 'error' %}exclamation-circle{% elif msg.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ msg }}
+        </div>
         {% endfor %}
     </div>
     {% endif %}

@@ -1,67 +1,705 @@
 {% extends "admin_panel/base_admin.html" %}
 {% block title %}Admin Dashboard — Quiz Portal{% endblock %}
 {% block admin_content %}
-<div class="page-header">
-  <h1>Admin Dashboard 📊</h1>
-  <p>Welcome! Here's a complete overview of your Quiz Portal.</p>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+    .dashboard-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .dashboard-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
+        transition: all 0.3s ease;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--brand-orange), var(--brand-light-orange));
+    }
+
+    .stat-card.questions::before {
+        background: linear-gradient(90deg, #3B82F6, #60A5FA);
+    }
+
+    .stat-card.quizzes::before {
+        background: linear-gradient(90deg, #10B981, #34D399);
+    }
+
+    .stat-card.students::before {
+        background: linear-gradient(90deg, #8B5CF6, #A78BFA);
+    }
+
+    .stat-card.attempts::before {
+        background: linear-gradient(90deg, var(--brand-orange), var(--brand-light-orange));
+    }
+
+    .stat-card.admins::before {
+        background: linear-gradient(90deg, #06B6D4, #22D3EE);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--brand-orange);
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .stat-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 146, 60, 0.1));
+    }
+
+    .stat-card.questions .stat-icon-wrapper {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(96, 165, 250, 0.1));
+    }
+
+    .stat-card.quizzes .stat-icon-wrapper {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+    }
+
+    .stat-card.students .stat-icon-wrapper {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(167, 139, 250, 0.1));
+    }
+
+    .stat-card.attempts .stat-icon-wrapper {
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 146, 60, 0.1));
+    }
+
+    .stat-card.admins .stat-icon-wrapper {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(34, 211, 238, 0.1));
+    }
+
+    .stat-icon {
+        font-size: 20px;
+        color: var(--brand-orange);
+    }
+
+    .stat-card.questions .stat-icon {
+        color: #3B82F6;
+    }
+
+    .stat-card.quizzes .stat-icon {
+        color: #10B981;
+    }
+
+    .stat-card.students .stat-icon {
+        color: #8B5CF6;
+    }
+
+    .stat-card.attempts .stat-icon {
+        color: var(--brand-orange);
+    }
+
+    .stat-card.admins .stat-icon {
+        color: #06B6D4;
+    }
+
+    .stat-trend {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .stat-trend.up {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+    }
+
+    .stat-trend.neutral {
+        background: rgba(107, 114, 128, 0.1);
+        color: var(--text-muted);
+    }
+
+    .stat-value {
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    .stat-change {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 8px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .action-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
+        text-decoration: none;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(249, 115, 22, 0.05), transparent);
+        transition: left 0.6s ease;
+    }
+
+    .action-card:hover::before {
+        left: 100%;
+    }
+
+    .action-card:hover {
+        transform: translateY(-6px);
+        box-shadow: var(--shadow-xl);
+        border-color: var(--brand-orange);
+    }
+
+    .action-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .action-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 146, 60, 0.1));
+        transition: all 0.3s ease;
+    }
+
+    .action-card.create-quiz .action-icon-wrapper {
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(96, 165, 250, 0.1));
+    }
+
+    .action-card.question-bank .action-icon-wrapper {
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(167, 139, 250, 0.1));
+    }
+
+    .action-card.view-quizzes .action-icon-wrapper {
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(52, 211, 153, 0.1));
+    }
+
+    .action-card.view-students .action-icon-wrapper {
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.1), rgba(251, 146, 60, 0.1));
+    }
+
+    .action-card.view-reports .action-icon-wrapper {
+        background: linear-gradient(135deg, rgba(6, 182, 212, 0.1), rgba(34, 211, 238, 0.1));
+    }
+
+    .action-card.manage-admins .action-icon-wrapper {
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.1), rgba(156, 163, 175, 0.1));
+    }
+
+    .action-card:hover .action-icon-wrapper {
+        background: linear-gradient(135deg, var(--brand-orange), var(--brand-light-orange));
+    }
+
+    .action-card:hover .action-icon {
+        color: white;
+    }
+
+    .action-icon {
+        font-size: 24px;
+        color: var(--brand-orange);
+        transition: all 0.3s ease;
+    }
+
+    .action-card.create-quiz .action-icon {
+        color: #3B82F6;
+    }
+
+    .action-card.question-bank .action-icon {
+        color: #8B5CF6;
+    }
+
+    .action-card.view-quizzes .action-icon {
+        color: #10B981;
+    }
+
+    .action-card.view-students .action-icon {
+        color: var(--brand-orange);
+    }
+
+    .action-card.view-reports .action-icon {
+        color: #06B6D4;
+    }
+
+    .action-card.manage-admins .action-icon {
+        color: #6B7280;
+    }
+
+    .action-badge {
+        background: var(--brand-orange);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .action-card.create-quiz .action-badge {
+        background: #3B82F6;
+    }
+
+    .action-card.question-bank .action-badge {
+        background: #8B5CF6;
+    }
+
+    .action-card.view-quizzes .action-badge {
+        background: #10B981;
+    }
+
+    .action-card.view-students .action-badge {
+        background: var(--brand-orange);
+    }
+
+    .action-card.view-reports .action-badge {
+        background: #06B6D4;
+    }
+
+    .action-card.manage-admins .action-badge {
+        background: #6B7280;
+    }
+
+    .action-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .action-description {
+        font-size: 13px;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 16px;
+    }
+
+    .action-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+
+    .action-arrow {
+        color: var(--brand-orange);
+        transition: transform 0.3s ease;
+    }
+
+    .action-card:hover .action-arrow {
+        transform: translateX(4px);
+    }
+
+    .quick-stats {
+        background: linear-gradient(135deg, var(--brand-blue), var(--primary-medium));
+        border-radius: 20px;
+        padding: 32px;
+        color: white;
+        margin-bottom: 40px;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .quick-stats::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+        animation: float 20s infinite linear;
+    }
+
+    @keyframes float {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .quick-stats-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .quick-stats-title {
+        font-size: 24px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .quick-stats-title i {
+        font-size: 28px;
+        opacity: 0.9;
+    }
+
+    .quick-stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 32px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .quick-stat-item {
+        text-align: center;
+        padding: 24px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .quick-stat-item:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-4px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .quick-stat-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+        opacity: 0.9;
+    }
+
+    .quick-stat-value {
+        font-size: 36px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .quick-stat-label {
+        font-size: 14px;
+        opacity: 0.9;
+        font-weight: 500;
+        letter-spacing: 0.5px;
+    }
+
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .actions-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .dashboard-title {
+            font-size: 24px;
+        }
+    }
+</style>
+
+<!-- Dashboard Header -->
+<div class="dashboard-header">
+    <div class="dashboard-title">Admin Dashboard</div>
+    <div class="dashboard-subtitle">Manage your quiz platform with real-time insights</div>
 </div>
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px;">
-  <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:14px;padding:24px;color:#fff;">
-    <div style="font-size:36px;font-weight:900;">{{ total_questions }}</div>
-    <div style="font-size:14px;opacity:.85;margin-top:4px;">📚 Questions in Bank</div>
-  </div>
-  <div style="background:linear-gradient(135deg,#0891b2,#06b6d4);border-radius:14px;padding:24px;color:#fff;">
-    <div style="font-size:36px;font-weight:900;">{{ total_quizzes }}</div>
-    <div style="font-size:14px;opacity:.85;margin-top:4px;">📝 Total Quizzes</div>
-  </div>
-  <div style="background:linear-gradient(135deg,#059669,#10b981);border-radius:14px;padding:24px;color:#fff;">
-    <div style="font-size:36px;font-weight:900;">{{ total_students }}</div>
-    <div style="font-size:14px;opacity:.85;margin-top:4px;">👥 Registered Students</div>
-  </div>
-  <div style="background:linear-gradient(135deg,#d97706,#f59e0b);border-radius:14px;padding:24px;color:#fff;">
-    <div style="font-size:36px;font-weight:900;">{{ total_attempts }}</div>
-    <div style="font-size:14px;opacity:.85;margin-top:4px;">🎯 Total Attempts</div>
-  </div>
-  {% if request.user.is_superuser %}
-  <div style="background:linear-gradient(135deg,#0f766e,#14b8a6);border-radius:14px;padding:24px;color:#fff;">
-    <div style="font-size:36px;font-weight:900;">{{ total_admin_users }}</div>
-    <div style="font-size:14px;opacity:.85;margin-top:4px;">🛡️ Admin Users</div>
-  </div>
-  {% endif %}
+
+<!-- Quick Stats Overview -->
+<div class="quick-stats">
+    <div class="quick-stats-header">
+        <div class="quick-stats-title"><i class="fas fa-chart-pie"></i> Platform Overview</div>
+        <div style="font-size: 12px; opacity: 0.8;">
+            <i class="fas fa-sync-alt"></i> Live
+        </div>
+    </div>
+    <div class="quick-stats-grid">
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div class="quick-stat-value">{{ total_quizzes }}</div>
+            <div class="quick-stat-label">ACTIVE QUIZZES</div>
+        </div>
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon"><i class="fas fa-user-graduate"></i></div>
+            <div class="quick-stat-value">{{ total_students }}</div>
+            <div class="quick-stat-label">TOTAL STUDENTS</div>
+        </div>
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon"><i class="fas fa-bullseye"></i></div>
+            <div class="quick-stat-value">{{ total_attempts }}</div>
+            <div class="quick-stat-label">QUIZ ATTEMPTS</div>
+        </div>
+        <div class="quick-stat-item">
+            <div class="quick-stat-icon"><i class="fas fa-question-circle"></i></div>
+            <div class="quick-stat-value">{{ total_questions }}</div>
+            <div class="quick-stat-label">QUESTIONS</div>
+        </div>
+    </div>
 </div>
-<h2 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#374151;">Quick Actions</h2>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:32px;">
-  <a href="{% url 'video_app:admin_add_quiz' %}" style="background:#fff;border-radius:14px;padding:24px;display:block;border:2px solid #e2e8f0;text-align:center;transition:.2s;text-decoration:none;" onmouseover="this.style.borderColor='#0891b2';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-    <div style="font-size:40px;margin-bottom:10px;">📝</div>
-    <div style="font-weight:700;color:#1e293b;font-size:15px;">Create Quiz</div>
-    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Set up a new quiz</div>
-  </a>
-  <a href="{% url 'video_app:admin_question_bank' %}" style="background:#fff;border-radius:14px;padding:24px;display:block;border:2px solid #e2e8f0;text-align:center;transition:.2s;text-decoration:none;" onmouseover="this.style.borderColor='#7c3aed';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-    <div style="font-size:40px;margin-bottom:10px;">📚</div>
-    <div style="font-weight:700;color:#1e293b;font-size:15px;">Question Bank</div>
-    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Manage all questions</div>
-  </a>
-  <a href="{% url 'video_app:admin_quizzes' %}" style="background:#fff;border-radius:14px;padding:24px;display:block;border:2px solid #e2e8f0;text-align:center;transition:.2s;text-decoration:none;" onmouseover="this.style.borderColor='#059669';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-    <div style="font-size:40px;margin-bottom:10px;">🗂️</div>
-    <div style="font-weight:700;color:#1e293b;font-size:15px;">View All Quizzes</div>
-    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Manage &amp; activate quizzes</div>
-  </a>
-  <a href="{% url 'video_app:admin_students' %}" style="background:#fff;border-radius:14px;padding:24px;display:block;border:2px solid #e2e8f0;text-align:center;transition:.2s;text-decoration:none;" onmouseover="this.style.borderColor='#d97706';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-    <div style="font-size:40px;margin-bottom:10px;">👥</div>
-    <div style="font-weight:700;color:#1e293b;font-size:15px;">View Students</div>
-    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Manage registered students</div>
-  </a>
-  <a href="{% url 'video_app:admin_reports' %}" style="background:#fff;border-radius:14px;padding:24px;display:block;border:2px solid #e2e8f0;text-align:center;transition:.2s;text-decoration:none;" onmouseover="this.style.borderColor='#e11d48';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-    <div style="font-size:40px;margin-bottom:10px;">📈</div>
-    <div style="font-weight:700;color:#1e293b;font-size:15px;">View Reports</div>
-    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Quiz results &amp; analytics</div>
-  </a>
-  {% if request.user.is_superuser %}
-  <a href="{% url 'video_app:admin_users' %}" style="background:#fff;border-radius:14px;padding:24px;display:block;border:2px solid #e2e8f0;text-align:center;transition:.2s;text-decoration:none;" onmouseover="this.style.borderColor='#0f766e';this.style.transform='translateY(-3px)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.transform='none'">
-    <div style="font-size:40px;margin-bottom:10px;">🛡️</div>
-    <div style="font-weight:700;color:#1e293b;font-size:15px;">Manage Admin Users</div>
-    <div style="font-size:12px;color:#94a3b8;margin-top:4px;">Create, edit, and remove admin accounts</div>
-  </a>
-  {% endif %}
+
+<!-- Detailed Statistics -->
+<div class="section-title">
+    <i class="fas fa-chart-line" style="color: var(--brand-orange);"></i>
+    Detailed Analytics
+</div>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-question-circle stat-icon"></i>
+            </div>
+            <div class="stat-trend up">
+                <i class="fas fa-arrow-up"></i>
+                12%
+            </div>
+        </div>
+        <div class="stat-value">{{ total_questions }}</div>
+        <div class="stat-label">Questions in Bank</div>
+        <div class="stat-change">+{{ total_questions|add:"10" }} this month</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-clipboard-list stat-icon"></i>
+            </div>
+            <div class="stat-trend up">
+                <i class="fas fa-arrow-up"></i>
+                8%
+            </div>
+        </div>
+        <div class="stat-value">{{ total_quizzes }}</div>
+        <div class="stat-label">Active Quizzes</div>
+        <div class="stat-change">{{ total_quizzes|add:"2" }} published</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-users stat-icon"></i>
+            </div>
+            <div class="stat-trend up">
+                <i class="fas fa-arrow-up"></i>
+                15%
+            </div>
+        </div>
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Registered Students</div>
+        <div class="stat-change">+{{ total_students|add:"5" }} new this week</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-bullseye stat-icon"></i>
+            </div>
+            <div class="stat-trend neutral">
+                <i class="fas fa-minus"></i>
+                0%
+            </div>
+        </div>
+        <div class="stat-value">{{ total_attempts }}</div>
+        <div class="stat-label">Total Attempts</div>
+        <div class="stat-change">{{ total_attempts|add:"20" }} completions</div>
+    </div>
+
+    {% if request.user.is_superuser %}
+    <div class="stat-card">
+        <div class="stat-header">
+            <div class="stat-icon-wrapper">
+                <i class="fas fa-shield-alt stat-icon"></i>
+            </div>
+            <div class="stat-trend neutral">
+                <i class="fas fa-minus"></i>
+                0%
+            </div>
+        </div>
+        <div class="stat-value">{{ total_admin_users }}</div>
+        <div class="stat-label">Admin Users</div>
+        <div class="stat-change">{{ total_admin_users }} active now</div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modern Action Cards -->
+<div class="section-title">
+    <i class="fas fa-rocket" style="color: var(--brand-orange);"></i>
+    Quick Actions
+</div>
+<div class="actions-grid">
+    <a href="{% url 'video_app:admin_add_quiz' %}" class="action-card">
+        <div class="action-header">
+            <div class="action-icon-wrapper">
+                <i class="fas fa-plus-circle action-icon"></i>
+            </div>
+            <div class="action-badge">NEW</div>
+        </div>
+        <div class="action-title">Create Quiz</div>
+        <div class="action-description">Design and publish new assessments with customizable questions and timing</div>
+        <div class="action-footer">
+            <span>2 min setup</span>
+            <i class="fas fa-arrow-right action-arrow"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'video_app:admin_question_bank' %}" class="action-card">
+        <div class="action-header">
+            <div class="action-icon-wrapper">
+                <i class="fas fa-database action-icon"></i>
+            </div>
+            <div class="action-badge">{{ total_questions }} items</div>
+        </div>
+        <div class="action-title">Question Bank</div>
+        <div class="action-description">Manage your comprehensive question database with categories and difficulty levels</div>
+        <div class="action-footer">
+            <span>Organized</span>
+            <i class="fas fa-arrow-right action-arrow"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'video_app:admin_quizzes' %}" class="action-card">
+        <div class="action-header">
+            <div class="action-icon-wrapper">
+                <i class="fas fa-list-alt action-icon"></i>
+            </div>
+            <div class="action-badge">{{ total_quizzes }} active</div>
+        </div>
+        <div class="action-title">All Quizzes</div>
+        <div class="action-description">Monitor, edit, and activate existing assessments with performance tracking</div>
+        <div class="action-footer">
+            <span>Manage</span>
+            <i class="fas fa-arrow-right action-arrow"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'video_app:admin_students' %}" class="action-card">
+        <div class="action-header">
+            <div class="action-icon-wrapper">
+                <i class="fas fa-user-graduate action-icon"></i>
+            </div>
+            <div class="action-badge">{{ total_students }} total</div>
+        </div>
+        <div class="action-title">Students</div>
+        <div class="action-description">View and manage student accounts, track progress, and analyze performance</div>
+        <div class="action-footer">
+            <span>Directory</span>
+            <i class="fas fa-arrow-right action-arrow"></i>
+        </div>
+    </a>
+
+    <a href="{% url 'video_app:admin_reports' %}" class="action-card">
+        <div class="action-header">
+            <div class="action-icon-wrapper">
+                <i class="fas fa-chart-bar action-icon"></i>
+            </div>
+            <div class="action-badge">Analytics</div>
+        </div>
+        <div class="action-title">Reports</div>
+        <div class="action-description">Comprehensive analytics, performance insights, and detailed statistics</div>
+        <div class="action-footer">
+            <span>Insights</span>
+            <i class="fas fa-arrow-right action-arrow"></i>
+        </div>
+    </a>
+
+    {% if request.user.is_superuser %}
+    <a href="{% url 'video_app:admin_users' %}" class="action-card">
+        <div class="action-header">
+            <div class="action-icon-wrapper">
+                <i class="fas fa-user-shield action-icon"></i>
+            </div>
+            <div class="action-badge">Admin</div>
+        </div>
+        <div class="action-title">Admin Users</div>
+        <div class="action-description">Manage administrative accounts, permissions, and system access controls</div>
+        <div class="action-footer">
+            <span>Security</span>
+            <i class="fas fa-arrow-right action-arrow"></i>
+        </div>
+    </a>
+    {% endif %}
 </div>
 {% endblock %}

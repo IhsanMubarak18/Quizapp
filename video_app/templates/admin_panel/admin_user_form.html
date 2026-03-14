@@ -1,75 +1,354 @@
 {% extends "admin_panel/base_admin.html" %}
 {% block title %}{{ action }} Admin User — Admin{% endblock %}
 {% block admin_content %}
-<div class="page-header" style="display:flex;align-items:center;gap:16px;">
-    <a href="{% url 'video_app:admin_users' %}"
-        style="background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#64748b;font-size:13px;">← Back</a>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding: 24px;
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .back-link {
+        background: var(--bg-hover);
+        border-radius: 8px;
+        padding: 8px 12px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .back-link:hover {
+        background: var(--brand-orange);
+        color: white;
+        transform: translateY(-1px);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .form-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        max-width: 760px;
+        margin: 0 auto 40px auto;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 14px 18px;
+        border: 2px solid var(--border-light);
+        border-radius: 12px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        position: relative;
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--brand-orange);
+        box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+
+    .form-help {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 6px;
+    }
+
+    .permissions-section {
+        background: var(--bg-hover);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border: 1px solid var(--border-light);
+    }
+
+    .permissions-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .permissions-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .permission-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 400;
+        color: var(--text-primary);
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .permission-description {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin: 0;
+    }
+
+    .form-error {
+        background: rgba(244, 63, 94, 0.1);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-top: 6px;
+        font-size: 13px;
+        color: #DC2626;
+    }
+
+    .non-field-errors {
+        background: rgba(244, 63, 94, 0.1);
+        border: 1px solid rgba(244, 63, 94, 0.2);
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 16px;
+        font-size: 13px;
+        color: #DC2626;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn {
+        padding: 14px 32px;
+        border-radius: 12px;
+        font-size: 15px;
+        font-weight: 600;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.2);
+        transform: translate(-50%, -50%);
+        transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:hover::before {
+        width: 300px;
+        height: 300px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #6B7280, #9CA3AF);
+        color: white;
+        box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #9CA3AF, #6B7280);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(107, 114, 128, 0.4);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 2px solid var(--border-light);
+        color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+        background: var(--bg-hover);
+        border-color: var(--brand-orange);
+        color: var(--brand-orange);
+        transform: translateY(-2px);
+    }
+
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+        }
+        
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 16px;
+        }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <a href="{% url 'video_app:admin_users' %}" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back
+    </a>
     <div>
-        <h1>{{ action }} Admin User</h1>
-        <p>{% if action == 'Create' %}Create a new admin account and choose its access level.{% else %}Update admin account details and access settings.{% endif %}</p>
+        <div class="page-title">
+            <i class="fas fa-user-shield" style="color: #6B7280;"></i>
+            {{ action }} Admin User
+        </div>
+        <div class="page-subtitle">
+            {% if action == 'Create' %}
+            Create a new admin account and choose its access level.
+            {% else %}
+            Update admin account details and access settings.
+            {% endif %}
+        </div>
     </div>
 </div>
 
-<div class="card" style="max-width:720px;">
+<!-- Admin User Form -->
+<div class="form-card">
     <form method="post">
         {% csrf_token %}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        
+        <div class="form-grid">
             <div class="form-group">
-                <label>{{ form.first_name.label }}</label>{{ form.first_name }}
+                <label class="form-label">{{ form.first_name.label }}</label>
+                {{ form.first_name }}
                 {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
             </div>
             <div class="form-group">
-                <label>{{ form.last_name.label }}</label>{{ form.last_name }}
+                <label class="form-label">{{ form.last_name.label }}</label>
+                {{ form.last_name }}
                 {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors.0 }}</div>{% endif %}
             </div>
         </div>
 
         <div class="form-group">
-            <label>{{ form.email.label }}</label>{{ form.email }}
+            <label class="form-label">{{ form.email.label }}</label>
+            {{ form.email }}
             {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-grid">
             <div class="form-group">
-                <label>{{ form.password1.label }}</label>{{ form.password1 }}
+                <label class="form-label">{{ form.password1.label }}</label>
+                {{ form.password1 }}
                 {% if action == 'Edit' %}
-                <p style="font-size:12px;color:#94a3b8;margin-top:6px;">Leave blank to keep the current password.</p>
+                <div class="form-help">
+                    <i class="fas fa-info-circle"></i>
+                    Leave blank to keep the current password.
+                </div>
                 {% endif %}
                 {% if form.password1.errors %}<div class="form-error">{{ form.password1.errors.0 }}</div>{% endif %}
             </div>
             <div class="form-group">
-                <label>{{ form.password2.label }}</label>{{ form.password2 }}
+                <label class="form-label">{{ form.password2.label }}</label>
+                {{ form.password2 }}
                 {% if form.password2.errors %}<div class="form-error">{{ form.password2.errors.0 }}</div>{% endif %}
             </div>
         </div>
 
-        <div style="background:#f8fafc;border-radius:12px;padding:20px;margin-bottom:20px;border:1px solid #e2e8f0;">
-            <div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:14px;">Permissions</div>
-            <div style="display:flex;flex-direction:column;gap:12px;">
-                <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
-                    {{ form.is_active }} Keep this admin account active
+        <div class="permissions-section">
+            <div class="permissions-title">
+                <i class="fas fa-cog"></i>
+                Permissions
+            </div>
+            <div class="permissions-group">
+                <label class="permission-label">
+                    {{ form.is_active }}
+                    <i class="fas fa-toggle-on" style="font-size: 14px; opacity: 0.7;"></i>
+                    Keep this admin account active
                 </label>
-                <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
-                    {{ form.can_manage_admins }} Allow this admin to create and manage other admin users
+                <label class="permission-label">
+                    {{ form.can_manage_admins }}
+                    <i class="fas fa-crown" style="font-size: 14px; opacity: 0.7;"></i>
+                    Allow this admin to create and manage other admin users
                 </label>
-                <p style="font-size:12px;color:#94a3b8;margin:0;">Admins without this access can still log in and manage quizzes, students, and reports, but they cannot manage admin accounts.</p>
+                <div class="permission-description">
+                    <i class="fas fa-info-circle"></i>
+                    Admins without this access can still log in and manage quizzes, students, and reports, but they cannot manage admin accounts.
+                </div>
             </div>
             {% if form.can_manage_admins.errors %}<div class="form-error" style="margin-top:8px;">{{ form.can_manage_admins.errors.0 }}</div>{% endif %}
             {% if form.is_active.errors %}<div class="form-error" style="margin-top:8px;">{{ form.is_active.errors.0 }}</div>{% endif %}
         </div>
 
         {% if form.non_field_errors %}
-        <div
-            style="background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#991b1b;">
+        <div class="non-field-errors">
             {% for error in form.non_field_errors %}{{ error }}{% endfor %}
         </div>
         {% endif %}
 
-        <div style="display:flex;gap:12px;">
-            <button type="submit" class="btn btn-primary" style="padding:12px 28px;">
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i>
                 {% if action == 'Create' %}Create Admin{% else %}Save Changes{% endif %}
             </button>
-            <a href="{% url 'video_app:admin_users' %}" class="btn btn-outline" style="padding:12px 28px;">Cancel</a>
+            <a href="{% url 'video_app:admin_users' %}" class="btn btn-outline">
+                <i class="fas fa-times"></i>
+                Cancel
+            </a>
         </div>
     </form>
 </div>

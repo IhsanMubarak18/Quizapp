@@ -1,58 +1,322 @@
 {% extends "student/base_student.html" %}
 {% block title %}Available Quizzes — Quiz Portal{% endblock %}
 {% block student_content %}
-<div class="page-header">
-    <h1>Available Quizzes 📝</h1>
-    <p>Choose a quiz to attempt. All times are in your local timezone.</p>
-</div>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
 
-{% if quiz_data %}
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;">
-    {% for item in quiz_data %}
-    <div style="background:#fff;border-radius:16px;box-shadow:var(--shadow);border:1px solid #e2e8f0;
-    overflow:hidden;transition:.2s;"
-        onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 32px rgba(79,70,229,.15)'"
-        onmouseout="this.style.transform='none';this.style.boxShadow='var(--shadow)'">
-        <div style="background:linear-gradient(90deg,#4f46e5,#7c3aed);padding:20px;">
-            <div style="font-size:18px;font-weight:800;color:#fff;">{{ item.quiz.title }}</div>
-            {% if item.quiz.description %}
-            <div style="font-size:13px;color:rgba(255,255,255,.75);margin-top:4px;">{{ item.quiz.description }}</div>
-            {% endif %}
-        </div>
-        <div style="padding:20px;">
-            <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
-                <span class="badge badge-info">⏱️ {{ item.quiz.time_limit_minutes }} min</span>
-                <span class="badge badge-info">📝 {{ item.quiz.question_count }} questions</span>
-                {% if item.quiz.shuffle_questions %}
-                <span class="badge badge-warning">🔀 Shuffled</span>
+    .quiz-list-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 32px 24px;
+        background: #F8FAFC;
+        min-height: 100vh;
+    }
+
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: #0F172A;
+        margin-bottom: 8px;
+        letter-spacing: -0.025em;
+    }
+
+    .page-subtitle {
+        font-size: 16px;
+        color: #64748B;
+        font-weight: 400;
+    }
+
+    .quiz-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+    }
+
+    .quiz-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quiz-card:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+        border-color: #CBD5E1;
+    }
+
+    .quiz-header {
+        background: linear-gradient(135deg, #3B82F6, #6366F1);
+        padding: 20px;
+        color: white;
+    }
+
+    .quiz-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+
+    .quiz-description {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.8);
+        line-height: 1.4;
+    }
+
+    .quiz-content {
+        padding: 20px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .quiz-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .quiz-badge {
+        padding: 4px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .quiz-badge.info {
+        background: #EFF6FF;
+        color: #1E40AF;
+        border: 1px solid #DBEAFE;
+    }
+
+    .quiz-badge.warning {
+        background: #FEF3C7;
+        color: #92400E;
+        border: 1px solid #FED7AA;
+    }
+
+    .quiz-badge.success {
+        background: #DCFCE7;
+        color: #166534;
+        border: 1px solid #BBF7D0;
+    }
+
+    .quiz-schedule {
+        font-size: 12px;
+        color: #64748B;
+        margin-bottom: 16px;
+        padding: 8px 12px;
+        background: #F8FAFC;
+        border: 1px solid #E2E8F0;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .quiz-schedule i {
+        color: #94A3B8;
+        font-size: 12px;
+    }
+
+    .quiz-actions {
+        margin-top: auto;
+        padding-top: 16px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: 1px solid transparent;
+        cursor: pointer;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .btn-primary {
+        background: #3B82F6;
+        color: white;
+        border-color: #3B82F6;
+    }
+
+    .btn-primary:hover {
+        background: #2563EB;
+        border-color: #2563EB;
+    }
+
+    .btn-secondary {
+        background: white;
+        color: #64748B;
+        border-color: #E2E8F0;
+    }
+
+    .btn-secondary:hover {
+        background: #F8FAFC;
+        border-color: #CBD5E1;
+        color: #475569;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 80px 40px;
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 12px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .empty-icon {
+        font-size: 56px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #64748B;
+        margin-bottom: 8px;
+    }
+
+    .empty-subtitle {
+        font-size: 14px;
+        color: #94A3B8;
+    }
+
+    @media (max-width: 768px) {
+        .quiz-list-container {
+            padding: 24px 16px;
+        }
+        
+        .page-title {
+            font-size: 24px;
+        }
+        
+        .quiz-grid {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .quiz-header {
+            padding: 16px;
+        }
+        
+        .quiz-title {
+            font-size: 16px;
+        }
+        
+        .quiz-content {
+            padding: 16px;
+        }
+        
+        .empty-state {
+            padding: 60px 20px;
+        }
+    }
+</style>
+
+<div class="quiz-list-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">Available Quizzes</h1>
+        <p class="page-subtitle">Choose a quiz to attempt. All times are in your local timezone.</p>
+    </div>
+
+    <!-- Quiz Grid -->
+    {% if quiz_data %}
+    <div class="quiz-grid">
+        {% for item in quiz_data %}
+        <div class="quiz-card">
+            <div class="quiz-header">
+                <div class="quiz-title">{{ item.quiz.title }}</div>
+                {% if item.quiz.description %}
+                <div class="quiz-description">{{ item.quiz.description }}</div>
                 {% endif %}
             </div>
-            {% if item.quiz.start_time or item.quiz.end_time %}
-            <div style="font-size:12px;color:#94a3b8;margin-bottom:12px;">
-                📅
-                {% if item.quiz.start_time %}{{ item.quiz.start_time|date:"d M Y, H:i" }}{% endif %}
-                {% if item.quiz.start_time and item.quiz.end_time %} — {% endif %}
-                {% if item.quiz.end_time %}{{ item.quiz.end_time|date:"d M Y, H:i" }}{% endif %}
+            
+            <div class="quiz-content">
+                <div class="quiz-meta">
+                    <span class="quiz-badge info">
+                        <i class="fas fa-clock"></i>
+                        {{ item.quiz.time_limit_minutes }} min
+                    </span>
+                    <span class="quiz-badge info">
+                        <i class="fas fa-question-circle"></i>
+                        {{ item.quiz.question_count }} questions
+                    </span>
+                    {% if item.quiz.shuffle_questions %}
+                    <span class="quiz-badge warning">
+                        <i class="fas fa-random"></i>
+                        Shuffled
+                    </span>
+                    {% endif %}
+                    {% if item.attempted %}
+                    <span class="quiz-badge success">
+                        <i class="fas fa-check"></i>
+                        Attempted
+                    </span>
+                    {% endif %}
+                </div>
+                
+                {% if item.quiz.start_time or item.quiz.end_time %}
+                <div class="quiz-schedule">
+                    <i class="fas fa-calendar-alt"></i>
+                    {% if item.quiz.start_time %}{{ item.quiz.start_time|date:"d M Y, H:i" }}{% endif %}
+                    {% if item.quiz.start_time and item.quiz.end_time %} — {% endif %}
+                    {% if item.quiz.end_time %}{{ item.quiz.end_time|date:"d M Y, H:i" }}{% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="quiz-actions">
+                    <a href="{% url 'video_app:start_quiz' item.quiz.id %}" 
+                       class="btn {% if item.attempted %}btn-secondary{% else %}btn-primary{% endif %}">
+                        {% if item.attempted %}
+                            <i class="fas fa-redo"></i>
+                            Retry Quiz
+                        {% else %}
+                            <i class="fas fa-play"></i>
+                            Start Quiz
+                        {% endif %}
+                    </a>
+                </div>
             </div>
-            {% endif %}
-            {% if item.attempted %}
-            <div style="margin-bottom:12px;">
-                <span class="badge badge-success">✅ Already attempted</span>
-            </div>
-            {% endif %}
-            <a href="{% url 'video_app:start_quiz' item.quiz.id %}" class="btn btn-primary"
-                style="width:100%;justify-content:center;">
-                {% if item.attempted %}Retry Quiz{% else %}Start Quiz{% endif %} →
-            </a>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <h2 class="empty-title">No quizzes available</h2>
+        <p class="empty-subtitle">The admin hasn't activated any quizzes yet. Please check back later.</p>
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<div class="card" style="text-align:center;padding:60px;">
-    <div style="font-size:56px;margin-bottom:16px;">📭</div>
-    <h2 style="color:#64748b;font-weight:600;margin-bottom:8px;">No quizzes available</h2>
-    <p style="color:#94a3b8;">The admin hasn't activated any quizzes yet. Please check back later.</p>
-</div>
-{% endif %}
 {% endblock %}

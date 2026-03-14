@@ -1,72 +1,289 @@
 {% extends "admin_panel/base_admin.html" %}
 {% block title %}Question Bank — Admin{% endblock %}
 {% block admin_content %}
-<div class="page-header"
-    style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 32px;
+        padding: 24px;
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #A78BFA, #8B5CF6);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .btn-outline {
+        background: transparent;
+        border: 1px solid var(--border-light);
+        color: var(--text-secondary);
+    }
+
+    .btn-outline:hover {
+        background: var(--bg-hover);
+        border-color: var(--brand-orange);
+        color: var(--brand-orange);
+    }
+
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+
+    .card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 24px;
+    }
+
+    .search-form {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .form-input {
+        padding: 10px 16px;
+        border: 1px solid var(--border-light);
+        border-radius: 10px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: var(--bg-card);
+        color: var(--text-primary);
+    }
+
+    .form-input:focus {
+        outline: none;
+        border-color: var(--brand-orange);
+        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+    }
+
+    .results-count {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 16px;
+    }
+
+    .table-container {
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--bg-card);
+    }
+
+    .data-table th {
+        background: var(--bg-hover);
+        padding: 16px;
+        text-align: left;
+        font-weight: 600;
+        color: var(--text-primary);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .data-table td {
+        padding: 16px;
+        border-bottom: 1px solid var(--border-light);
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .data-table tr:hover {
+        background: var(--bg-hover);
+    }
+
+    .question-text {
+        max-width: 320px;
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--text-primary);
+        line-height: 1.4;
+    }
+
+    .options-list {
+        font-size: 12px;
+        color: var(--text-secondary);
+        line-height: 1.8;
+    }
+
+    .correct-answer {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 13px;
+        display: inline-block;
+        margin: 1px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-form {
+            flex-direction: column;
+        }
+        
+        .form-input {
+            width: 100%;
+        }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
     <div>
-        <h1>Question Bank 📚</h1>
-        <p>Manage all questions available for quizzes.</p>
+        <div class="page-title">
+            <i class="fas fa-database" style="color: #8B5CF6;"></i>
+            Question Bank
+        </div>
+        <div class="page-subtitle">Manage all questions available for quizzes.</div>
     </div>
-    <a href="{% url 'video_app:admin_add_question' %}" class="btn btn-primary">➕ Add Question</a>
+    <a href="{% url 'video_app:admin_add_question' %}" class="btn btn-primary">
+        <i class="fas fa-plus-circle"></i>
+        Add Question
+    </a>
 </div>
 
+<!-- Search and Questions -->
 <div class="card">
-    <!-- Search -->
-    <form method="get" style="display:flex;gap:10px;margin-bottom:20px;">
+    <!-- Search Form -->
+    <form method="get" class="search-form">
         <input type="text" name="search" value="{{ search }}" placeholder="Search questions..."
-            style="max-width:360px;">
-        <button type="submit" class="btn btn-outline btn-sm">Search</button>
-        {% if search %}<a href="{% url 'video_app:admin_question_bank' %}" class="btn btn-sm"
-            style="background:#f1f5f9;border:none;">Clear</a>{% endif %}
+            class="form-input" style="max-width:360px;">
+        <button type="submit" class="btn btn-outline btn-sm">
+            <i class="fas fa-search"></i>
+            Search
+        </button>
+        {% if search %}
+        <a href="{% url 'video_app:admin_question_bank' %}" class="btn btn-sm" style="background:var(--bg-hover);border:none;">
+            <i class="fas fa-times"></i>
+            Clear
+        </a>
+        {% endif %}
     </form>
-    <p style="font-size:13px;color:#94a3b8;margin-bottom:16px;">{{ questions|length }} question(s) found</p>
+    
+    <div class="results-count">{{ questions|length }} question(s) found</div>
+    
     {% if questions %}
-    <table>
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Question</th>
-                <th>Options</th>
-                <th>Correct</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for q in questions %}
-            <tr>
-                <td style="font-size:13px;color:#94a3b8;">{{ forloop.counter }}</td>
-                <td style="max-width:320px;">
-                    <div style="font-weight:500;font-size:14px;color:#1e293b;">{{ q.question_text|truncatechars:90 }}
-                    </div>
-                </td>
-                <td>
-                    <div style="font-size:12px;color:#64748b;line-height:1.8;">
-                        {% for letter, text in q.get_options %}
-                        {{ letter }}: {{ text|truncatechars:30 }}<br>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Question</th>
+                    <th>Options</th>
+                    <th>Correct</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in questions %}
+                <tr>
+                    <td style="font-size:13px;color:var(--text-muted);">{{ forloop.counter }}</td>
+                    <td>
+                        <div class="question-text">{{ q.question_text|truncatechars:90 }}</div>
+                    </td>
+                    <td>
+                        <div class="options-list">
+                            {% for letter, text in q.get_options %}
+                            {{ letter }}: {{ text|truncatechars:30 }}<br>
+                            {% endfor %}
+                        </div>
+                    </td>
+                    <td>
+                        {% for ans in q.correct_answers %}
+                        <span class="correct-answer">{{ ans }}</span>
                         {% endfor %}
-                    </div>
-                </td>
-                <td>
-                    {% for ans in q.correct_answers %}
-                    <span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:20px;font-weight:700;font-size:13px;display:inline-block;margin:1px;">{{ ans }}</span>
-                    {% endfor %}
-                </td>
-                <td>
-                    <div style="display:flex;gap:6px;">
-                        <a href="{% url 'video_app:admin_edit_question' q.id %}" class="btn btn-sm btn-outline">Edit</a>
-                        <a href="{% url 'video_app:admin_delete_question' q.id %}"
-                            class="btn btn-sm btn-danger">Delete</a>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{% url 'video_app:admin_edit_question' q.id %}" class="btn btn-sm btn-outline">
+                                <i class="fas fa-edit"></i>
+                                Edit
+                            </a>
+                            <a href="{% url 'video_app:admin_delete_question' q.id %}"
+                                class="btn btn-sm" style="background:rgba(244, 63, 94, 0.1);color:#DC2626;border:1px solid rgba(244, 63, 94, 0.2);">
+                                <i class="fas fa-trash"></i>
+                                Delete
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-    <div style="text-align:center;padding:48px;color:#94a3b8;">
-        <div style="font-size:48px;margin-bottom:12px;">📭</div>
-        <p>No questions found. <a href="{% url 'video_app:admin_add_question' %}" style="color:#4f46e5;">Add your first
-                question</a>.</p>
+    <div style="text-align:center;padding:48px;color:var(--text-muted);">
+        <div style="font-size:48px;margin-bottom:12px;opacity:0.5;">
+            <i class="fas fa-inbox"></i>
+        </div>
+        <p>No questions found. <a href="{% url 'video_app:admin_add_question' %}" style="color:#8B5CF6;">Add your first question</a>.</p>
     </div>
     {% endif %}
 </div>
