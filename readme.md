@@ -55,6 +55,30 @@ python manage.py runserver
 
 Open your browser and go to `http://127.0.0.1:8000/`
 
+### 🐳 Run with Docker
+
+Build and start the app:
+
+```bash
+docker compose up --build
+```
+
+The container will automatically run migrations and collect static files before starting Django on `http://127.0.0.1:8000/`.
+
+Useful commands:
+
+```bash
+docker compose up --build -d
+docker compose exec web python manage.py createsuperuser
+docker compose down
+```
+
+Notes:
+
+- `docker-compose.yml` stores SQLite data in a named Docker volume at `/app/data/db.sqlite3`
+- media uploads and collected static files are also persisted in named Docker volumes
+- the compose setup reads environment variables from the project `.env` file
+
 ---
 
 ## 🧪 How It Works
