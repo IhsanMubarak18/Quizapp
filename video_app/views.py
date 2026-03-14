@@ -5,13 +5,14 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.utils import timezone
 from django.db.models import Q
 from django.db.models.functions import TruncDate
 from django.contrib import messages
 from .models import Question, Quiz, QuizQuestion, QuizAttempt, StudentAnswer, QuizResult
 from .forms import QuestionForm, QuizForm, RandomQuestionSelectForm
+from users.forms import AdminUserCreationForm, AdminUserChangeForm
 from users.models import StudentProfile
 
 AuthUser = get_user_model()
@@ -29,6 +30,14 @@ def staff_required(view_func):
 
 def student_login_required(view_func):
     decorated = login_required(view_func, login_url='/login/')
+    return decorated
+
+
+def admin_manager_required(view_func):
+    decorated = user_passes_test(
+        lambda u: u.is_active and u.is_staff and u.is_superuser,
+        login_url='/admin-login/'
+    )(view_func)
     return decorated
 
 
@@ -327,11 +336,13 @@ def admin_dashboard(request):
     total_quizzes = Quiz.objects.count()
     total_students = AuthUser.objects.filter(is_staff=False).count()
     total_attempts = QuizAttempt.objects.filter(is_submitted=True).count()
+    total_admin_users = AuthUser.objects.filter(is_staff=True).count()
     return render(request, 'admin_panel/dashboard.html', {
         'total_questions': total_questions,
         'total_quizzes': total_quizzes,
         'total_students': total_students,
         'total_attempts': total_attempts,
+        'total_admin_users': total_admin_users,
     })
 
 
@@ -544,6 +555,82 @@ def admin_remove_question_from_quiz(request, quiz_id, question_id):
     QuizQuestion.objects.filter(quiz_id=quiz_id, question_id=question_id).delete()
     messages.success(request, "Question removed from quiz.")
     return redirect('video_app:admin_quiz_questions', quiz_id=quiz_id)
+
+
+@admin_manager_required
+def admin_users(request):
+    search = request.GET.get('search', '')
+    admins = AuthUser.objects.filter(is_staff=True).order_by('first_name', 'email')
+    if search:
+        admins = admins.filter(
+            Q(first_name__icontains=search) |
+            Q(last_name__icontains=search) |
+            Q(email__icontains=search)
+        )
+    return render(request, 'admin_panel/admin_users.html', {
+        'admin_users': admins,
+        'search': search,
+    })
+
+
+@admin_manager_required
+def admin_add_user(request):
+    form = AdminUserCreationForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        admin_user = form.save()
+        messages.success(request, f'Admin account "{admin_user.email}" created successfully.')
+        return redirect('video_app:admin_users')
+    return render(request, 'admin_panel/admin_user_form.html', {
+        'form': form,
+        'action': 'Create',
+    })
+
+
+@admin_manager_required
+def admin_edit_user(request, user_id):
+    admin_user = get_object_or_404(AuthUser, id=user_id, is_staff=True)
+    form = AdminUserChangeForm(request.POST or None, instance=admin_user)
+    if request.method == 'POST' and form.is_valid():
+        if admin_user == request.user and not form.cleaned_data['can_manage_admins']:
+            form.add_error('can_manage_admins', "You can't remove your own admin-management access.")
+        elif admin_user == request.user and not form.cleaned_data['is_active']:
+            form.add_error('is_active', "You can't deactivate your own admin account.")
+        elif (
+            admin_user.is_superuser and
+            not form.cleaned_data['can_manage_admins'] and
+            not AuthUser.objects.filter(is_staff=True, is_superuser=True).exclude(pk=admin_user.pk).exists()
+        ):
+            form.add_error('can_manage_admins', "At least one admin must keep permission to manage admins.")
+        else:
+            updated_user = form.save()
+            if updated_user == request.user and form.cleaned_data.get('password1'):
+                update_session_auth_hash(request, updated_user)
+            messages.success(request, f'Admin account "{updated_user.email}" updated successfully.')
+            return redirect('video_app:admin_users')
+    return render(request, 'admin_panel/admin_user_form.html', {
+        'form': form,
+        'action': 'Edit',
+        'admin_user': admin_user,
+    })
+
+
+@admin_manager_required
+def admin_delete_user(request, user_id):
+    admin_user = get_object_or_404(AuthUser, id=user_id, is_staff=True)
+    if request.method == 'POST':
+        if admin_user == request.user:
+            messages.error(request, "You can't delete your own admin account.")
+            return redirect('video_app:admin_users')
+        if admin_user.is_superuser and AuthUser.objects.filter(is_staff=True, is_superuser=True).count() <= 1:
+            messages.error(request, "At least one admin must keep permission to manage admins.")
+            return redirect('video_app:admin_users')
+        admin_user.delete()
+        messages.success(request, "Admin account deleted.")
+        return redirect('video_app:admin_users')
+    return render(request, 'admin_panel/confirm_delete.html', {
+        'object_name': admin_user.get_full_name() or admin_user.email,
+        'cancel_url_resolved': reverse('video_app:admin_users'),
+    })
 
 
 # ── Student Management ──

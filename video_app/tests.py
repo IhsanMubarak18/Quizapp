@@ -336,3 +336,74 @@ class AdminStudentsExportTests(TestCase):
         self.assertEqual(pdf_response['Content-Type'], 'application/pdf')
         self.assertIn('students_north_college.pdf', pdf_response['Content-Disposition'])
         self.assertGreater(len(pdf_response.content), 0)
+
+
+class AdminUserManagementTests(TestCase):
+    def setUp(self):
+        user_model = get_user_model()
+        self.super_admin = user_model.objects.create_superuser(
+            email='owner@example.com',
+            first_name='Owner',
+            password='testpass123',
+        )
+        self.standard_admin = user_model.objects.create_user(
+            email='staff@example.com',
+            first_name='Staff',
+            password='testpass123',
+        )
+        self.standard_admin.is_staff = True
+        self.standard_admin.save()
+
+    def test_only_superusers_can_access_admin_user_management(self):
+        self.client.force_login(self.standard_admin)
+
+        response = self.client.get(reverse('video_app:admin_users'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/admin-login/', response['Location'])
+
+    def test_superuser_can_create_edit_and_delete_admin_users(self):
+        self.client.force_login(self.super_admin)
+
+        create_response = self.client.post(reverse('video_app:admin_add_user'), {
+            'email': 'manager@example.com',
+            'first_name': 'Manager',
+            'last_name': 'Admin',
+            'password1': 'securepass123',
+            'password2': 'securepass123',
+            'is_active': 'on',
+            'can_manage_admins': 'on',
+        })
+
+        self.assertRedirects(create_response, reverse('video_app:admin_users'))
+        created_admin = get_user_model().objects.get(email='manager@example.com')
+        self.assertTrue(created_admin.is_staff)
+        self.assertTrue(created_admin.is_superuser)
+
+        edit_response = self.client.post(reverse('video_app:admin_edit_user', args=[created_admin.id]), {
+            'email': 'manager@example.com',
+            'first_name': 'Updated',
+            'last_name': 'Admin',
+            'password1': '',
+            'password2': '',
+            'is_active': 'on',
+        })
+
+        self.assertRedirects(edit_response, reverse('video_app:admin_users'))
+        created_admin.refresh_from_db()
+        self.assertEqual(created_admin.first_name, 'Updated')
+        self.assertFalse(created_admin.is_superuser)
+        self.assertTrue(created_admin.is_staff)
+
+        delete_response = self.client.post(reverse('video_app:admin_delete_user', args=[created_admin.id]))
+
+        self.assertRedirects(delete_response, reverse('video_app:admin_users'))
+        self.assertFalse(get_user_model().objects.filter(email='manager@example.com').exists())
+
+    def test_superuser_cannot_delete_own_admin_account(self):
+        self.client.force_login(self.super_admin)
+
+        response = self.client.post(reverse('video_app:admin_delete_user', args=[self.super_admin.id]))
+
+        self.assertRedirects(response, reverse('video_app:admin_users'))
+        self.assertTrue(get_user_model().objects.filter(pk=self.super_admin.pk).exists())

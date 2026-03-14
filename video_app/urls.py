@@ -37,6 +37,12 @@ urlpatterns = [
     path('admin-panel/quizzes/<int:quiz_id>/questions/<int:question_id>/remove/', views.admin_remove_question_from_quiz, name='admin_remove_question_from_quiz'),
     path('admin-panel/quizzes/<int:quiz_id>/questions/<int:question_id>/edit/', views.admin_edit_quiz_question, name='admin_edit_quiz_question'),
 
+    # ── Admin Users ────────────────────────────────────────────────
+    path('admin-panel/admin-users/', views.admin_users, name='admin_users'),
+    path('admin-panel/admin-users/add/', views.admin_add_user, name='admin_add_user'),
+    path('admin-panel/admin-users/<int:user_id>/edit/', views.admin_edit_user, name='admin_edit_user'),
+    path('admin-panel/admin-users/<int:user_id>/delete/', views.admin_delete_user, name='admin_delete_user'),
+
 
     # ── Students ───────────────────────────────────────────────────
     path('admin-panel/students/', views.admin_students, name='admin_students'),

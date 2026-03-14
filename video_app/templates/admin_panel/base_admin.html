@@ -46,6 +46,12 @@
                 class="sidebar-link {% if 'quiz' in url_name and 'question' not in url_name %}active{% endif %}">
                 📝 Quizzes
             </a>
+            {% if request.user.is_superuser %}
+            <a href="{% url 'video_app:admin_users' %}"
+                class="sidebar-link {% if 'admin_user' in url_name %}active{% endif %}">
+                🛡️ Admin Users
+            </a>
+            {% endif %}
             <a href="{% url 'video_app:admin_students' %}"
                 class="sidebar-link {% if 'student' in url_name %}active{% endif %}">
                 👥 Students

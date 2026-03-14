@@ -1,0 +1,76 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}{{ action }} Admin User — Admin{% endblock %}
+{% block admin_content %}
+<div class="page-header" style="display:flex;align-items:center;gap:16px;">
+    <a href="{% url 'video_app:admin_users' %}"
+        style="background:#f1f5f9;border-radius:8px;padding:8px 12px;color:#64748b;font-size:13px;">← Back</a>
+    <div>
+        <h1>{{ action }} Admin User</h1>
+        <p>{% if action == 'Create' %}Create a new admin account and choose its access level.{% else %}Update admin account details and access settings.{% endif %}</p>
+    </div>
+</div>
+
+<div class="card" style="max-width:720px;">
+    <form method="post">
+        {% csrf_token %}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>{{ form.first_name.label }}</label>{{ form.first_name }}
+                {% if form.first_name.errors %}<div class="form-error">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label>{{ form.last_name.label }}</label>{{ form.last_name }}
+                {% if form.last_name.errors %}<div class="form-error">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>{{ form.email.label }}</label>{{ form.email }}
+            {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label>{{ form.password1.label }}</label>{{ form.password1 }}
+                {% if action == 'Edit' %}
+                <p style="font-size:12px;color:#94a3b8;margin-top:6px;">Leave blank to keep the current password.</p>
+                {% endif %}
+                {% if form.password1.errors %}<div class="form-error">{{ form.password1.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label>{{ form.password2.label }}</label>{{ form.password2 }}
+                {% if form.password2.errors %}<div class="form-error">{{ form.password2.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+
+        <div style="background:#f8fafc;border-radius:12px;padding:20px;margin-bottom:20px;border:1px solid #e2e8f0;">
+            <div style="font-size:14px;font-weight:700;color:#374151;margin-bottom:14px;">Permissions</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
+                    {{ form.is_active }} Keep this admin account active
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;font-weight:400;color:#374151;margin:0;">
+                    {{ form.can_manage_admins }} Allow this admin to create and manage other admin users
+                </label>
+                <p style="font-size:12px;color:#94a3b8;margin:0;">Admins without this access can still log in and manage quizzes, students, and reports, but they cannot manage admin accounts.</p>
+            </div>
+            {% if form.can_manage_admins.errors %}<div class="form-error" style="margin-top:8px;">{{ form.can_manage_admins.errors.0 }}</div>{% endif %}
+            {% if form.is_active.errors %}<div class="form-error" style="margin-top:8px;">{{ form.is_active.errors.0 }}</div>{% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+        <div
+            style="background:#fee2e2;border:1px solid #fecaca;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#991b1b;">
+            {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="display:flex;gap:12px;">
+            <button type="submit" class="btn btn-primary" style="padding:12px 28px;">
+                {% if action == 'Create' %}Create Admin{% else %}Save Changes{% endif %}
+            </button>
+            <a href="{% url 'video_app:admin_users' %}" class="btn btn-outline" style="padding:12px 28px;">Cancel</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
