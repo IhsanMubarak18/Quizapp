@@ -735,6 +735,35 @@ def admin_delete_student(request, user_id):
 
 
 @staff_required
+def admin_edit_student(request, user_id):
+    user = get_object_or_404(get_user_model(), id=user_id)
+    student_profile = getattr(user, 'student_profile', None)
+    
+    if not student_profile:
+        messages.error(request, "Student profile not found.")
+        return redirect('video_app:admin_students')
+    
+    if request.method == 'POST':
+        # Update user email
+        user.email = request.POST.get('email', user.email)
+        user.save()
+        
+        # Update student profile
+        student_profile.student_name = request.POST.get('student_name', student_profile.student_name)
+        student_profile.college_name = request.POST.get('college_name', student_profile.college_name)
+        student_profile.mobile_number = request.POST.get('mobile_number', student_profile.mobile_number)
+        student_profile.save()
+        
+        messages.success(request, f"Student '{student_profile.student_name}' updated successfully.")
+        return redirect('video_app:admin_students')
+    
+    return render(request, 'admin_panel/edit_student.html', {
+        'user': user,
+        'student_profile': student_profile
+    })
+
+
+@staff_required
 def admin_students_pdf(request):
 
     selected_college = request.GET.get('college', '')

@@ -130,44 +130,36 @@
     .options-list {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
+        margin-bottom: 24px;
     }
 
-    .option-label { 
+    .option-item { 
         display: flex; 
-        align-items: center; 
-        gap: 16px; 
+        align-items: flex-start; 
+        gap: 12px; 
         padding: 16px 20px; 
         border-radius: 12px; 
         border: 1px solid #E2E8F0; 
-        cursor: pointer; 
-        margin-bottom: 0; 
-        transition: all 0.2s ease; 
         background: #FFFFFF;
+        transition: all 0.2s ease;
     }
 
-    .option-label:hover { 
+    .option-item:hover { 
         border-color: #CBD5E1; 
         background: #F8FAFC; 
-        transform: translateY(-1px);
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
-    .option-label input:checked + .option-letter { 
-        background: #3B82F6; 
-        color: #FFFFFF; 
+    .option-item.selected {
         border-color: #3B82F6;
-    }
-
-    .option-label input:checked ~ .option-text {
-        color: #0F172A;
-        font-weight: 600;
+        background: #EFF6FF;
     }
 
     .option-letter { 
-        width: 40px; 
-        height: 40px; 
-        border-radius: 10px; 
+        width: 32px; 
+        height: 32px; 
+        border-radius: 8px; 
         background: #F1F5F9; 
         color: #64748B; 
         font-weight: 700; 
@@ -180,14 +172,66 @@
         transition: all 0.2s ease;
     }
 
+    .option-item.selected .option-letter {
+        background: #3B82F6;
+        color: #FFFFFF;
+        border-color: #3B82F6;
+    }
+
     .option-text {
         font-size: 15px;
         color: #475569;
         line-height: 1.5;
+        flex: 1;
         transition: all 0.2s ease;
     }
 
-    input[type=radio], input[type=checkbox] { display: none; }
+    .option-item.selected .option-text {
+        color: #0F172A;
+        font-weight: 600;
+    }
+
+    .selection-controls {
+        display: flex;
+        gap: 16px;
+        justify-content: center;
+        padding: 20px;
+        background: #F8FAFC;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        margin-top: 16px;
+    }
+
+    .control-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .control-item:hover {
+        transform: translateY(-2px);
+    }
+
+    .control-input {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        accent-color: #3B82F6;
+    }
+
+    .control-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #64748B;
+        transition: all 0.2s ease;
+    }
+
+    .control-item.selected .control-label {
+        color: #3B82F6;
+    }
 
     .submit-bar { 
         background: #FFFFFF; 
@@ -401,15 +445,36 @@
             
             <div class="options-list">
                 {% for opt_letter, opt_text in question|option_pairs %}
-                <label class="option-label">
-                    {% if multi > 1 %}
-                    <input type="checkbox" name="q_{{ question.id }}" value="{{ opt_letter }}" {% if opt_letter in existing_answers|get_item:question.id %}checked{% endif %}>
-                    {% else %}
-                    <input type="radio" name="q_{{ question.id }}" value="{{ opt_letter }}" {% if existing_answers|get_item:question.id == opt_letter %}checked{% endif %}>
-                    {% endif %}
+                <div class="option-item" id="option-{{ question.id }}-{{ opt_letter }}">
                     <div class="option-letter">{{ opt_letter }}</div>
                     <div class="option-text">{{ opt_text }}</div>
-                </label>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Selection Controls -->
+            <div class="selection-controls">
+                {% for opt_letter, opt_text in question|option_pairs %}
+                <div class="control-item" id="control-{{ question.id }}-{{ opt_letter }}" onclick="toggleOption({{ question.id }}, '{{ opt_letter }}', {% if multi > 1 %}true{% else %}false{% endif %})">
+                    {% if multi > 1 %}
+                    <input type="checkbox" 
+                           id="input-{{ question.id }}-{{ opt_letter }}"
+                           name="q_{{ question.id }}" 
+                           value="{{ opt_letter }}" 
+                           {% if opt_letter in existing_answers|get_item:question.id %}checked{% endif %}
+                           class="control-input"
+                           onclick="event.stopPropagation()">
+                    {% else %}
+                    <input type="radio" 
+                           id="input-{{ question.id }}-{{ opt_letter }}"
+                           name="q_{{ question.id }}" 
+                           value="{{ opt_letter }}" 
+                           {% if existing_answers|get_item:question.id == opt_letter %}checked{% endif %}
+                           class="control-input"
+                           onclick="event.stopPropagation()">
+                    {% endif %}
+                    <label for="input-{{ question.id }}-{{ opt_letter }}" class="control-label">{{ opt_letter }}</label>
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -479,14 +544,99 @@ function closeSubmitModal() {
     document.getElementById('submitModal').classList.remove('active');
 }
 
+function toggleOption(questionId, optionLetter, isMultiple) {
+    const input = document.getElementById(`input-${questionId}-${optionLetter}`);
+    const optionItem = document.getElementById(`option-${questionId}-${optionLetter}`);
+    const controlItem = document.getElementById(`control-${questionId}-${optionLetter}`);
+    
+    if (isMultiple) {
+        // Checkbox: toggle checked state
+        input.checked = !input.checked;
+    } else {
+        // Radio: toggle behavior - if already checked, uncheck it
+        if (input.checked) {
+            input.checked = false;
+            // Clear all option styling
+            document.querySelectorAll(`[id^="option-${questionId}-"]`).forEach(item => {
+                item.classList.remove('selected');
+            });
+            document.querySelectorAll(`[id^="control-${questionId}-"]`).forEach(item => {
+                item.classList.remove('selected');
+            });
+            updateAnswered();
+            return;
+        } else {
+            input.checked = true;
+        }
+    }
+    
+    // Update UI styling
+    updateOptionStyling(questionId, optionLetter, input.checked);
+    updateAnswered();
+}
+
+function updateOptionStyling(questionId, optionLetter, isSelected) {
+    const optionItem = document.getElementById(`option-${questionId}-${optionLetter}`);
+    const controlItem = document.getElementById(`control-${questionId}-${optionLetter}`);
+    
+    if (isSelected) {
+        optionItem.classList.add('selected');
+        controlItem.classList.add('selected');
+    } else {
+        optionItem.classList.remove('selected');
+        controlItem.classList.remove('selected');
+    }
+}
+
+function initializeOptionStyling() {
+    // Set initial styling for pre-checked answers
+    document.querySelectorAll('.control-input:checked').forEach(input => {
+        const match = input.id.match(/input-(\d+)-([A-Z])/);
+        if (match) {
+            const [, questionId, optionLetter] = match;
+            updateOptionStyling(questionId, optionLetter, true);
+        }
+    });
+    
+    // Add change listeners for manual input changes
+    document.querySelectorAll('.control-input').forEach(input => {
+        input.addEventListener('change', function() {
+            const match = this.id.match(/input-(\d+)-([A-Z])/);
+            if (match) {
+                const [, questionId, optionLetter] = match;
+                
+                if (this.type === 'radio') {
+                    // Clear all other options for this question
+                    document.querySelectorAll(`[id^="option-${questionId}-"]`).forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                    document.querySelectorAll(`[id^="control-${questionId}-"]`).forEach(item => {
+                        item.classList.remove('selected');
+                    });
+                }
+                
+                updateOptionStyling(questionId, optionLetter, this.checked);
+                updateAnswered();
+            }
+        });
+    });
+}
+
 // Close on backdrop click
 document.getElementById('submitModal').addEventListener('click', function(e) {
     if (e.target === this) closeSubmitModal();
 });
 
-document.querySelectorAll('input[type=radio], input[type=checkbox]').forEach(i => i.addEventListener('change', updateAnswered));
+// Initialize the quiz interface
+document.addEventListener('DOMContentLoaded', function() {
+    initializeOptionStyling();
+    updateAnswered();
+    updateTimer();
+});
 
-updateAnswered();
-updateTimer();
+// Update answered count on any input change
+document.querySelectorAll('input[type=radio], input[type=checkbox]').forEach(i => {
+    i.addEventListener('change', updateAnswered);
+});
 </script>
 {% endblock %}
