@@ -234,6 +234,11 @@
                                 <i class="fas fa-edit"></i>
                                 Edit
                             </a>
+                            <a href="{% url 'video_app:admin_reports' %}?quiz_id={{ quiz.id }}"
+                                class="btn btn-sm" style="background:rgba(16, 185, 129, 0.1);color:#10B981;border:1px solid rgba(16, 185, 129, 0.2);">
+                                <i class="fas fa-chart-bar"></i>
+                                Reports
+                            </a>
                             <a href="{% url 'video_app:admin_delete_quiz' quiz.id %}"
                                 class="btn btn-sm" style="background:rgba(244, 63, 94, 0.1);color:#DC2626;border:1px solid rgba(244, 63, 94, 0.2);">
                                 <i class="fas fa-trash"></i>

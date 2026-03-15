@@ -874,13 +874,23 @@ def admin_students_excel(request):
 @staff_required
 def admin_reports(request):
     selected_quiz_attempt = request.GET.get('quiz_attempt', '')
+    selected_quiz_id = request.GET.get('quiz_id', '')
+    selected_quiz = None
+    
     results = (
         QuizResult.objects
         .select_related('student', 'student__student_profile', 'quiz', 'attempt')
         .order_by('-attempt__started_at', '-completed_at')
     )
 
-    if selected_quiz_attempt:
+    # Handle quiz-specific filtering
+    if selected_quiz_id:
+        try:
+            results = results.filter(quiz_id=int(selected_quiz_id))
+            selected_quiz = Quiz.objects.get(id=int(selected_quiz_id))
+        except (ValueError, Quiz.DoesNotExist):
+            selected_quiz_id = ''
+    elif selected_quiz_attempt:
         try:
             quiz_id_str, attempt_date_str = selected_quiz_attempt.split('|', 1)
             attempt_date = date.fromisoformat(attempt_date_str)
@@ -888,8 +898,10 @@ def admin_reports(request):
                 quiz_id=int(quiz_id_str),
                 attempt__started_at__date=attempt_date,
             )
-        except (TypeError, ValueError):
+            selected_quiz = Quiz.objects.get(id=int(quiz_id_str))
+        except (TypeError, ValueError, Quiz.DoesNotExist):
             selected_quiz_attempt = ''
+            selected_quiz = None
 
     raw_report_filters = (
         QuizResult.objects
@@ -912,4 +924,6 @@ def admin_reports(request):
         'results': results,
         'report_filters': report_filters,
         'selected_quiz_attempt': selected_quiz_attempt,
+        'selected_quiz_id': selected_quiz_id,
+        'selected_quiz': selected_quiz,
     })
