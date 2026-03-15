@@ -777,11 +777,78 @@ def admin_students_excel(request):
     
     df = pd.DataFrame(data)
     
-    # Create Excel file in memory
+    # Create Excel file in memory with formatting
     output = io.BytesIO()
     
-    # Write to Excel with explicit engine
-    df.to_excel(output, engine='openpyxl', index=False, sheet_name='Students')
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Students', index=False)
+        
+        # Get the worksheet for formatting
+        worksheet = writer.sheets['Students']
+        
+        # Import openpyxl styles
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        
+        # Define styles
+        header_font = Font(bold=True, size=12, color='000000')
+        header_fill = PatternFill(start_color='D3E4FD', end_color='D3E4FD', fill_type='solid')
+        header_alignment = Alignment(horizontal='center', vertical='center')
+        
+        # Cell alignment based on content type
+        number_alignment = Alignment(horizontal='center', vertical='center')
+        text_alignment = Alignment(horizontal='left', vertical='center')
+        
+        # Border style
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Format header row (row 1)
+        for col_num, cell in enumerate(worksheet[1], 1):
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = header_alignment
+            cell.border = thin_border
+        
+        # Format data rows with appropriate alignment
+        for row_num in range(2, len(df) + 2):  # Start from row 2 (after header)
+            for col_num, cell in enumerate(worksheet[row_num], 1):
+                cell.border = thin_border
+                
+                # Apply alignment based on column
+                if col_num == 1:  # Sr No - center
+                    cell.alignment = number_alignment
+                elif col_num == 4:  # Phone Number - center
+                    cell.alignment = number_alignment
+                else:  # Student Name, College Name, Email - left
+                    cell.alignment = text_alignment
+        
+        # Auto-adjust column widths based on content
+        for column in worksheet.columns:
+            max_length = 0
+            column_letter = column[0].column_letter
+            
+            # Get max length of content in this column
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            
+            # Set column width with some padding
+            adjusted_width = min(max_length + 2, 50)  # Cap at 50 for very long content
+            worksheet.column_dimensions[column_letter].width = adjusted_width
+        
+        # Set minimum widths for better appearance
+        worksheet.column_dimensions['A'].width = 8   # Sr No
+        worksheet.column_dimensions['B'].width = 25  # Student Name
+        worksheet.column_dimensions['C'].width = 30  # College Name
+        worksheet.column_dimensions['D'].width = 20  # Phone Number - increased from 15
+        worksheet.column_dimensions['E'].width = 35  # Email
     
     # Reset position to beginning
     output.seek(0)
