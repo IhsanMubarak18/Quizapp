@@ -35,17 +35,13 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.lib import colors
 import io
-
-import io
-from django.http import HttpResponse
+import pandas as pd
 from django.shortcuts import get_object_or_404, redirect
 from django.contrib import messages
 from django.contrib.staticfiles import finders
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib.units import inch
-
-import io
 
 AuthUser = get_user_model()
 
@@ -764,127 +760,46 @@ def admin_edit_student(request, user_id):
 
 
 @staff_required
-def admin_students_pdf(request):
-
+def admin_students_excel(request):
     selected_college = request.GET.get('college', '')
     students = filtered_students_queryset(college=selected_college).order_by('student_name')
-
-    buffer = io.BytesIO()
-
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        leftMargin=2*cm,
-        rightMargin=2*cm,
-        topMargin=2.5*cm,
-        bottomMargin=2*cm
+    
+    # Create DataFrame
+    data = []
+    for i, student in enumerate(students, 1):
+        data.append({
+            'Sr No': i,
+            'Student Name': student.student_name,
+            'College Name': student.college_name,
+            'Phone Number': student.mobile_number or 'N/A',
+            'Email': student.user.email
+        })
+    
+    df = pd.DataFrame(data)
+    
+    # Create Excel file in memory
+    output = io.BytesIO()
+    
+    # Write to Excel with explicit engine
+    df.to_excel(output, engine='openpyxl', index=False, sheet_name='Students')
+    
+    # Reset position to beginning
+    output.seek(0)
+    
+    # Create response
+    response = HttpResponse(
+        output.read(),
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
-
-    styles = getSampleStyleSheet()
-
-    title_style = ParagraphStyle(
-        'title',
-        parent=styles['Title'],
-        alignment=1,
-        fontSize=18,
-        spaceAfter=6
-    )
-
-    meta_style = ParagraphStyle(
-        'meta',
-        parent=styles['Normal'],
-        alignment=1,
-        textColor=colors.grey,
-        fontSize=9
-    )
-
-    elements = []
-
-    title = "Students List"
-    elements.append(Paragraph(title, title_style))
-
-    elements.append(
-        Paragraph(
-            f"Generated on {timezone.now().strftime('%d %B %Y')} | Total Students: {students.count()}",
-            meta_style
-        )
-    )
-
-    elements.append(Spacer(1, 20))
-
-    data = [
-        ["#", "Student Name", "College Name", "Phone Number", "Email"]
-    ]
-
-    for i, s in enumerate(students, 1):
-        data.append([
-            i,
-            Paragraph(s.student_name, styles['BodyText']),
-            Paragraph(s.college_name, styles['BodyText']),
-            s.mobile_number or "N/A",
-            Paragraph(s.user.email, styles['BodyText'])
-        ])
-
-    table = Table(
-        data,
-        colWidths=[1.2*cm, 4*cm, 5*cm, 3.5*cm, 5.5*cm]
-    )
-
-    table.setStyle(TableStyle([
-
-        # Header
-        ("BACKGROUND",(0,0),(-1,0),colors.HexColor("#F3C79E")),
-        ("TEXTCOLOR",(0,0),(-1,0),colors.black),
-        ("FONTNAME",(0,0),(-1,0),"Helvetica-Bold"),
-        ("FONTSIZE",(0,0),(-1,0),10),
-
-        # Grid
-        ("LINEBELOW",(0,0),(-1,0),1,colors.grey),
-        ("GRID",(0,1),(-1,-1),0.3,colors.lightgrey),
-
-        # Alignment
-        ("ALIGN",(0,0),(0,-1),"CENTER"),
-
-        # Padding
-        ("LEFTPADDING",(0,0),(-1,-1),8),
-        ("RIGHTPADDING",(0,0),(-1,-1),8),
-        ("TOPPADDING",(0,0),(-1,-1),6),
-        ("BOTTOMPADDING",(0,0),(-1,-1),6),
-
-        # Zebra rows
-        ("ROWBACKGROUNDS",(0,1),(-1,-1),[colors.white, colors.whitesmoke]),
-    ]))
-
-    elements.append(table)
-
-    def footer(canvas, doc):
-        canvas.saveState()
-        canvas.setFont('Helvetica', 8)
-        canvas.setFillColor(colors.grey)
-
-        page_num = canvas.getPageNumber()
-
-        canvas.drawCentredString(
-            A4[0] / 2,
-            1.5 * cm,
-            f"Quiz Management System • Page {page_num}"
-        )
-
-        canvas.restoreState()
-
-    doc.build(elements, onFirstPage=footer, onLaterPages=footer)
-
-    buffer.seek(0)
-
-    response = HttpResponse(buffer, content_type='application/pdf')
-
-    filename = "students_list.pdf"
+    
+    # Set filename
+    filename = "students_list.xlsx"
     if selected_college:
-        safe_college = selected_college.strip().lower().replace(" ", "_")
-        filename = f"students_{safe_college}.pdf"
-
+        safe_college = selected_college.strip().lower().replace(" ", "_").replace("/", "_")
+        filename = f"students_{safe_college}.xlsx"
+    
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
-
+    
     return response
 
 # ── Reports ──

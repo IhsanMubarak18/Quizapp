@@ -201,10 +201,10 @@
         </div>
         <div class="page-subtitle">{{ student_data|length }} registered student(s)</div>
     </div>
-    <a href="{% url 'video_app:admin_students_pdf' %}{% if selected_college %}?college={{ selected_college|urlencode }}{% endif %}"
+    <a href="{% url 'video_app:admin_students_excel' %}{% if selected_college %}?college={{ selected_college|urlencode }}{% endif %}"
         class="btn btn-success">
-        <i class="fas fa-file-pdf"></i>
-        Download PDF{% if selected_college %} for {{ selected_college }}{% endif %}
+        <i class="fas fa-file-excel"></i>
+        Download Excel{% if selected_college %} for {{ selected_college }}{% endif %}
     </a>
 </div>
 

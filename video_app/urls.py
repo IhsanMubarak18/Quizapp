@@ -48,7 +48,7 @@ urlpatterns = [
     path('admin-panel/students/', views.admin_students, name='admin_students'),
     path('admin-panel/students/<int:user_id>/edit/', views.admin_edit_student, name='admin_edit_student'),
     path('admin-panel/students/<int:user_id>/delete/', views.admin_delete_student, name='admin_delete_student'),
-    path('admin-panel/students/pdf/', views.admin_students_pdf, name='admin_students_pdf'),
+    path('admin-panel/students/excel/', views.admin_students_excel, name='admin_students_excel'),
 
     # ── Reports ────────────────────────────────────────────────────
     path('admin-panel/reports/', views.admin_reports, name='admin_reports'),

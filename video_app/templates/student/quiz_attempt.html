@@ -440,7 +440,7 @@
         {% with multi=question.correct_answers|length %}
         <div class="question-card">
             <div class="question-number">Question {{ forloop.counter }} of {{ questions|length }}</div>
-            {% if multi > 1 %}<div class="multi-answer-hint">✓ Select all correct answers ({{ multi }} expected)</div>{% endif %}
+            {% if multi > 1 %}<div class="multi-answer-hint">✓ Select all correct answers</div>{% endif %}
             <div class="question-text">{{ question.question_text }}</div>
             
             <div class="options-list">
