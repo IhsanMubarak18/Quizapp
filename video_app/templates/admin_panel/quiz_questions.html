@@ -177,6 +177,90 @@
         border-top: 1px solid var(--border-light);
     }
 
+    /* Pagination Styles */
+    .pagination-container {
+        padding: 20px;
+        background: var(--bg-card);
+        border-radius: 12px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
+        margin-top: 20px;
+    }
+
+    .pagination-info {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 13px;
+        margin-bottom: 16px;
+    }
+
+    .pagination-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: var(--brand-blue);
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid var(--brand-blue);
+    }
+
+    .pagination-btn:hover {
+        background: var(--brand-orange);
+        border-color: var(--brand-orange);
+        transform: translateY(-1px);
+    }
+
+    .pagination-numbers {
+        display: flex;
+        gap: 3px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .pagination-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        background: white;
+        color: var(--text-secondary);
+        text-decoration: none;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1px solid var(--border-light);
+        transition: all 0.2s ease;
+    }
+
+    .pagination-number:hover {
+        background: var(--bg-hover);
+        border-color: var(--brand-orange);
+        color: var(--brand-orange);
+        transform: translateY(-1px);
+    }
+
+    .pagination-number.current {
+        background: var(--brand-blue);
+        color: white;
+        border-color: var(--brand-blue);
+        font-weight: 600;
+    }
+
     .section-title {
         font-size: 14px;
         font-weight: 700;
@@ -395,6 +479,43 @@
                 <i class="fas fa-plus"></i>
                 Add Selected Questions
             </button>
+            {% if page_obj.has_other_pages %}
+            <div class="pagination-container" style="margin-top: 20px;">
+                <div class="pagination-info">
+                    Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} questions
+                </div>
+                
+                <div class="pagination-controls">
+                    {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn">
+                            <i class="fas fa-chevron-left"></i>
+                            Previous
+                        </a>
+                    {% endif %}
+                    
+                    <div class="pagination-numbers">
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="pagination-number current">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+                            {% elif num > page_obj.number|add:'-1' and num < page_obj.number|add:'1' %}
+                                <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+                            {% elif num == page_obj.paginator.num_pages or num == 1 or num == page_obj.paginator.num_pages %}
+                                <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">
+                            Next
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </form>
         {% else %}
         <div class="empty-state">
@@ -412,3 +533,41 @@
     </div>
 </div>
 {% endblock %}
+
+<script>
+// Preserve checkbox selections across pagination
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.question-checkbox');
+    const storageKey = `selected_questions_{{ quiz.id }}`;
+    
+    // Load saved selections
+    const savedSelections = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    
+    // Restore checkboxes from saved state
+    checkboxes.forEach(checkbox => {
+        if (savedSelections[checkbox.value]) {
+            checkbox.checked = true;
+        }
+        
+        // Save state when checkbox changes
+        checkbox.addEventListener('change', function() {
+            savedSelections[this.value] = this.checked;
+            localStorage.setItem(storageKey, JSON.stringify(savedSelections));
+        });
+    });
+    
+    // Clear selections when leaving the page or submitting form
+    const form = document.querySelector('form[method="post"]');
+    if (form) {
+        form.addEventListener('submit', function() {
+            localStorage.removeItem(storageKey);
+        });
+    }
+    
+    // Clear on page navigation (optional)
+    window.addEventListener('beforeunload', function() {
+        // Uncomment to clear when leaving page
+        // localStorage.removeItem(storageKey);
+    });
+});
+</script>

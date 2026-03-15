@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.db.models import Q
 from django.db.models.functions import TruncDate
 from django.contrib import messages
+from django.core.paginator import Paginator
 from .models import Question, Quiz, QuizQuestion, QuizAttempt, StudentAnswer, QuizResult
 from .forms import QuestionForm, QuizForm, RandomQuestionSelectForm
 from .selectors import (
@@ -115,7 +116,16 @@ def quiz_list(request):
         .values_list('quiz_id', flat=True)
     )
     quiz_data = [{'quiz': q, 'attempted': q.id in attempted_ids} for q in available]
-    return render(request, 'student/quiz_list.html', {'quiz_data': quiz_data})
+    
+    # Pagination
+    paginator = Paginator(quiz_data, 12)  # 12 quizzes per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'student/quiz_list.html', {
+        'page_obj': page_obj,
+        'quiz_data': page_obj
+    })
 
 
 @student_login_required
@@ -550,10 +560,17 @@ def admin_quiz_questions(request, quiz_id):
     existing_ids = quiz_questions.values_list('question_id', flat=True)
     available_questions = Question.objects.exclude(id__in=existing_ids).order_by('-created_at')
     random_form = RandomQuestionSelectForm()
+    
+    # Pagination for available questions
+    paginator = Paginator(available_questions, 20)  # 20 questions per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'admin_panel/quiz_questions.html', {
         'quiz': quiz,
         'quiz_questions': quiz_questions,
-        'available_questions': available_questions,
+        'available_questions': page_obj,
+        'page_obj': page_obj,
         'random_form': random_form,
     })
 

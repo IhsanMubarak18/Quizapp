@@ -316,13 +316,6 @@
             {% if form.title.errors %}<div class="form-error">{{ form.title.errors.0 }}</div>{% endif %}
         </div>
         
-        {% if action != 'Create' %}
-        <div class="form-group">
-            <label class="form-label">{{ form.description.label }}</label>
-            {{ form.description }}
-        </div>
-        {% endif %}
-        
         <div class="form-grid">
             <div class="form-group">
                 <label class="form-label">{{ form.time_limit_minutes.label }}</label>

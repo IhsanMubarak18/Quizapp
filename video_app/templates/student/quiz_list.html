@@ -209,6 +209,90 @@
         color: #94A3B8;
     }
 
+    /* Pagination Styles */
+    .pagination-container {
+        margin-top: 32px;
+        padding: 24px;
+        background: white;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .pagination-info {
+        text-align: center;
+        color: #64748B;
+        font-size: 14px;
+        margin-bottom: 20px;
+    }
+
+    .pagination-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .pagination-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: #3B82F6;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        border: 1px solid #3B82F6;
+    }
+
+    .pagination-btn:hover {
+        background: #2563EB;
+        border-color: #2563EB;
+        transform: translateY(-1px);
+    }
+
+    .pagination-numbers {
+        display: flex;
+        gap: 4px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .pagination-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        background: white;
+        color: #64748B;
+        text-decoration: none;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid #E2E8F0;
+        transition: all 0.2s ease;
+    }
+
+    .pagination-number:hover {
+        background: #F8FAFC;
+        border-color: #CBD5E1;
+        color: #475569;
+        transform: translateY(-1px);
+    }
+
+    .pagination-number.current {
+        background: #3B82F6;
+        color: white;
+        border-color: #3B82F6;
+        font-weight: 600;
+    }
+
     @media (max-width: 768px) {
         .quiz-list-container {
             padding: 24px 16px;
@@ -225,6 +309,21 @@
         
         .quiz-header {
             padding: 16px;
+        }
+        
+        .pagination-controls {
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .pagination-numbers {
+            order: -1;
+        }
+        
+        .pagination-number {
+            width: 36px;
+            height: 36px;
+            font-size: 13px;
         }
         
         .quiz-title {
@@ -309,6 +408,45 @@
         </div>
         {% endfor %}
     </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing {{ page_obj.start_index }}-{{ page_obj.end_index }} of {{ page_obj.paginator.count }} quizzes
+        </div>
+        
+        <div class="pagination-controls">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="pagination-btn">
+                <i class="fas fa-chevron-left"></i>
+                Previous
+            </a>
+            {% endif %}
+            
+            <div class="pagination-numbers">
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="pagination-number current">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+                    {% elif num > page_obj.number|add:'-1' and num < page_obj.number|add:'1' %}
+                    <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+                    {% elif num == page_obj.paginator.num_pages or num == 1 or num == page_obj.paginator.num_pages %}
+                    <a href="?page={{ num }}" class="pagination-number">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="pagination-btn">
+                Next
+                <i class="fas fa-chevron-right"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
     {% else %}
     <div class="empty-state">
         <div class="empty-icon">
