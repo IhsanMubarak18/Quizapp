@@ -552,7 +552,7 @@
                 <i class="fas fa-check-circle"></i>
             </div>
             <div class="stat-content">
-                <div class="stat-value">{{ recent_results|length }}</div>
+                <div class="stat-value">{{ quizzes_taken }}</div>
                 <div class="stat-label">Quizzes Taken</div>
             </div>
         </div>
@@ -602,7 +602,11 @@
                     {% if quiz.max_attempts > 0 %}
                     <div class="quiz-meta-item">
                         <i class="fas fa-redo"></i>
-                        {{ quiz.max_attempts }} attempts
+                        {% if item.remaining_attempts == 0 %}
+                        0 attempts left
+                        {% else %}
+                        {{ item.remaining_attempts }} attempts left
+                        {% endif %}
                     </div>
                     {% endif %}
                 </div>
@@ -656,7 +660,7 @@
     </div>
 
     <!-- Recent Results -->
-    {% if recent_results %}
+    {% if all_results %}
     <div class="section-card">
         <div class="section-header">
             <h2 class="section-title">
@@ -677,7 +681,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for result in recent_results %}
+                {% for result in all_results %}
                 <tr>
                     <td data-label="Quiz" style="font-weight: 600;">{{ result.quiz.title }}</td>
                     <td data-label="Score">{{ result.score }} / {{ result.total_questions }}</td>
@@ -695,7 +699,7 @@
                             {{ result.grade }}
                         </span>
                     </td>
-                    <td data-label="Date" style="font-size: 13px; color: #64748B;">{{ result.completed_at|date:"d M Y" }}</td>
+                    <td data-label="Date" style="font-size: 13px; color: #64748B;">{{ result.completed_at|date:"d M Y, H:i" }}</td>
                     <td data-label="Actions">
                         <div class="action-buttons">
                             <a href="{% url 'video_app:quiz_result' result.attempt.id %}" class="btn btn-sm btn-secondary">

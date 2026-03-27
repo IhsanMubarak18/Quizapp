@@ -105,11 +105,22 @@ def home_view(request):
 def student_dashboard(request):
     student = getattr(request.user, 'student_profile', None)
     available_quizzes = available_quizzes_queryset()
-    recent_results = (
+    
+    # Get all previous results (not just recent 5)
+    all_results = (
         QuizResult.objects.filter(student=request.user)
         .select_related('quiz', 'attempt')
-        .order_by('-completed_at')[:5]
+        .order_by('-completed_at')
     )
+    
+    # Group results by quiz to show all attempts per quiz
+    results_by_quiz = {}
+    for result in all_results:
+        quiz_id = result.quiz.id
+        if quiz_id not in results_by_quiz:
+            results_by_quiz[quiz_id] = []
+        results_by_quiz[quiz_id].append(result)
+    
     attempted_quiz_ids = set(
         QuizAttempt.objects.filter(student=request.user, is_submitted=True)
         .values_list('quiz_id', flat=True)
@@ -122,14 +133,17 @@ def student_dashboard(request):
         quiz_data.append({
             'quiz': quiz,
             'remaining_attempts': remaining,
-            'can_retake': remaining is None or remaining > 0
+            'can_retake': remaining is None or remaining > 0,
+            'all_attempts': results_by_quiz.get(quiz.id, [])
         })
     
     return render(request, 'student/dashboard.html', {
         'student': student,
         'available_quizzes': quiz_data,
-        'recent_results': recent_results,
+        'all_results': all_results,
+        'results_by_quiz': results_by_quiz,
         'attempted_quiz_ids': attempted_quiz_ids,
+        'quizzes_taken': len(attempted_quiz_ids),  # Count unique quizzes
     })
 
 
