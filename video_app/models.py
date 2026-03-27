@@ -44,6 +44,7 @@ class Quiz(models.Model):
     description = models.TextField(blank=True)
     time_limit_minutes = models.PositiveIntegerField(default=30, help_text="Time limit in minutes")
     shuffle_questions = models.BooleanField(default=False)
+    max_attempts = models.PositiveIntegerField(default=0, help_text="Maximum attempts per student (0 for unlimited)")
     is_active = models.BooleanField(default=True)
     start_time = models.DateTimeField(null=True, blank=True, help_text="Leave blank for no schedule")
     end_time = models.DateTimeField(null=True, blank=True, help_text="Leave blank for no schedule")
@@ -87,6 +88,22 @@ class Quiz(models.Model):
 
     def total_questions(self):
         return self.quizquestion_set.count()
+
+    def get_student_attempts(self, student):
+        """Get number of attempts for a specific student."""
+        return QuizAttempt.objects.filter(student=student, quiz=self, is_submitted=True).count()
+
+    def has_reached_max_attempts(self, student):
+        """Check if student has reached maximum attempts."""
+        if self.max_attempts == 0:
+            return False  # Unlimited attempts
+        return self.get_student_attempts(student) >= self.max_attempts
+
+    def remaining_attempts(self, student):
+        """Get remaining attempts for a student."""
+        if self.max_attempts == 0:
+            return None  # Unlimited
+        return max(0, self.max_attempts - self.get_student_attempts(student))
 
 
 class QuizQuestion(models.Model):

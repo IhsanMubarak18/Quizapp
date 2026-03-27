@@ -581,7 +581,8 @@
         
         {% if available_quizzes %}
         <div class="quiz-grid">
-            {% for quiz in available_quizzes %}
+            {% for item in available_quizzes %}
+            {% with quiz=item.quiz %}
             <div class="quiz-card {% if quiz.id in attempted_quiz_ids %}attempted{% endif %}">
                 {% if quiz.id in attempted_quiz_ids %}
                 <div class="attempted-badge">Attempted</div>
@@ -598,6 +599,12 @@
                         <i class="fas fa-question-circle"></i>
                         {{ quiz.question_count }} questions
                     </div>
+                    {% if quiz.max_attempts > 0 %}
+                    <div class="quiz-meta-item">
+                        <i class="fas fa-redo"></i>
+                        {{ quiz.max_attempts }} attempts
+                    </div>
+                    {% endif %}
                 </div>
                 
                 {% if quiz.start_time or quiz.end_time %}
@@ -609,17 +616,32 @@
                 </div>
                 {% endif %}
                 
-                <a href="{% url 'video_app:start_quiz' quiz.id %}"
-                   class="btn {% if quiz.id in attempted_quiz_ids %}btn-secondary{% else %}btn-primary{% endif %} btn-sm">
-                    {% if quiz.id in attempted_quiz_ids %}
+                {% if quiz.id in attempted_quiz_ids %}
+                    {% if item.can_retake %}
+                    <a href="{% url 'video_app:start_quiz' quiz.id %}"
+                       class="btn btn-secondary btn-sm">
                         <i class="fas fa-redo"></i>
                         Retake
+                    </a>
                     {% else %}
+                    <div class="btn btn-secondary btn-sm" style="background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; opacity: 0.7;">
+                        <i class="fas fa-lock"></i>
+                        {% if item.remaining_attempts == 0 %}
+                        Max Attempts Reached
+                        {% else %}
+                        No Attempts Left
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <a href="{% url 'video_app:start_quiz' quiz.id %}"
+                       class="btn btn-primary btn-sm">
                         <i class="fas fa-play"></i>
                         Start Quiz
-                    {% endif %}
-                </a>
+                    </a>
+                {% endif %}
             </div>
+            {% endwith %}
             {% endfor %}
         </div>
         {% else %}

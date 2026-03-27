@@ -90,12 +90,13 @@ class QuestionForm(forms.Form):
 class QuizForm(forms.ModelForm):
     class Meta:
         model = Quiz
-        fields = ['title', 'description', 'time_limit_minutes', 'shuffle_questions',
+        fields = ['title', 'description', 'time_limit_minutes', 'shuffle_questions', 'max_attempts',
                   'is_active', 'certificate_min_percentage', 'start_time', 'end_time']
         widgets = {
             'title': forms.TextInput(attrs={'placeholder': 'Quiz title'}),
             'description': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Short description (optional)'}),
             'time_limit_minutes': forms.NumberInput(attrs={'min': 1, 'max': 300}),
+            'max_attempts': forms.NumberInput(attrs={'min': 0, 'max': 100, 'placeholder': '0 for unlimited attempts'}),
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
             'end_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'),
         }

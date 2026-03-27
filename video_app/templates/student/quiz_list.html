@@ -120,6 +120,12 @@
         border: 1px solid #BBF7D0;
     }
 
+    .quiz-badge.danger {
+        background: #FEE2E2;
+        color: #DC2626;
+        border: 1px solid #FECACA;
+    }
+
     .quiz-schedule {
         font-size: 12px;
         color: #64748B;
@@ -369,6 +375,12 @@
                         <i class="fas fa-question-circle"></i>
                         {{ item.quiz.question_count }} questions
                     </span>
+                    {% if item.quiz.max_attempts > 0 %}
+                    <span class="quiz-badge info">
+                        <i class="fas fa-redo"></i>
+                        {{ item.quiz.max_attempts }} attempts
+                    </span>
+                    {% endif %}
                     {% if item.quiz.shuffle_questions %}
                     <span class="quiz-badge warning">
                         <i class="fas fa-random"></i>
@@ -379,6 +391,12 @@
                     <span class="quiz-badge success">
                         <i class="fas fa-check"></i>
                         Attempted
+                    </span>
+                    {% endif %}
+                    {% if item.remaining_attempts is not None %}
+                    <span class="quiz-badge {% if item.remaining_attempts == 0 %}danger{% else %}info{% endif %}">
+                        <i class="fas fa-redo"></i>
+                        {{ item.remaining_attempts }} left
                     </span>
                     {% endif %}
                 </div>

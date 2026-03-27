@@ -69,6 +69,26 @@ def admin_manager_required(view_func):
     return decorated
 
 
+def max_attempts_check(view_func):
+    """
+    Decorator to check if student has reached max attempts before accessing quiz.
+    This provides additional protection beyond the view-level checks.
+    """
+    def wrapper(request, quiz_id, *args, **kwargs):
+        try:
+            quiz = Quiz.objects.get(id=quiz_id)
+            if quiz.has_reached_max_attempts(request.user):
+                messages.error(request, f"You have reached the maximum number of attempts ({quiz.max_attempts}).")
+                return redirect('video_app:quiz_list')
+        except Quiz.DoesNotExist:
+            messages.error(request, "Quiz not found.")
+            return redirect('video_app:quiz_list')
+        
+        return view_func(request, quiz_id, *args, **kwargs)
+    
+    return wrapper
+
+
 # ─── Home ─────────────────────────────────────────────────────────────────────
 
 def home_view(request):
@@ -94,9 +114,20 @@ def student_dashboard(request):
         QuizAttempt.objects.filter(student=request.user, is_submitted=True)
         .values_list('quiz_id', flat=True)
     )
+    
+    # Build quiz data with remaining attempts
+    quiz_data = []
+    for quiz in available_quizzes:
+        remaining = quiz.remaining_attempts(request.user)
+        quiz_data.append({
+            'quiz': quiz,
+            'remaining_attempts': remaining,
+            'can_retake': remaining is None or remaining > 0
+        })
+    
     return render(request, 'student/dashboard.html', {
         'student': student,
-        'available_quizzes': available_quizzes,
+        'available_quizzes': quiz_data,
         'recent_results': recent_results,
         'attempted_quiz_ids': attempted_quiz_ids,
     })
@@ -111,7 +142,17 @@ def quiz_list(request):
         QuizAttempt.objects.filter(student=request.user, is_submitted=True)
         .values_list('quiz_id', flat=True)
     )
-    quiz_data = [{'quiz': q, 'attempted': q.id in attempted_ids} for q in available]
+    
+    # Build quiz data with remaining attempts
+    quiz_data = []
+    for q in available:
+        attempted = q.id in attempted_ids
+        remaining = q.remaining_attempts(request.user)
+        quiz_data.append({
+            'quiz': q,
+            'attempted': attempted,
+            'remaining_attempts': remaining
+        })
     
     # Pagination
     paginator = Paginator(quiz_data, 12)  # 12 quizzes per page
@@ -125,11 +166,21 @@ def quiz_list(request):
 
 
 @student_login_required
+@max_attempts_check
 def start_quiz(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
 
     if not quiz.is_available():
         messages.error(request, "This quiz is not currently available.")
+        return redirect('video_app:quiz_list')
+
+    # Check if student has reached maximum attempts
+    if quiz.has_reached_max_attempts(request.user):
+        remaining = quiz.remaining_attempts(request.user)
+        if remaining is None:
+            messages.error(request, "This quiz has unlimited attempts.")
+        else:
+            messages.error(request, f"You have reached the maximum number of attempts ({quiz.max_attempts}).")
         return redirect('video_app:quiz_list')
 
     # Check for existing incomplete attempt
@@ -245,6 +296,12 @@ def quiz_result(request, attempt_id):
     attempt = get_object_or_404(QuizAttempt, id=attempt_id, student=request.user)
     if not attempt.is_submitted:
         return redirect('video_app:start_quiz', quiz_id=attempt.quiz.id)
+    
+    # Check if student has reached max attempts and should not access this quiz
+    if attempt.quiz.has_reached_max_attempts(request.user):
+        # Allow viewing old results but show a message about max attempts reached
+        messages.info(request, f"You have reached the maximum number of attempts ({attempt.quiz.max_attempts}) for this quiz.")
+    
     result = get_object_or_404(QuizResult, attempt=attempt)
     review_items = review_items_for_attempt(attempt)
     min_pct = attempt.quiz.certificate_min_percentage
@@ -255,6 +312,7 @@ def quiz_result(request, attempt_id):
         'review_items': review_items,
         'certificate_eligible': certificate_eligible,
         'min_pct': min_pct,
+        'max_attempts_reached': attempt.quiz.has_reached_max_attempts(request.user),
     })
 
 

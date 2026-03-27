@@ -179,6 +179,7 @@
                     <th>Title</th>
                     <th>Time</th>
                     <th>Questions</th>
+                    <th>Max Attempts</th>
                     <th>Attempts</th>
                     <th>Schedule</th>
                     <th>Status</th>
@@ -191,6 +192,7 @@
                     <td style="font-weight:600;color:var(--text-primary);">{{ quiz.title }}</td>
                     <td>{{ quiz.time_limit_minutes }} min</td>
                     <td>{{ quiz.question_count }}</td>
+                    <td>{{ quiz.max_attempts|default:"Unlimited" }}</td>
                     <td>{{ quiz.attempt_count }}</td>
                     <td class="schedule-info">
                         {% if quiz.start_time %}
