@@ -201,29 +201,29 @@
         </div>
         <div class="page-subtitle">{{ student_data|length }} registered student(s)</div>
     </div>
-    <a href="{% url 'video_app:admin_students_excel' %}{% if selected_college %}?college={{ selected_college|urlencode }}{% endif %}"
+    <a href="{% url 'video_app:admin_students_excel' %}{% if selected_qualification %}?qualification={{ selected_qualification|urlencode }}{% endif %}"
         class="btn btn-success">
         <i class="fas fa-file-excel"></i>
-        Download Excel{% if selected_college %} for {{ selected_college }}{% endif %}
+        Download Excel{% if selected_qualification %} for {{ selected_qualification }}{% endif %}
     </a>
 </div>
 
 <!-- Search and Filter Card -->
 <div class="card">
     <form method="get" class="search-form">
-        <input type="text" name="search" value="{{ search }}" placeholder="Search by name, email, college..."
-            class="form-input" style="max-width:380px;">
-        <select name="college" class="form-select" style="max-width:280px;">
-            <option value="">All colleges</option>
-            {% for college in college_options %}
-            <option value="{{ college }}" {% if selected_college == college %}selected{% endif %}>{{ college }}</option>
+        <input type="text" name="search" value="{{ search }}" placeholder="Search by name, email, mobile, qualification, or district..." 
+               class="form-input" style="max-width:380px;">
+        <select name="qualification" class="form-select" style="max-width:280px;">
+            <option value="">All qualifications</option>
+            {% for qualification in qualification_options %}
+            <option value="{{ qualification }}" {% if selected_qualification == qualification %}selected{% endif %}>{{ qualification }}</option>
             {% endfor %}
         </select>
         <button type="submit" class="btn btn-outline btn-sm">
             <i class="fas fa-search"></i>
             Search
         </button>
-        {% if search or selected_college %}
+        {% if search or selected_qualification %}
         <a href="{% url 'video_app:admin_students' %}" class="btn btn-sm" style="background:var(--bg-hover);border:none;">
             <i class="fas fa-times"></i>
             Clear
@@ -238,7 +238,7 @@
                 <tr>
                     <th>#</th>
                     <th>Name</th>
-                    <th>College</th>
+                    <th>Qualification</th>
                     <th>Mobile</th>
                     <th>Email</th>
                     <th>Attempts</th>
@@ -251,7 +251,13 @@
                 <tr>
                     <td style="font-size:13px;color:var(--text-muted);">{{ forloop.counter }}</td>
                     <td style="font-weight:600;color:var(--text-primary);">{{ item.profile.student_name }}</td>
-                    <td style="font-size:13px;color:var(--text-secondary);">{{ item.profile.college_name }}</td>
+                    <td style="font-size:13px;color:var(--text-secondary);">
+                        {% if item.profile.qualification == 'Others' %}
+                            {{ item.profile.qualification_other|default:"—" }}
+                        {% else %}
+                            {{ item.profile.qualification }}
+                        {% endif %}
+                    </td>
                     <td style="font-size:13px;">{{ item.profile.mobile_number }}</td>
                     <td style="font-size:13px;color:var(--text-secondary);">{{ item.profile.user.email }}</td>
                     <td><span class="badge badge-success">{{ item.attempts }}</span></td>
@@ -280,7 +286,7 @@
         <div style="font-size:48px;margin-bottom:12px;opacity:0.5;">
             <i class="fas fa-user-slash"></i>
         </div>
-        <p>No students found{% if search %} matching "{{ search }}"{% endif %}{% if selected_college %} in {{ selected_college }}{% endif %}.</p>
+        <p>No students found{% if search %} matching "{{ search }}"{% endif %}{% if selected_qualification %} in {{ selected_qualification }}{% endif %}.</p>
     </div>
     {% endif %}
 </div>

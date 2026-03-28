@@ -22,7 +22,7 @@ from .selectors import (
     ordered_questions_for_attempt,
     question_map_for_ids,
     review_items_for_attempt,
-    student_college_options,
+    student_qualification_options,
 )
 from users.forms import AdminUserCreationForm, AdminUserChangeForm
 from users.models import StudentProfile
@@ -348,7 +348,15 @@ def download_certificate(request, attempt_id):
 
     student_profile = getattr(request.user, 'student_profile', None)
     student_name = student_profile.student_name if student_profile else request.user.get_full_name()
-    college_name = student_profile.college_name if student_profile else ''
+    
+    # Get qualification info
+    if student_profile:
+        if student_profile.qualification == 'Others':
+            qualification = student_profile.qualification_other or 'Others'
+        else:
+            qualification = student_profile.qualification
+    else:
+        qualification = ''
 
     buffer = io.BytesIO()
 
@@ -412,11 +420,11 @@ def download_certificate(request, attempt_id):
     pdf.setStrokeColorRGB(0.74, 0.60, 0.18)
     pdf.line(width/2 - name_width/2, height-265, width/2 + name_width/2, height-265)
 
-    # College
-    if college_name:
+    # Qualification
+    if qualification:
         pdf.setFont("Helvetica", 14)
         pdf.setFillColorRGB(0.45,0.45,0.45)
-        pdf.drawCentredString(width/2, height-300, f"from {college_name}")
+        pdf.drawCentredString(width/2, height-300, f"Qualification: {qualification}")
 
     # Body text
     pdf.setFont("Helvetica", 15)
@@ -455,7 +463,7 @@ def download_certificate(request, attempt_id):
     pdf.drawCentredString(
         width/2,
         95,
-        "Online Quiz Management System — Generated Certificate"
+        "Talent Infosys Online Quiz Management System"
     )
 
     pdf.showPage()
@@ -777,15 +785,15 @@ def admin_delete_user(request, user_id):
 @staff_required
 def admin_students(request):
     search = request.GET.get('search', '')
-    selected_college = request.GET.get('college', '')
-    students = admin_students_queryset(search=search, college=selected_college)
-    college_options = student_college_options()
+    selected_qualification = request.GET.get('qualification', '')
+    students = admin_students_queryset(search=search, qualification=selected_qualification)
+    qualification_options = student_qualification_options()
     student_data = [{'profile': sp, 'attempts': sp.attempts_count} for sp in students]
     return render(request, 'admin_panel/students.html', {
         'student_data': student_data,
         'search': search,
-        'college_options': college_options,
-        'selected_college': selected_college,
+        'qualification_options': qualification_options,
+        'selected_qualification': selected_qualification,
     })
 
 
@@ -818,7 +826,10 @@ def admin_edit_student(request, user_id):
         
         # Update student profile
         student_profile.student_name = request.POST.get('student_name', student_profile.student_name)
-        student_profile.college_name = request.POST.get('college_name', student_profile.college_name)
+        student_profile.qualification = request.POST.get('qualification', student_profile.qualification)
+        student_profile.qualification_other = request.POST.get('qualification_other', student_profile.qualification_other)
+        student_profile.district = request.POST.get('district', student_profile.district)
+        student_profile.district_other = request.POST.get('district_other', student_profile.district_other)
         student_profile.mobile_number = request.POST.get('mobile_number', student_profile.mobile_number)
         student_profile.save()
         
@@ -833,16 +844,29 @@ def admin_edit_student(request, user_id):
 
 @staff_required
 def admin_students_excel(request):
-    selected_college = request.GET.get('college', '')
-    students = filtered_students_queryset(college=selected_college).order_by('student_name')
+    selected_qualification = request.GET.get('qualification', '')
+    students = filtered_students_queryset(qualification=selected_qualification).order_by('student_name')
     
     # Create DataFrame
     data = []
     for i, student in enumerate(students, 1):
+        # Get qualification info
+        if student.qualification == 'Others':
+            qualification = student.qualification_other or 'Others'
+        else:
+            qualification = student.qualification
+        
+        # Get district info
+        if student.district == 'Others':
+            district = student.district_other or 'Others'
+        else:
+            district = student.district
+        
         data.append({
             'Sr No': i,
             'Student Name': student.student_name,
-            'College Name': student.college_name,
+            'Qualification': qualification,
+            'District': district,
             'Phone Number': student.mobile_number or 'N/A',
             'Email': student.user.email
         })
@@ -933,9 +957,9 @@ def admin_students_excel(request):
     
     # Set filename
     filename = "students_list.xlsx"
-    if selected_college:
-        safe_college = selected_college.strip().lower().replace(" ", "_").replace("/", "_")
-        filename = f"students_{safe_college}.xlsx"
+    if selected_qualification:
+        safe_qualification = selected_qualification.strip().lower().replace(" ", "_").replace("/", "_")
+        filename = f"students_{safe_qualification}.xlsx"
     
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     

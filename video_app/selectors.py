@@ -9,8 +9,9 @@ from .models import Question, Quiz, QuizAttempt
 
 AuthUser = get_user_model()
 
+QUALIFICATION_OPTIONS_CACHE_KEY = 'student_qualification_options'
+
 DASHBOARD_STATS_CACHE_KEY = 'admin-dashboard-stats'
-COLLEGE_OPTIONS_CACHE_KEY = 'student-college-options'
 
 
 def admin_dashboard_stats():
@@ -27,16 +28,16 @@ def admin_dashboard_stats():
     return stats
 
 
-def student_college_options():
-    options = cache.get(COLLEGE_OPTIONS_CACHE_KEY)
+def student_qualification_options():
+    options = cache.get(QUALIFICATION_OPTIONS_CACHE_KEY)
     if options is None:
         options = list(
-            StudentProfile.objects.exclude(college_name='')
-            .order_by('college_name')
-            .values_list('college_name', flat=True)
+            StudentProfile.objects.exclude(qualification='')
+            .order_by('qualification')
+            .values_list('qualification', flat=True)
             .distinct()
         )
-        cache.set(COLLEGE_OPTIONS_CACHE_KEY, options, timeout=300)
+        cache.set(QUALIFICATION_OPTIONS_CACHE_KEY, options, timeout=300)
     return options
 
 
@@ -65,28 +66,31 @@ def admin_quizzes_queryset():
     )
 
 
-def filtered_students_queryset(search='', college=''):
+def filtered_students_queryset(search='', qualification=''):
     students = StudentProfile.objects.select_related('user')
     if search:
         students = students.filter(
             Q(student_name__icontains=search) |
             Q(user__email__icontains=search) |
-            Q(college_name__icontains=search) |
+            Q(qualification__icontains=search) |
+            Q(qualification_other__icontains=search) |
+            Q(district__icontains=search) |
+            Q(district_other__icontains=search) |
             Q(mobile_number__icontains=search)
         )
-    if college:
-        students = students.filter(college_name=college)
+    if qualification:
+        students = students.filter(qualification=qualification)
     return students
 
 
-def admin_students_queryset(search='', college=''):
+def admin_students_queryset(search='', qualification=''):
     return (
-        filtered_students_queryset(search=search, college=college)
+        filtered_students_queryset(search=search, qualification=qualification)
         .annotate(
             attempts_count=Count(
                 'user__quiz_attempts',
                 filter=Q(user__quiz_attempts__is_submitted=True),
-                distinct=True,
+                distinct=True
             )
         )
         .order_by('-user__date_joined')

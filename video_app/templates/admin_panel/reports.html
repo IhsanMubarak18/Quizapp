@@ -275,7 +275,13 @@
                 <tr>
                     <td style="font-size:13px;color:var(--text-muted);">{{ forloop.counter }}</td>
                     <td style="font-weight:500;color:var(--text-primary);">{{ r.student.student_profile.student_name|default:r.student.email }}</td>
-                    <td style="font-size:13px;color:var(--text-secondary);">{{ r.student.student_profile.college_name|default:"—" }}</td>
+                    <td style="font-size:13px;color:var(--text-secondary);">
+                        {% if r.student.student_profile.qualification == 'Others' %}
+                            {{ r.student.student_profile.qualification_other|default:"—" }}
+                        {% else %}
+                            {{ r.student.student_profile.qualification }}
+                        {% endif %}
+                    </td>
                     <td style="color:var(--text-primary);">{{ r.quiz.title }}</td>
                     <td style="color:var(--text-secondary);">{{ r.score }} / {{ r.total_questions }}</td>
                     <td>

@@ -116,7 +116,8 @@ class StudentTemplateRenderingTests(TestCase):
         StudentProfile.objects.create(
             user=self.student_user,
             student_name='Student Example',
-            college_name='Example College',
+            qualification='Degree',
+            district='Ernakulam',
             mobile_number='1234567890',
         )
 
@@ -234,7 +235,8 @@ class AdminReportsFilterTests(TestCase):
         StudentProfile.objects.create(
             user=self.student_one,
             student_name='Alice Example',
-            college_name='North College',
+            qualification='Plus Two',
+            district='Kollam',
             mobile_number='1111111111',
         )
 
@@ -246,7 +248,8 @@ class AdminReportsFilterTests(TestCase):
         StudentProfile.objects.create(
             user=self.student_two,
             student_name='Bob Example',
-            college_name='South College',
+            qualification='SSLC',
+            district='Thrissur',
             mobile_number='2222222222',
         )
 
@@ -345,11 +348,11 @@ class AdminStudentsExportTests(TestCase):
         self.admin_user.is_superuser = True
         self.admin_user.save()
 
-        self._create_student('alice@example.com', 'Alice Example', 'North College', '1111111111')
-        self._create_student('bob@example.com', 'Bob Example', 'North College', '2222222222')
-        self._create_student('carol@example.com', 'Carol Example', 'South College', '3333333333')
+        self._create_student('alice@example.com', 'Alice Example', 'Plus Two', 'Kollam', '1111111111')
+        self._create_student('bob@example.com', 'Bob Example', 'SSLC', 'Thrissur', '2222222222')
+        self._create_student('carol@example.com', 'Carol Example', 'Degree', 'Ernakulam', '3333333333')
 
-    def _create_student(self, email, student_name, college_name, mobile_number):
+    def _create_student(self, email, student_name, qualification, district, mobile_number):
         user_model = get_user_model()
         student = user_model.objects.create_user(
             email=email,
@@ -359,16 +362,17 @@ class AdminStudentsExportTests(TestCase):
         StudentProfile.objects.create(
             user=student,
             student_name=student_name,
-            college_name=college_name,
+            qualification=qualification,
+            district=district,
             mobile_number=mobile_number,
         )
         return student
 
-    def test_students_page_and_pdf_can_be_filtered_by_college(self):
+    def test_students_page_and_pdf_can_be_filtered_by_qualification(self):
         self.client.force_login(self.admin_user)
 
         response = self.client.get(reverse('video_app:admin_students'), {
-            'college': 'North College',
+            'qualification': 'Plus Two',
         })
 
         self.assertEqual(response.status_code, 200)
@@ -376,16 +380,16 @@ class AdminStudentsExportTests(TestCase):
         self.assertIn('Alice Example', html)
         self.assertIn('Bob Example', html)
         self.assertNotIn('Carol Example', html)
-        self.assertIn('value="North College" selected', html)
-        self.assertIn('?college=North%20College', html)
+        self.assertIn('value="Plus Two" selected', html)
+        self.assertIn('?qualification=Plus%20Two', html)
 
         pdf_response = self.client.get(reverse('video_app:admin_students_pdf'), {
-            'college': 'North College',
+            'qualification': 'Plus Two',
         })
 
         self.assertEqual(pdf_response.status_code, 200)
         self.assertEqual(pdf_response['Content-Type'], 'application/pdf')
-        self.assertIn('students_north_college.pdf', pdf_response['Content-Disposition'])
+        self.assertIn('students_plus_two.pdf', pdf_response['Content-Disposition'])
         self.assertGreater(len(pdf_response.content), 0)
 
 

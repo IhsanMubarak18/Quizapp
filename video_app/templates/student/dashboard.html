@@ -530,7 +530,11 @@
             </h1>
             <p class="welcome-subtitle">
                 <i class="fas fa-graduation-cap"></i>
-                {{ student.college_name|default:"Student" }}
+                {% if student.qualification == 'Others' %}
+                    {{ student.qualification_other|default:"Student" }}
+                {% else %}
+                    {{ student.qualification|default:"Student" }}
+                {% endif %}
             </p>
         </div>
     </div>

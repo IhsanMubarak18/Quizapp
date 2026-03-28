@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from users.models import StudentProfile
 
 from .models import Question, Quiz, QuizAttempt, QuizQuestion, QuizResult
-from .selectors import COLLEGE_OPTIONS_CACHE_KEY, DASHBOARD_STATS_CACHE_KEY
+from .selectors import QUALIFICATION_OPTIONS_CACHE_KEY, DASHBOARD_STATS_CACHE_KEY
 
 AuthUser = get_user_model()
 
@@ -14,7 +14,7 @@ AuthUser = get_user_model()
 def invalidate_shared_caches():
     cache.delete_many([
         DASHBOARD_STATS_CACHE_KEY,
-        COLLEGE_OPTIONS_CACHE_KEY,
+        QUALIFICATION_OPTIONS_CACHE_KEY,
     ])
 
 

@@ -180,7 +180,7 @@
                     <th>Time</th>
                     <th>Questions</th>
                     <th>Max Attempts</th>
-                    <th>Attempts</th>
+                    {% comment %} <th>Attempts</th> {% endcomment %}
                     <th>Schedule</th>
                     <th>Status</th>
                     <th>Actions</th>
@@ -193,7 +193,7 @@
                     <td>{{ quiz.time_limit_minutes }} min</td>
                     <td>{{ quiz.question_count }}</td>
                     <td>{{ quiz.max_attempts|default:"Unlimited" }}</td>
-                    <td>{{ quiz.attempt_count }}</td>
+                    {% comment %} <td>{{ quiz.attempt_count }}</td> {% endcomment %}
                     <td class="schedule-info">
                         {% if quiz.start_time %}
                         <div><i class="fas fa-calendar"></i> {{ quiz.start_time|date:"d M, H:i" }}</div>
