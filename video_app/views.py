@@ -999,21 +999,19 @@ def admin_reports(request):
             selected_quiz_attempt = ''
             selected_quiz = None
 
+    # Get unique quizzes for filter dropdown
     raw_report_filters = (
         QuizResult.objects
-        .annotate(attempt_date=TruncDate('attempt__started_at'))
-        .values('quiz_id', 'quiz__title', 'attempt_date')
-        .order_by('quiz__title', '-attempt_date')
+        .values('quiz_id', 'quiz__title')
         .distinct()
+        .order_by('quiz__title')
     )
     report_filters = [
         {
-            'value': f"{item['quiz_id']}|{item['attempt_date'].isoformat()}",
+            'quiz_id': item['quiz_id'],
             'quiz_title': item['quiz__title'],
-            'attempt_date': item['attempt_date'],
         }
         for item in raw_report_filters
-        if item['attempt_date']
     ]
 
     return render(request, 'admin_panel/reports.html', {

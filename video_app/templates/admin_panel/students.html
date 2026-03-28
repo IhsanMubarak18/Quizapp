@@ -239,6 +239,7 @@
                     <th>#</th>
                     <th>Name</th>
                     <th>Qualification</th>
+                    <th>District</th>
                     <th>Mobile</th>
                     <th>Email</th>
                     <th>Attempts</th>
@@ -256,6 +257,13 @@
                             {{ item.profile.qualification_other|default:"—" }}
                         {% else %}
                             {{ item.profile.qualification }}
+                        {% endif %}
+                    </td>
+                    <td style="font-size:13px;color:var(--text-secondary);">
+                        {% if item.profile.district == 'Others' %}
+                            {{ item.profile.district_other|default:"—" }}
+                        {% else %}
+                            {{ item.profile.district }}
                         {% endif %}
                     </td>
                     <td style="font-size:13px;">{{ item.profile.mobile_number }}</td>
