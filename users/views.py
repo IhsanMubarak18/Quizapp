@@ -26,7 +26,10 @@ def student_register(request):
     if request.method == 'POST' and form.is_valid():
         email = form.cleaned_data['email']
         student_name = form.cleaned_data['student_name']
-        college_name = form.cleaned_data['college_name']
+        qualification = form.cleaned_data['qualification']
+        qualification_other = form.cleaned_data.get('qualification_other', '')
+        district = form.cleaned_data['district']
+        district_other = form.cleaned_data.get('district_other', '')
         mobile_number = form.cleaned_data['mobile_number']
 
         # Generate password
@@ -44,7 +47,10 @@ def student_register(request):
         StudentProfile.objects.create(
             user=user,
             student_name=student_name,
-            college_name=college_name,
+            qualification=qualification,
+            qualification_other=qualification_other if qualification == 'Others' else '',
+            district=district,
+            district_other=district_other if district == 'Others' else '',
             mobile_number=mobile_number,
         )
 

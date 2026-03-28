@@ -131,6 +131,52 @@
                 <input type="email" name="email" class="form-input" placeholder="" required
                     value="{{ form.data.email|default:'' }}">
             </div>
+            <div class="form-group">
+                <label class="form-label">Qualification</label>
+                <select name="qualification" class="form-input" id="qualificationSelect" required>
+                    <option value="">Select Qualification</option>
+                    <option value="SSLC" {% if form.data.qualification == 'SSLC' %}selected{% endif %}>SSLC</option>
+                    <option value="Plus Two" {% if form.data.qualification == 'Plus Two' %}selected{% endif %}>Plus Two</option>
+                    <option value="Degree" {% if form.data.qualification == 'Degree' %}selected{% endif %}>Degree</option>
+                    <option value="Others" {% if form.data.qualification == 'Others' %}selected{% endif %}>Others</option>
+                </select>
+            </div>
+            <div class="form-group" id="qualificationOtherGroup" style="display: none;">
+                <label class="form-label">Other Qualification</label>
+                <input type="text" name="qualification_other" class="form-input" placeholder="Enter your qualification"
+                    value="{{ form.data.qualification_other|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">District</label>
+                <select name="district" class="form-input" id="districtSelect" required>
+                    <option value="">Select District</option>
+                    <option value="Thiruvananthapuram" {% if form.data.district == 'Thiruvananthapuram' %}selected{% endif %}>Thiruvananthapuram</option>
+                    <option value="Kollam" {% if form.data.district == 'Kollam' %}selected{% endif %}>Kollam</option>
+                    <option value="Pathanamthitta" {% if form.data.district == 'Pathanamthitta' %}selected{% endif %}>Pathanamthitta</option>
+                    <option value="Alappuzha" {% if form.data.district == 'Alappuzha' %}selected{% endif %}>Alappuzha</option>
+                    <option value="Kottayam" {% if form.data.district == 'Kottayam' %}selected{% endif %}>Kottayam</option>
+                    <option value="Idukki" {% if form.data.district == 'Idukki' %}selected{% endif %}>Idukki</option>
+                    <option value="Ernakulam" {% if form.data.district == 'Ernakulam' %}selected{% endif %}>Ernakulam</option>
+                    <option value="Thrissur" {% if form.data.district == 'Thrissur' %}selected{% endif %}>Thrissur</option>
+                    <option value="Palakkad" {% if form.data.district == 'Palakkad' %}selected{% endif %}>Palakkad</option>
+                    <option value="Malappuram" {% if form.data.district == 'Malappuram' %}selected{% endif %}>Malappuram</option>
+                    <option value="Kozhikode" {% if form.data.district == 'Kozhikode' %}selected{% endif %}>Kozhikode</option>
+                    <option value="Wayanad" {% if form.data.district == 'Wayanad' %}selected{% endif %}>Wayanad</option>
+                    <option value="Kannur" {% if form.data.district == 'Kannur' %}selected{% endif %}>Kannur</option>
+                    <option value="Kasaragod" {% if form.data.district == 'Kasaragod' %}selected{% endif %}>Kasaragod</option>
+                    <option value="Others" {% if form.data.district == 'Others' %}selected{% endif %}>Others</option>
+                </select>
+            </div>
+            <div class="form-group" id="districtOtherGroup" style="display: none;">
+                <label class="form-label">Other District</label>
+                <input type="text" name="district_other" class="form-input" placeholder="Enter your district"
+                    value="{{ form.data.district_other|default:'' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mobile Number</label>
+                <input type="text" name="mobile_number" class="form-input" placeholder="" required
+                    value="{{ form.data.mobile_number|default:'' }}">
+            </div>
             <button type="submit" class="submit-btn">📨 Send Verification OTP</button>
         </form>
         <div class="link-row">
@@ -138,4 +184,35 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const qualificationSelect = document.getElementById('qualificationSelect');
+    const qualificationOtherGroup = document.getElementById('qualificationOtherGroup');
+    const districtSelect = document.getElementById('districtSelect');
+    const districtOtherGroup = document.getElementById('districtOtherGroup');
+
+    function toggleOtherFields() {
+        // Handle qualification "Others"
+        if (qualificationSelect.value === 'Others') {
+            qualificationOtherGroup.style.display = 'block';
+        } else {
+            qualificationOtherGroup.style.display = 'none';
+        }
+
+        // Handle district "Others"
+        if (districtSelect.value === 'Others') {
+            districtOtherGroup.style.display = 'block';
+        } else {
+            districtOtherGroup.style.display = 'none';
+        }
+    }
+
+    qualificationSelect.addEventListener('change', toggleOtherFields);
+    districtSelect.addEventListener('change', toggleOtherFields);
+
+    // Initialize on page load
+    toggleOtherFields();
+});
+</script>
 {% endblock %}

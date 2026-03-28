@@ -354,15 +354,57 @@
         {% endif %}
         <form method="post">
             {% csrf_token %}
-            {% for field in form %}
             <div class="form-group">
-                <label>{{ field.label }}</label>
-                {{ field }}
-                {% if field.errors %}
-                <div class="form-error">{{ field.errors.0 }}</div>
-                {% endif %}
+                <label>Full Name</label>
+                <input type="text" name="student_name" maxlength="200" required id="id_student_name">
             </div>
-            {% endfor %}
+            <div class="form-group">
+                <label>Qualification</label>
+                <select name="qualification" id="qualificationSelect" required>
+                    <option value="">Select Qualification</option>
+                    <option value="SSLC">SSLC</option>
+                    <option value="Plus Two">Plus Two</option>
+                    <option value="Degree">Degree</option>
+                    <option value="Others">Others</option>
+                </select>
+            </div>
+            <div class="form-group" id="qualificationOtherGroup" style="display: none;">
+                <label>Other Qualification</label>
+                <input type="text" name="qualification_other" maxlength="200" placeholder="Enter your qualification">
+            </div>
+            <div class="form-group">
+                <label>District</label>
+                <select name="district" id="districtSelect" required>
+                    <option value="">Select District</option>
+                    <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                    <option value="Kollam">Kollam</option>
+                    <option value="Pathanamthitta">Pathanamthitta</option>
+                    <option value="Alappuzha">Alappuzha</option>
+                    <option value="Kottayam">Kottayam</option>
+                    <option value="Idukki">Idukki</option>
+                    <option value="Ernakulam">Ernakulam</option>
+                    <option value="Thrissur">Thrissur</option>
+                    <option value="Palakkad">Palakkad</option>
+                    <option value="Malappuram">Malappuram</option>
+                    <option value="Kozhikode">Kozhikode</option>
+                    <option value="Wayanad">Wayanad</option>
+                    <option value="Kannur">Kannur</option>
+                    <option value="Kasaragod">Kasaragod</option>
+                    <option value="Others">Others</option>
+                </select>
+            </div>
+            <div class="form-group" id="districtOtherGroup" style="display: none;">
+                <label>Other District</label>
+                <input type="text" name="district_other" maxlength="200" placeholder="Enter your district">
+            </div>
+            <div class="form-group">
+                <label>Mobile Number</label>
+                <input type="text" name="mobile_number" maxlength="15" required id="id_mobile_number">
+            </div>
+            <div class="form-group">
+                <label>Email ID</label>
+                <input type="email" name="email" required id="id_email">
+            </div>
             <button class="btn-primary" type="submit" id="registerBtn">
                 <span class="btn-text">Register & Get Password via Email</span>
                 <div class="btn-loader"></div>
@@ -415,10 +457,41 @@ function handleFormSubmission() {
   });
 }
 
+// Handle conditional "Others" fields
+function handleOtherFields() {
+  const qualificationSelect = document.getElementById('qualificationSelect');
+  const qualificationOtherGroup = document.getElementById('qualificationOtherGroup');
+  const districtSelect = document.getElementById('districtSelect');
+  const districtOtherGroup = document.getElementById('districtOtherGroup');
+
+  function toggleOtherFields() {
+    // Handle qualification "Others"
+    if (qualificationSelect.value === 'Others') {
+      qualificationOtherGroup.style.display = 'block';
+    } else {
+      qualificationOtherGroup.style.display = 'none';
+    }
+
+    // Handle district "Others"
+    if (districtSelect.value === 'Others') {
+      districtOtherGroup.style.display = 'block';
+    } else {
+      districtOtherGroup.style.display = 'none';
+    }
+  }
+
+  qualificationSelect.addEventListener('change', toggleOtherFields);
+  districtSelect.addEventListener('change', toggleOtherFields);
+
+  // Initialize on page load
+  toggleOtherFields();
+}
+
 // Initialize animations when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   createParticles();
   handleFormSubmission();
+  handleOtherFields();
 });
 </script>
 {% endblock %}

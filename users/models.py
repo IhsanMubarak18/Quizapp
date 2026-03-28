@@ -46,12 +46,37 @@ class StudentProfile(models.Model):
     """Extended profile for student users."""
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='student_profile')
     student_name = models.CharField(max_length=200)
-    college_name = models.CharField(max_length=300)
+    qualification = models.CharField(max_length=50, choices=[
+        ('SSLC', 'SSLC'),
+        ('Plus Two', 'Plus Two'),
+        ('Degree', 'Degree'),
+        ('Others', 'Others')
+    ])
+    qualification_other = models.CharField(max_length=200, blank=True, null=True)
+    district = models.CharField(max_length=100, choices=[
+        ('Thiruvananthapuram', 'Thiruvananthapuram'),
+        ('Kollam', 'Kollam'),
+        ('Pathanamthitta', 'Pathanamthitta'),
+        ('Alappuzha', 'Alappuzha'),
+        ('Kottayam', 'Kottayam'),
+        ('Idukki', 'Idukki'),
+        ('Ernakulam', 'Ernakulam'),
+        ('Thrissur', 'Thrissur'),
+        ('Palakkad', 'Palakkad'),
+        ('Malappuram', 'Malappuram'),
+        ('Kozhikode', 'Kozhikode'),
+        ('Wayanad', 'Wayanad'),
+        ('Kannur', 'Kannur'),
+        ('Kasaragod', 'Kasaragod'),
+        ('Others', 'Others')
+    ])
+    district_other = models.CharField(max_length=200, blank=True, null=True)
     mobile_number = models.CharField(max_length=15)
 
     class Meta:
         indexes = [
-            models.Index(fields=['college_name']),
+            models.Index(fields=['qualification']),
+            models.Index(fields=['district']),
             models.Index(fields=['student_name']),
         ]
 

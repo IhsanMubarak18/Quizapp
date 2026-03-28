@@ -8,7 +8,31 @@ User = get_user_model()
 
 class StudentRegistrationForm(forms.Form):
     student_name = forms.CharField(max_length=200, label="Full Name")
-    college_name = forms.CharField(max_length=300, label="College / Institution")
+    qualification = forms.ChoiceField(choices=[
+        ('SSLC', 'SSLC'),
+        ('Plus Two', 'Plus Two'),
+        ('Degree', 'Degree'),
+        ('Others', 'Others')
+    ], label="Qualification")
+    qualification_other = forms.CharField(max_length=200, label="Other Qualification", required=False)
+    district = forms.ChoiceField(choices=[
+        ('Thiruvananthapuram', 'Thiruvananthapuram'),
+        ('Kollam', 'Kollam'),
+        ('Pathanamthitta', 'Pathanamthitta'),
+        ('Alappuzha', 'Alappuzha'),
+        ('Kottayam', 'Kottayam'),
+        ('Idukki', 'Idukki'),
+        ('Ernakulam', 'Ernakulam'),
+        ('Thrissur', 'Thrissur'),
+        ('Palakkad', 'Palakkad'),
+        ('Malappuram', 'Malappuram'),
+        ('Kozhikode', 'Kozhikode'),
+        ('Wayanad', 'Wayanad'),
+        ('Kannur', 'Kannur'),
+        ('Kasaragod', 'Kasaragod'),
+        ('Others', 'Others')
+    ], label="District")
+    district_other = forms.CharField(max_length=200, label="Other District", required=False)
     mobile_number = forms.CharField(max_length=15, label="Mobile Number")
     email = forms.EmailField(label="Email ID")
 
