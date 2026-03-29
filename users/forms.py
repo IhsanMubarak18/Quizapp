@@ -38,8 +38,8 @@ class StudentRegistrationForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data['email']
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("An account with this email already exists.")
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("An account with this email already exists. Please log in instead.")
         return email
 
     def clean_mobile_number(self):

@@ -30,6 +30,75 @@
         margin-bottom: 6px;
     }
 
+    /* Enhanced Error Display Styles */
+    .error-banner {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        border: 1px solid #dc2626;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+    }
+
+    .error-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+
+    .error-content {
+        flex: 1;
+    }
+
+    .error-content h4 {
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 8px 0;
+    }
+
+    .error-list {
+        margin-bottom: 12px;
+    }
+
+    .error-item {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 6px;
+    }
+
+    .error-item strong {
+        color: white;
+        font-weight: 600;
+    }
+
+    .login-suggestion {
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .login-suggestion {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 14px;
+    }
+
+    .login-link {
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+        transition: all 0.2s ease;
+    }
+
+    .login-link:hover {
+        color: #fbbf24;
+        border-bottom-color: #fbbf24;
+    }
+
     .auth-card .subtitle {
         font-size: 0.875rem;
         color: #94a3b8;
@@ -100,16 +169,31 @@
         <p class="subtitle">Join EduVideoQuiz and start earning certificates.</p>
 
         {% if form.errors %}
-        <ul class="errlist">
-            {% for field in form %}
-            {% for error in field.errors %}
-            <li>⚠️ {{ field.label }}: {{ error }}</li>
-            {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-            <li>⚠️ {{ error }}</li>
-            {% endfor %}
-        </ul>
+        <div class="error-banner">
+            <div class="error-icon">⚠️</div>
+            <div class="error-content">
+                <h4>Registration Error</h4>
+                <div class="error-list">
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <div class="error-item">
+                        {% if "already exists" in error %}
+                        <strong>{{ error }}</strong>
+                        {% else %}
+                        {{ field.label }}: {{ error }}
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <div class="error-item">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% comment %} <div class="login-suggestion">
+                    Already have an account? <a href="{% url 'users:login' %}" class="login-link">Log in here</a>
+                </div> {% endcomment %}
+            </div>
+        </div>
         {% endif %}
 
         <form method="post">

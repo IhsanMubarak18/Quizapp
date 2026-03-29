@@ -350,7 +350,24 @@
         <h2>Create Account</h2>
         <p>Register to start attempting quizzes. Your password will be mailed to you.</p>
         {% if form.errors %}
-        <div class="alert alert-error" style="margin-bottom:16px;">Please fix the errors below.</div>
+        <div class="alert alert-error" style="margin-bottom:16px;">
+            <div style="font-weight:600;margin-bottom:8px;">⚠️ Registration Error</div>
+            {% for field in form %}
+            {% for error in field.errors %}
+            <div style="margin-bottom:4px;">
+                {% if "already exists" in error %}
+                <strong>{{ error }}</strong><br>
+                {% comment %} <small>Already have an account? <a href="{% url 'users:login' %}" style="color:#1E40AF;text-decoration:underline;">Log in here</a></small> {% endcomment %}
+                {% else %}
+                {{ field.label }}: {{ error }}
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+            <div style="margin-bottom:4px;">{{ error }}</div>
+            {% endfor %}
+        </div>
         {% endif %}
         <form method="post">
             {% csrf_token %}
