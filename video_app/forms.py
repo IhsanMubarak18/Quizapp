@@ -12,7 +12,13 @@ class QuestionForm(forms.Form):
     Custom form for Question that supports:
     - 2-6 dynamic answer options (option_a required, option_b required, option_c-f optional)
     - Multiple correct answers via checkboxes
+    - Category selection
     """
+    category = forms.ModelChoiceField(
+        queryset=None,
+        label="Category",
+        help_text="Select the category for this question"
+    )
     question_text = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 3, "placeholder": "Enter question text..."}),
         label="Question"
@@ -30,6 +36,11 @@ class QuestionForm(forms.Form):
         label="Correct Answer(s)",
         help_text="Select one or more correct options."
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import Category
+        self.fields['category'].queryset = Category.objects.filter(is_active=True).order_by('name')
 
     def clean_correct_answers(self):
         answers = self.cleaned_data.get("correct_answers", [])
@@ -60,6 +71,7 @@ class QuestionForm(forms.Form):
         data = self.cleaned_data
         if instance is None:
             instance = Question()
+        instance.category = data["category"]
         instance.question_text = data["question_text"]
         instance.option_a = data["option_a"]
         instance.option_b = data["option_b"]
@@ -75,6 +87,7 @@ class QuestionForm(forms.Form):
     def from_instance(cls, instance, data=None):
         """Initialise form from an existing Question instance."""
         initial = {
+            "category": instance.category,
             "question_text": instance.question_text,
             "option_a": instance.option_a,
             "option_b": instance.option_b,
@@ -119,3 +132,18 @@ class QuizForm(forms.ModelForm):
 class RandomQuestionSelectForm(forms.Form):
     count = forms.IntegerField(min_value=1, label="Number of Random Questions",
                                widget=forms.NumberInput(attrs={'placeholder': 'e.g. 10'}))
+
+
+class CategoryFilterForm(forms.Form):
+    """Form for filtering questions by category."""
+    category = forms.ModelChoiceField(
+        queryset=None,
+        required=False,
+        empty_label="All Categories",
+        label="Filter by Category"
+    )
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        from .models import Category
+        self.fields['category'].queryset = Category.objects.filter(is_active=True).order_by('name')

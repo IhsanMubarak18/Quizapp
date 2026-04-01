@@ -356,6 +356,13 @@
             {% if form.question_text.errors %}<div class="form-error">{{ form.question_text.errors.0 }}</div>{% endif %}
         </div>
 
+        <!-- Category -->
+        <div class="form-group">
+            <label class="form-label">Category</label>
+            {{ form.category }}
+            {% if form.category.errors %}<div class="form-error">{{ form.category.errors.0 }}</div>{% endif %}
+        </div>
+
         <!-- Dynamic Options -->
         <div class="form-group">
             <label class="form-label">

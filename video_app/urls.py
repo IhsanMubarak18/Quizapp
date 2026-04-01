@@ -25,6 +25,12 @@ urlpatterns = [
     path('admin-panel/questions/<int:question_id>/edit/', views.admin_edit_question, name='admin_edit_question'),
     path('admin-panel/questions/<int:question_id>/delete/', views.admin_delete_question, name='admin_delete_question'),
 
+    # ── Categories ────────────────────────────────────────────────────
+    path('admin-panel/categories/', views.admin_categories, name='admin_categories'),
+    path('admin-panel/categories/add/', views.admin_add_category, name='admin_add_category'),
+    path('admin-panel/categories/<int:category_id>/edit/', views.admin_edit_category, name='admin_edit_category'),
+    path('admin-panel/categories/<int:category_id>/delete/', views.admin_delete_category, name='admin_delete_category'),
+
     # ── Quiz Management ────────────────────────────────────────────
     path('admin-panel/quizzes/', views.admin_quizzes, name='admin_quizzes'),
     path('admin-panel/quizzes/add/', views.admin_add_quiz, name='admin_add_quiz'),

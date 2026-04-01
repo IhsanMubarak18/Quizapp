@@ -7,12 +7,12 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import get_user_model, update_session_auth_hash
 from django.utils import timezone
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.db.models.functions import TruncDate
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .models import Question, Quiz, QuizQuestion, QuizAttempt, StudentAnswer, QuizResult
-from .forms import QuestionForm, QuizForm, RandomQuestionSelectForm
+from .models import Category, Question, Quiz, QuizQuestion, QuizAttempt, StudentAnswer, QuizResult
+from .forms import QuestionForm, QuizForm, RandomQuestionSelectForm, CategoryFilterForm
 from .selectors import (
     admin_dashboard_stats,
     admin_quizzes_queryset,
@@ -488,11 +488,39 @@ def admin_dashboard(request):
 
 @staff_required
 def admin_question_bank(request):
+    """Show categories first, then questions within selected category."""
+    category_id = request.GET.get('category')
     search = request.GET.get('search', '')
-    questions = Question.objects.all().order_by('-created_at')
+    
+    # Get all active categories with question counts
+    categories = Category.objects.filter(is_active=True).annotate(
+        question_count=Count('question')
+    ).order_by('name')
+    
+    # Handle category selection
+    selected_category = None
+    questions = Question.objects.none()
+    
+    if category_id:
+        try:
+            selected_category = Category.objects.get(id=category_id)
+            questions = Question.objects.filter(category=selected_category).order_by('-created_at')
+        except Category.DoesNotExist:
+            pass
+    elif not category_id and not search:
+        # Default: show all categories, no questions
+        questions = Question.objects.none()
+    
+    # Apply search if provided
     if search:
-        questions = questions.filter(question_text__icontains=search)
+        if selected_category:
+            questions = questions.filter(question_text__icontains=search)
+        else:
+            questions = Question.objects.filter(question_text__icontains=search).order_by('-created_at')
+    
     return render(request, 'admin_panel/question_bank.html', {
+        'categories': categories,
+        'selected_category': selected_category,
         'questions': questions,
         'search': search,
     })
@@ -632,9 +660,22 @@ def admin_toggle_quiz(request, quiz_id):
 def admin_quiz_questions(request, quiz_id):
     quiz = get_object_or_404(Quiz, id=quiz_id)
     quiz_questions = QuizQuestion.objects.filter(quiz=quiz).select_related('question').order_by('order')
-    # All questions NOT already in this quiz
+    
+    # Handle category filtering
+    category_filter_form = CategoryFilterForm(request.GET or None)
+    selected_category = None
+    
+    if category_filter_form.is_valid():
+        selected_category = category_filter_form.cleaned_data.get('category')
+    
+    # All questions NOT already in this quiz, filtered by category if selected
     existing_ids = quiz_questions.values_list('question_id', flat=True)
-    available_questions = Question.objects.exclude(id__in=existing_ids).order_by('-created_at')
+    available_questions = Question.objects.exclude(id__in=existing_ids)
+    
+    if selected_category:
+        available_questions = available_questions.filter(category=selected_category)
+    
+    available_questions = available_questions.select_related('category').order_by('-created_at')
     random_form = RandomQuestionSelectForm()
     
     # Pagination for available questions
@@ -648,6 +689,8 @@ def admin_quiz_questions(request, quiz_id):
         'available_questions': page_obj,
         'page_obj': page_obj,
         'random_form': random_form,
+        'category_filter_form': category_filter_form,
+        'selected_category': selected_category,
     })
 
 
@@ -1021,3 +1064,97 @@ def admin_reports(request):
         'selected_quiz_id': selected_quiz_id,
         'selected_quiz': selected_quiz,
     })
+
+
+# ─── Category Management Views ────────────────────────────────────────────────────────────
+
+@staff_required
+def admin_categories(request):
+    """Manage question categories."""
+    categories = Category.objects.all().order_by('name')
+    return render(request, 'admin_panel/categories.html', {
+        'categories': categories,
+    })
+
+
+@staff_required
+def admin_add_category(request):
+    """Add a new category."""
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        is_active = request.POST.get('is_active') == 'on'
+        
+        if not name:
+            messages.error(request, "Category name is required.")
+            return render(request, 'admin_panel/add_category.html')
+        
+        if Category.objects.filter(name__iexact=name).exists():
+            messages.error(request, "A category with this name already exists.")
+            return render(request, 'admin_panel/add_category.html')
+        
+        category = Category.objects.create(
+            name=name,
+            is_active=is_active
+        )
+        messages.success(request, f"Category '{category.name}' created successfully.")
+        return redirect('video_app:admin_categories')
+    
+    return render(request, 'admin_panel/add_category.html')
+
+
+@staff_required
+def admin_edit_category(request, category_id):
+    """Edit an existing category."""
+    category = get_object_or_404(Category, id=category_id)
+    
+    if request.method == 'POST':
+        name = request.POST.get('name', '').strip()
+        is_active = request.POST.get('is_active') == 'on'
+        
+        if not name:
+            messages.error(request, "Category name is required.")
+            return redirect('video_app:admin_categories')
+        
+        # Check if name conflicts with another category
+        existing = Category.objects.filter(name__iexact=name).exclude(id=category_id)
+        if existing.exists():
+            messages.error(request, "A category with this name already exists.")
+            return redirect('video_app:admin_categories')
+        
+        category.name = name
+        category.is_active = is_active
+        category.save()
+        
+        messages.success(request, f"Category '{category.name}' updated successfully.")
+        return redirect('video_app:admin_categories')
+    
+    return render(request, 'admin_panel/edit_category.html', {
+        'category': category,
+    })
+
+
+@staff_required
+def admin_delete_category(request, category_id):
+    """Delete a category and all its questions permanently."""
+    category = get_object_or_404(Category, id=category_id)
+    
+    # Get questions in this category
+    questions_count = category.question_count()
+    
+    # Permanently delete the category and all its questions
+    Question.objects.filter(category=category).delete()
+    category.delete()
+    
+    if questions_count > 0:
+        messages.warning(request, f"Category '{category.name}' and {questions_count} question(s) have been permanently deleted.")
+    else:
+        messages.success(request, f"Category '{category.name}' deleted successfully.")
+    
+    return redirect('video_app:admin_question_bank')
+
+
+@staff_required
+def admin_bulk_assign_category(request):
+    """Bulk assign questions to a category - DEPRECATED."""
+    # This functionality has been removed as requested
+    return redirect('video_app:admin_question_bank')

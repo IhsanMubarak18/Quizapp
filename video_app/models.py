@@ -3,8 +3,28 @@ from django.conf import settings
 from django.utils import timezone
 
 
+class Category(models.Model):
+    """Question categories for organizing the question bank."""
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True, help_text="Optional description of the category")
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name_plural = "Categories"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+    def question_count(self):
+        """Return the number of questions in this category."""
+        return self.question_set.count()
+
+
 class Question(models.Model):
     """Global question bank - supports 2-6 answer options and multiple correct answers."""
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, help_text="Select the category for this question")
     question_text = models.TextField()
     option_a = models.CharField(max_length=500)
     option_b = models.CharField(max_length=500)

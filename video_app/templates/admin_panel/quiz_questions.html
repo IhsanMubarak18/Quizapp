@@ -461,6 +461,30 @@
             <i class="fas fa-database" style="color: #8B5CF6;"></i>
             Question Bank
         </h3>
+        
+        <!-- Category Filter -->
+        <div class="category-filter-section" style="margin-bottom: 20px; padding: 16px; background: var(--bg-hover); border-radius: 8px; border: 1px solid var(--border-light);">
+            <form method="get" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <label style="font-size: 14px; font-weight: 500; color: var(--text-primary);">
+                    <i class="fas fa-filter"></i> Filter:
+                </label>
+                {{ category_filter_form.category }}
+                <button type="submit" class="btn btn-sm" style="background: var(--brand-blue); color: white;">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+                {% if selected_category %}
+                <a href="{% url 'video_app:admin_quiz_questions' quiz.id %}" class="btn btn-sm" style="background: var(--bg-hover); border: 1px solid var(--border-light);">
+                    <i class="fas fa-times"></i> Clear
+                </a>
+                {% endif %}
+            </form>
+            {% if selected_category %}
+            <div style="margin-top: 8px; font-size: 13px; color: var(--text-secondary);">
+                <i class="fas fa-info-circle"></i> Showing questions in <strong>{{ selected_category.name }}</strong> category
+            </div>
+            {% endif %}
+        </div>
+        
         {% if available_questions %}
         <form method="post" action="{% url 'video_app:admin_add_question_to_quiz' quiz.id %}">
             {% csrf_token %}
@@ -470,7 +494,10 @@
                     <input type="checkbox" name="question_ids" value="{{ q.id }}" class="question-checkbox">
                     <div class="question-content">
                         <div class="question-text">{{ q.question_text|truncatechars:70 }}</div>
-                        <div class="question-meta">Correct: <strong>{{ q.correct_answer }}</strong></div>
+                        <div class="question-meta">
+                            Category: <strong style="color: var(--brand-blue);">{{ q.category.name }}</strong> | 
+                            Correct: <strong>{{ q.correct_answer }}</strong>
+                        </div>
                     </div>
                 </label>
                 {% endfor %}

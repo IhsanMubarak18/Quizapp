@@ -1,0 +1,348 @@
+{% extends "admin_panel/base_admin.html" %}
+{% block title %}Categories — Question Bank{% endblock %}
+{% block admin_content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 32px;
+        padding: 24px;
+        background: var(--bg-card);
+        border-radius: 16px;
+        border: 1px solid var(--border-light);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-subtitle {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .add-btn {
+        background: var(--brand-blue);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .add-btn:hover {
+        background: #1E40AF;
+        transform: translateY(-1px);
+    }
+
+    .category-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .category-card:hover {
+        border-color: var(--brand-blue);
+        box-shadow: var(--shadow-md);
+    }
+
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .category-name {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+    }
+
+    .category-stats {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 12px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .stat-value {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+
+    .category-description {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.5;
+        margin-bottom: 16px;
+    }
+
+    .category-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+        border: 1px solid var(--border-light);
+        background: var(--bg-hover);
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-sm:hover {
+        background: var(--brand-orange);
+        color: white;
+        border-color: var(--brand-orange);
+    }
+
+    .btn-danger {
+        background: #EF4444;
+        color: white;
+        border-color: #EF4444;
+    }
+
+    .btn-danger:hover {
+        background: #DC2626;
+        border-color: #DC2626;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .status-active {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .status-inactive {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            flex-direction: column;
+            gap: 16px;
+            align-items: stretch;
+        }
+        
+        .category-header {
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .category-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<!-- Page Header -->
+<div class="page-header">
+    <div>
+        <div class="page-title">
+            <i class="fas fa-tags" style="color: var(--brand-blue);"></i>
+            Categories
+        </div>
+        <div class="page-subtitle">Organize your question bank with categories</div>
+    </div>
+    <a href="{% url 'video_app:admin_add_category' %}" class="add-btn">
+        <i class="fas fa-plus"></i>
+        Add Category
+    </a>
+</div>
+
+<!-- Categories List -->
+{% if categories %}
+    {% for category in categories %}
+    <div class="category-card">
+        <div class="category-header">
+            <div>
+                <div class="category-name">
+                    {{ category.name }}
+                    {% if category.is_active %}
+                        <span class="status-badge status-active">Active</span>
+                    {% else %}
+                        <span class="status-badge status-inactive">Inactive</span>
+                    {% endif %}
+                </div>
+                <div class="category-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-question-circle"></i>
+                        <span class="stat-value">{{ category.question_count }}</span>
+                        Questions
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-calendar"></i>
+                        Created {{ category.created_at|date:"d M Y" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if category.description %}
+        <div class="category-description">
+            {{ category.description }}
+        </div>
+        {% endif %}
+        
+        <div class="category-actions">
+            <a href="{% url 'video_app:admin_edit_category' category.id %}" class="btn-sm">
+                <i class="fas fa-edit"></i>
+                Edit
+            </a>
+            <a href="#" 
+               class="btn-sm btn-danger"
+               onclick="showDeleteModal({{ category.id }}, {{ category.question_count }}, '{{ category.name|escapejs }}'); return false;">
+                <i class="fas fa-trash"></i>
+                Delete
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+{% else %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-tags"></i>
+        </div>
+        <h3>No Categories Yet</h3>
+        <p>Create your first category to start organizing your question bank.</p>
+        <br>
+        <a href="{% url 'video_app:admin_add_category' %}" class="add-btn">
+            <i class="fas fa-plus"></i>
+            Create First Category
+        </a>
+    </div>
+{% endif %}
+
+<!-- Custom Delete Confirmation Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-card); border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+            <div style="width: 48px; height: 48px; background: #FEE2E2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-exclamation-triangle" style="color: #DC2626; font-size: 20px;"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; color: var(--text-primary); font-size: 18px; font-weight: 600;">Delete Category</h3>
+                <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 14px;">This action cannot be undone</p>
+            </div>
+        </div>
+        
+        <div id="deleteMessage" style="margin-bottom: 24px; color: var(--text-primary); line-height: 1.5;"></div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button onclick="hideDeleteModal()" 
+                    style="padding: 10px 20px; border: 1px solid var(--border-light); border-radius: 6px; background: var(--bg-hover); color: var(--text-primary); font-size: 14px; cursor: pointer; transition: all 0.2s ease;"
+                    onmouseover="this.style.background='var(--brand-orange)'; this.style.color='white'; this.style.borderColor='var(--brand-orange)';"
+                    onmouseout="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'; this.style.borderColor='var(--border-light)';">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" 
+                    style="padding: 10px 20px; border: none; border-radius: 6px; background: #DC2626; color: white; font-size: 14px; cursor: pointer; transition: all 0.2s ease;"
+                    onmouseover="this.style.background='#B91C1C';"
+                    onmouseout="this.style.background='#DC2626';">
+                <i class="fas fa-trash" style="margin-right: 6px;"></i>
+                Delete Category
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let deleteCategoryId = null;
+
+function showDeleteModal(categoryId, questionCount, categoryName) {
+    deleteCategoryId = categoryId;
+    
+    let message = `Deleting this category will permanently remove all questions within it.`;
+    if (questionCount > 0) {
+        message += ` This category contains <strong>${questionCount} question${questionCount > 1 ? 's' : ''}</strong>.`;
+    }
+    message += ` If you want to keep the questions, please move them to another category before proceeding. Do you want to continue?`;
+    
+    document.getElementById('deleteMessage').innerHTML = message;
+    document.getElementById('deleteModal').style.display = 'block';
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteCategoryId = null;
+}
+
+function confirmDelete() {
+    if (deleteCategoryId) {
+        window.location.href = `/admin-panel/categories/${deleteCategoryId}/delete/`;
+    }
+}
+
+// Add click handler to confirm button
+document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+
+// Close modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideDeleteModal();
+    }
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideDeleteModal();
+    }
+});
+</script>
+{% endblock %}

@@ -5,16 +5,15 @@
 <style>
     .page-header {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: flex-start;
-        flex-wrap: wrap;
-        gap: 16px;
         margin-bottom: 32px;
         padding: 24px;
         background: var(--bg-card);
         border-radius: 16px;
         border: 1px solid var(--border-light);
         box-shadow: var(--shadow-sm);
+        flex-wrap: wrap;
     }
 
     .page-title {
@@ -32,164 +31,285 @@
         color: var(--text-secondary);
     }
 
+    .header-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
     .btn {
         padding: 10px 20px;
-        border-radius: 10px;
+        border-radius: 8px;
         font-size: 14px;
         font-weight: 500;
-        text-decoration: none;
-        border: none;
         cursor: pointer;
         transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
         gap: 8px;
+        text-decoration: none;
+        border: none;
     }
 
     .btn-primary {
-        background: linear-gradient(135deg, #8B5CF6, #A78BFA);
+        background: var(--brand-blue);
         color: white;
     }
 
     .btn-primary:hover {
-        background: linear-gradient(135deg, #A78BFA, #8B5CF6);
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
+        background: #1E40AF;
+        transform: translateY(-1px);
     }
 
-    .btn-outline {
-        background: transparent;
-        border: 1px solid var(--border-light);
-        color: var(--text-secondary);
-    }
-
-    .btn-outline:hover {
+    .btn-secondary {
         background: var(--bg-hover);
-        border-color: var(--brand-orange);
-        color: var(--brand-orange);
-    }
-
-    .btn-sm {
-        padding: 8px 16px;
-        font-size: 13px;
-    }
-
-    .card {
-        background: var(--bg-card);
+        color: var(--text-primary);
         border: 1px solid var(--border-light);
-        border-radius: 16px;
-        padding: 24px;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 24px;
+    }
+
+    .btn-secondary:hover {
+        background: var(--brand-orange);
+        color: white;
+        border-color: var(--brand-orange);
     }
 
     .search-form {
         display: flex;
-        gap: 12px;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
+        gap: 8px;
         align-items: center;
     }
 
-    .form-input {
-        padding: 10px 16px;
+    .search-input {
+        padding: 8px 12px;
         border: 1px solid var(--border-light);
-        border-radius: 10px;
+        border-radius: 6px;
         font-size: 14px;
-        transition: all 0.2s ease;
-        background: var(--bg-card);
+        background: var(--bg-primary);
         color: var(--text-primary);
+        min-width: 200px;
     }
 
-    .form-input:focus {
+    .search-input:focus {
         outline: none;
-        border-color: var(--brand-orange);
-        box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        border-color: var(--brand-blue);
     }
 
-    .results-count {
-        font-size: 13px;
-        color: var(--text-muted);
-        margin-bottom: 16px;
+    .categories-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 32px;
     }
 
-    .table-container {
-        overflow-x: auto;
-        border-radius: 12px;
-        border: 1px solid var(--border-light);
-    }
-
-    .data-table {
-        width: 100%;
-        border-collapse: collapse;
+    .category-card {
         background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
     }
 
-    .data-table th {
-        background: var(--bg-hover);
-        padding: 16px;
-        text-align: left;
+    .category-card:hover {
+        border-color: var(--brand-blue);
+        box-shadow: var(--shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .category-card.active {
+        border-color: var(--brand-blue);
+        background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(30, 64, 175, 0.02));
+    }
+
+    .category-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 12px;
+    }
+
+    .category-name {
+        font-size: 18px;
         font-weight: 600;
         color: var(--text-primary);
-        font-size: 13px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        border-bottom: 1px solid var(--border-light);
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
 
-    .data-table td {
-        padding: 16px;
-        border-bottom: 1px solid var(--border-light);
-        color: var(--text-secondary);
+    .category-icon {
+        font-size: 16px;
+        color: var(--brand-blue);
+    }
+
+    .category-stats {
         font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 12px;
     }
 
-    .data-table tr:hover {
+    .question-count {
+        font-weight: 600;
+        color: var(--brand-blue);
+    }
+
+    .category-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 13px;
+        border-radius: 6px;
+        border: 1px solid var(--border-light);
         background: var(--bg-hover);
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-sm:hover {
+        background: var(--brand-orange);
+        color: white;
+        border-color: var(--brand-orange);
+    }
+
+    .btn-danger {
+        background: #EF4444;
+        color: white;
+        border-color: #EF4444;
+    }
+
+    .btn-danger:hover {
+        background: #DC2626;
+        border-color: #DC2626;
+    }
+
+    .questions-section {
+        background: var(--bg-card);
+        border: 1px solid var(--border-light);
+        border-radius: 16px;
+        padding: 24px;
+        margin-top: 32px;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-light);
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .breadcrumb {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+    }
+
+    .breadcrumb a {
+        color: var(--brand-blue);
+        text-decoration: none;
+    }
+
+    .breadcrumb a:hover {
+        text-decoration: underline;
+    }
+
+    .question-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .question-item {
+        background: var(--bg-hover);
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        padding: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .question-item:hover {
+        border-color: var(--brand-blue);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .question-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
     }
 
     .question-text {
-        max-width: 320px;
-        font-weight: 500;
         font-size: 14px;
         color: var(--text-primary);
-        line-height: 1.4;
+        line-height: 1.5;
+        margin-bottom: 8px;
     }
 
-    .options-list {
+    .question-meta {
         font-size: 12px;
         color: var(--text-secondary);
-        line-height: 1.8;
-    }
-
-    .correct-answer {
-        background: rgba(16, 185, 129, 0.1);
-        color: #059669;
-        padding: 3px 10px;
-        border-radius: 20px;
-        font-weight: 700;
-        font-size: 13px;
-        display: inline-block;
-        margin: 1px;
-    }
-
-    .action-buttons {
         display: flex;
-        gap: 6px;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .question-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-icon {
+        font-size: 48px;
+        margin-bottom: 16px;
+        opacity: 0.5;
     }
 
     @media (max-width: 768px) {
         .page-header {
             flex-direction: column;
+            gap: 16px;
             align-items: stretch;
         }
         
-        .search-form {
-            flex-direction: column;
+        .categories-grid {
+            grid-template-columns: 1fr;
         }
         
-        .form-input {
-            width: 100%;
+        .bulk-form {
+            flex-direction: column;
+            align-items: stretch;
         }
     }
 </style>
@@ -198,93 +318,264 @@
 <div class="page-header">
     <div>
         <div class="page-title">
-            <i class="fas fa-database" style="color: #8B5CF6;"></i>
+            <i class="fas fa-database" style="color: var(--brand-blue);"></i>
             Question Bank
         </div>
-        <div class="page-subtitle">Manage all questions available for quizzes.</div>
+        <div class="page-subtitle">Organize and manage your question collection</div>
     </div>
-    <a href="{% url 'video_app:admin_add_question' %}" class="btn btn-primary">
-        <i class="fas fa-plus-circle"></i>
-        Add Question
-    </a>
+    <div class="header-actions">
+        <form method="get" class="search-form">
+            <input type="text" name="search" class="search-input" placeholder="Search questions..." value="{{ search }}">
+            <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+        <a href="{% url 'video_app:admin_add_question' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Add Question
+        </a>
+        <button onclick="showCategoryModal()" class="btn btn-secondary">
+            <i class="fas fa-tags"></i>
+            Manage Categories
+        </button>
+    </div>
 </div>
 
-<!-- Search and Questions -->
-<div class="card">
-    <!-- Search Form -->
-    <form method="get" class="search-form">
-        <input type="text" name="search" value="{{ search }}" placeholder="Search questions..."
-            class="form-input" style="max-width:360px;">
-        <button type="submit" class="btn btn-outline btn-sm">
-            <i class="fas fa-search"></i>
-            Search
-        </button>
-        {% if search %}
-        <a href="{% url 'video_app:admin_question_bank' %}" class="btn btn-sm" style="background:var(--bg-hover);border:none;">
-            <i class="fas fa-times"></i>
-            Clear
+<!-- Breadcrumb (when category is selected) -->
+{% if selected_category %}
+<div class="breadcrumb">
+    <a href="{% url 'video_app:admin_question_bank' %}">Question Bank</a>
+    <i class="fas fa-chevron-right"></i>
+    <span>{{ selected_category.name }}</span>
+</div>
+{% endif %}
+
+<!-- Categories Grid (shown when no category is selected) -->
+{% if not selected_category and not search %}
+<div class="categories-grid">
+    {% for category in categories %}
+    <div class="category-card" onclick="selectCategory({{ category.id }})">
+        <div class="category-header">
+            <div>
+                <div class="category-name">
+                    <i class="fas fa-folder category-icon"></i>
+                    {{ category.name }}
+                </div>
+                <div class="category-stats">
+                    <span class="question-count">{{ category.question_count }}</span> questions
+                </div>
+            </div>
+        </div>
+        
+        <div class="category-actions">
+            <a href="{% url 'video_app:admin_edit_category' category.id %}" class="btn-sm" onclick="event.stopPropagation()">
+                <i class="fas fa-edit"></i>
+                Edit
+            </a>
+            <a href="#" 
+               class="btn-sm btn-danger" onclick="event.stopPropagation(); showDeleteModal({{ category.id }}, {{ category.question_count }}, '{{ category.name|escapejs }}'); return false;">
+                <i class="fas fa-trash"></i>
+                Delete
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Empty state if no categories -->
+{% if not categories %}
+<div class="empty-state">
+    <div class="empty-icon">
+        <i class="fas fa-folder-open"></i>
+    </div>
+    <h3>No Categories Yet</h3>
+    <p>Create your first category to start organizing questions.</p>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Questions Section (shown when category is selected or searching) -->
+{% if selected_category or search %}
+<div class="questions-section">
+    <div class="section-header">
+        <div class="section-title">
+            {% if selected_category %}
+                <i class="fas fa-folder-open"></i>
+                {{ selected_category.name }} Questions
+            {% else %}
+                <i class="fas fa-search"></i>
+                Search Results
+            {% endif %}
+            <span style="font-size: 14px; color: var(--text-secondary);">({{ questions.count }} questions)</span>
+        </div>
+        {% if selected_category %}
+        <a href="{% url 'video_app:admin_question_bank' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            Back to Categories
         </a>
         {% endif %}
-    </form>
-    
-    <div class="results-count">{{ questions|length }} question(s) found</div>
-    
+    </div>
+
+    <!-- Questions List -->
     {% if questions %}
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Question</th>
-                    <th>Options</th>
-                    <th>Correct</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for q in questions %}
-                <tr>
-                    <td style="font-size:13px;color:var(--text-muted);">{{ forloop.counter }}</td>
-                    <td>
-                        <div class="question-text">{{ q.question_text|truncatechars:90 }}</div>
-                    </td>
-                    <td>
-                        <div class="options-list">
-                            {% for letter, text in q.get_options %}
-                            {{ letter }}: {{ text|truncatechars:30 }}<br>
-                            {% endfor %}
-                        </div>
-                    </td>
-                    <td>
-                        {% for ans in q.correct_answers %}
-                        <span class="correct-answer">{{ ans }}</span>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <a href="{% url 'video_app:admin_edit_question' q.id %}" class="btn btn-sm btn-outline">
-                                <i class="fas fa-edit"></i>
-                                Edit
-                            </a>
-                            <a href="{% url 'video_app:admin_delete_question' q.id %}"
-                                class="btn btn-sm" style="background:rgba(244, 63, 94, 0.1);color:#DC2626;border:1px solid rgba(244, 63, 94, 0.2);">
-                                <i class="fas fa-trash"></i>
-                                Delete
-                            </a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="question-list">
+        {% for question in questions %}
+        <div class="question-item">
+            <div class="question-header">
+                <div class="question-text">{{ question.question_text }}</div>
+                <div class="question-meta">
+                    <span><i class="fas fa-folder"></i> {{ question.category.name }}</span>
+                    <span><i class="fas fa-calendar"></i> {{ question.created_at|date:"d M Y" }}</span>
+                    <span><i class="fas fa-check-circle"></i> {{ question.correct_answers|join:", " }}</span>
+                </div>
+            </div>
+            <div class="question-actions">
+                <a href="{% url 'video_app:admin_edit_question' question.id %}" class="btn-sm">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </a>
+                <a href="{% url 'video_app:admin_delete_question' question.id %}" 
+                   class="btn-sm btn-danger" ">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </a>
+            </div>
+        </div>
+        {% endfor %}
     </div>
     {% else %}
-    <div style="text-align:center;padding:48px;color:var(--text-muted);">
-        <div style="font-size:48px;margin-bottom:12px;opacity:0.5;">
-            <i class="fas fa-inbox"></i>
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-question-circle"></i>
         </div>
-        <p>No questions found. <a href="{% url 'video_app:admin_add_question' %}" style="color:#8B5CF6;">Add your first question</a>.</p>
+        <h3>No Questions Found</h3>
+        <p>{% if selected_category %}No questions in this category yet.{% else %}No questions match your search.{% endif %}</p>
     </div>
     {% endif %}
 </div>
+{% endif %}
+
+<!-- Category Management Modal (hidden by default) -->
+<div id="categoryModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-card); border-radius: 12px; padding: 24px; max-width: 600px; width: 90%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3 style="margin: 0; color: var(--text-primary);">Manage Categories</h3>
+            <button onclick="hideCategoryModal()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-secondary);">×</button>
+        </div>
+        <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <a href="{% url 'video_app:admin_add_category' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i>
+                Add Category
+            </a>
+            <a href="{% url 'video_app:admin_categories' %}" class="btn btn-secondary">
+                <i class="fas fa-list"></i>
+                View All Categories
+            </a>
+        </div>
+        <div style="font-size: 14px; color: var(--text-secondary);">
+            <p>• Create new categories to organize your questions</p>
+            <p>• Edit existing categories to update names and descriptions</p>
+            <p>• Delete empty categories (questions will be moved to "Uncategorized")</p>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Delete Confirmation Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--bg-card); border-radius: 12px; padding: 32px; max-width: 500px; width: 90%; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+            <div style="width: 48px; height: 48px; background: #FEE2E2; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-exclamation-triangle" style="color: #DC2626; font-size: 20px;"></i>
+            </div>
+            <div>
+                <h3 style="margin: 0; color: var(--text-primary); font-size: 18px; font-weight: 600;">Delete Category</h3>
+                <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 14px;">This action cannot be undone</p>
+            </div>
+        </div>
+        
+        <div id="deleteMessage" style="margin-bottom: 24px; color: var(--text-primary); line-height: 1.5;"></div>
+        
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <button onclick="hideDeleteModal()" 
+                    style="padding: 10px 20px; border: 1px solid var(--border-light); border-radius: 6px; background: var(--bg-hover); color: var(--text-primary); font-size: 14px; cursor: pointer; transition: all 0.2s ease;"
+                    onmouseover="this.style.background='var(--brand-orange)'; this.style.color='white'; this.style.borderColor='var(--brand-orange)';"
+                    onmouseout="this.style.background='var(--bg-hover)'; this.style.color='var(--text-primary)'; this.style.borderColor='var(--border-light)';">
+                Cancel
+            </button>
+            <button id="confirmDeleteBtn" 
+                    style="padding: 10px 20px; border: none; border-radius: 6px; background: #DC2626; color: white; font-size: 14px; cursor: pointer; transition: all 0.2s ease;"
+                    onmouseover="this.style.background='#B91C1C';"
+                    onmouseout="this.style.background='#DC2626';">
+                <i class="fas fa-trash" style="margin-right: 6px;"></i>
+                Delete Category
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectCategory(categoryId) {
+    window.location.href = `?category=${categoryId}`;
+}
+
+function showCategoryModal() {
+    document.getElementById('categoryModal').style.display = 'block';
+}
+
+function hideCategoryModal() {
+    document.getElementById('categoryModal').style.display = 'none';
+}
+
+// Custom Delete Modal
+let deleteCategoryId = null;
+
+function showDeleteModal(categoryId, questionCount, categoryName) {
+    deleteCategoryId = categoryId;
+    
+    let message = `Deleting this category will permanently remove all questions within it.`;
+    if (questionCount > 0) {
+        message += ` This category contains <strong>${questionCount} question${questionCount > 1 ? 's' : ''}</strong>.`;
+    }
+    message += ` If you want to keep the questions, please move them to another category before proceeding. Do you want to continue?`;
+    
+    document.getElementById('deleteMessage').innerHTML = message;
+    document.getElementById('deleteModal').style.display = 'block';
+}
+
+function hideDeleteModal() {
+    document.getElementById('deleteModal').style.display = 'none';
+    deleteCategoryId = null;
+}
+
+function confirmDelete() {
+    if (deleteCategoryId) {
+        window.location.href = `/admin-panel/categories/${deleteCategoryId}/delete/`;
+    }
+}
+
+// Close modal when clicking outside
+document.getElementById('categoryModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideCategoryModal();
+    }
+});
+
+// Add click handler to confirm button
+document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
+
+// Close delete modal when clicking outside
+document.getElementById('deleteModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideDeleteModal();
+    }
+});
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        hideCategoryModal();
+        hideDeleteModal();
+    }
+});
+</script>
 {% endblock %}
