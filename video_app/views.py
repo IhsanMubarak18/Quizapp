@@ -1113,6 +1113,12 @@ def admin_add_category(request):
             is_active=is_active
         )
         messages.success(request, f"Category '{category.name}' created successfully.")
+        
+        # Clear dashboard cache to update stats
+        from .selectors import DASHBOARD_STATS_CACHE_KEY
+        from django.core.cache import cache
+        cache.delete(DASHBOARD_STATS_CACHE_KEY)
+        
         return redirect(redirect_url)
     
     return render(request, 'admin_panel/add_category.html')
@@ -1155,6 +1161,12 @@ def admin_edit_category(request, category_id):
         category.save()
         
         messages.success(request, f"Category '{category.name}' updated successfully.")
+        
+        # Clear dashboard cache to update stats
+        from .selectors import DASHBOARD_STATS_CACHE_KEY
+        from django.core.cache import cache
+        cache.delete(DASHBOARD_STATS_CACHE_KEY)
+        
         return redirect(redirect_url)
     
     return render(request, 'admin_panel/edit_category.html', {
@@ -1185,6 +1197,11 @@ def admin_delete_category(request, category_id):
         messages.warning(request, f"Category '{category.name}' and {questions_count} question(s) have been permanently deleted.")
     else:
         messages.success(request, f"Category '{category.name}' deleted successfully.")
+    
+    # Clear dashboard cache to update stats
+    from .selectors import DASHBOARD_STATS_CACHE_KEY
+    from django.core.cache import cache
+    cache.delete(DASHBOARD_STATS_CACHE_KEY)
     
     return redirect(redirect_url)
 

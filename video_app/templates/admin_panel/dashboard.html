@@ -513,9 +513,9 @@
             <div class="quick-stat-label">QUIZ ATTEMPTS</div>
         </div>
         <div class="quick-stat-item">
-            <div class="quick-stat-icon"><i class="fas fa-question-circle"></i></div>
-            <div class="quick-stat-value">{{ total_questions }}</div>
-            <div class="quick-stat-label">QUESTIONS</div>
+            <div class="quick-stat-icon"><i class="fas fa-tags"></i></div>
+            <div class="quick-stat-value">{{ total_categories }}</div>
+            <div class="quick-stat-label">CATEGORIES</div>
         </div>
     </div>
 </div>
@@ -526,6 +526,15 @@
     Detailed Analytics
 </div>
 <div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-tags" style="color: var(--brand-orange);"></i></div>
+        <div class="stat-info">
+            <div class="stat-value">{{ total_categories }}</div>
+            <div class="stat-label">Categories in Bank</div>
+            {% comment %} <div class="stat-change">+{{ total_categories|add:"0" }} this month</div> {% endcomment %}
+        </div>
+    </div>
+
     <div class="stat-card">
         <div class="stat-header">
             <div class="stat-icon-wrapper">
@@ -538,7 +547,7 @@
         </div>
         <div class="stat-value">{{ total_questions }}</div>
         <div class="stat-label">Questions in Bank</div>
-        <div class="stat-change">+{{ total_questions|add:"0" }} this month</div>
+        {% comment %} <div class="stat-change">+{{ total_questions|add:"0" }} this month</div> {% endcomment %}
     </div>
 
     <div class="stat-card">
@@ -553,7 +562,7 @@
         </div>
         <div class="stat-value">{{ total_quizzes }}</div>
         <div class="stat-label">Active Quizzes</div>
-        <div class="stat-change">{{ total_quizzes|add:"0" }} published</div>
+        {% comment %} <div class="stat-change">{{ total_quizzes|add:"0" }} published</div> {% endcomment %}
     </div>
 
     <div class="stat-card">
@@ -568,7 +577,7 @@
         </div>
         <div class="stat-value">{{ total_students }}</div>
         <div class="stat-label">Registered Students</div>
-        <div class="stat-change">+{{ total_students|add:"0" }} new this week</div>
+        {% comment %} <div class="stat-change">+{{ total_students|add:"0" }} new this week</div> {% endcomment %}
     </div>
 
     <div class="stat-card">
@@ -583,7 +592,7 @@
         </div>
         <div class="stat-value">{{ total_attempts }}</div>
         <div class="stat-label">Total Attempts</div>
-        <div class="stat-change">{{ total_attempts|add:"0" }} completions</div>
+        {% comment %} <div class="stat-change">{{ total_attempts|add:"0" }} completions</div> {% endcomment %}
     </div>
 
     {% if request.user.is_superuser %}
@@ -599,7 +608,7 @@
         </div>
         <div class="stat-value">{{ total_admin_users }}</div>
         <div class="stat-label">Admin Users</div>
-        <div class="stat-change">{{ total_admin_users }} active now</div>
+        {% comment %} <div class="stat-change">{{ total_admin_users }} active now</div> {% endcomment %}
     </div>
     {% endif %}
 </div>
@@ -628,9 +637,9 @@
     <a href="{% url 'video_app:admin_question_bank' %}" class="action-card">
         <div class="action-header">
             <div class="action-icon-wrapper">
-                <i class="fas fa-database action-icon"></i>
+                <i class="fas fa-tags action-icon"></i>
             </div>
-            <div class="action-badge">{{ total_questions }} items</div>
+            <div class="action-badge">{{ total_categories }} items</div>
         </div>
         <div class="action-title">Question Bank</div>
         <div class="action-description">Manage your comprehensive question database with categories and difficulty levels</div>

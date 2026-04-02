@@ -4,8 +4,7 @@ from django.db.models import Count, Q
 from django.utils import timezone
 
 from users.models import StudentProfile
-
-from .models import Question, Quiz, QuizAttempt
+from .models import Category, Question, Quiz, QuizAttempt
 
 AuthUser = get_user_model()
 
@@ -18,6 +17,7 @@ def admin_dashboard_stats():
     stats = cache.get(DASHBOARD_STATS_CACHE_KEY)
     if stats is None:
         stats = {
+            'total_categories': Category.objects.count(),
             'total_questions': Question.objects.count(),
             'total_quizzes': Quiz.objects.count(),
             'total_students': AuthUser.objects.filter(is_staff=False).count(),
