@@ -51,6 +51,71 @@
         transform: translateY(-1px);
     }
 
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-form {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .search-input {
+        padding: 10px 16px;
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 14px;
+        min-width: 250px;
+        transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+        outline: none;
+        border-color: var(--brand-blue);
+        box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+    }
+
+    .search-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .btn {
+        padding: 10px 16px;
+        border: 1px solid var(--border-light);
+        border-radius: 8px;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+    }
+
+    .btn:hover {
+        background: var(--bg-hover);
+        border-color: var(--brand-blue);
+    }
+
+    .btn-secondary {
+        border-color: var(--border-light);
+        background: var(--bg-primary);
+    }
+
+    .btn-secondary:hover {
+        background: var(--brand-blue);
+        color: white;
+        border-color: var(--brand-blue);
+    }
+
     .category-card {
         background: var(--bg-card);
         border: 1px solid var(--border-light);
@@ -179,6 +244,20 @@
             align-items: stretch;
         }
         
+        .header-actions {
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .search-form {
+            width: 100%;
+        }
+        
+        .search-input {
+            min-width: auto;
+            flex: 1;
+        }
+        
         .category-header {
             flex-direction: column;
             gap: 12px;
@@ -199,10 +278,18 @@
         </div>
         <div class="page-subtitle">Organize your question bank with categories</div>
     </div>
-    <a href="{% url 'video_app:admin_add_category' %}" class="add-btn">
-        <i class="fas fa-plus"></i>
-        Add Category
-    </a>
+    <div class="header-actions">
+        <form method="get" class="search-form">
+            <input type="text" name="search" class="search-input" placeholder="Search categories..." value="{{ search }}">
+            <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-search"></i>
+            </button>
+        </form>
+        <a href="{% url 'video_app:admin_add_category' %}" class="add-btn">
+            <i class="fas fa-plus"></i>
+            Add Category
+        </a>
+    </div>
 </div>
 
 <!-- Categories List -->
@@ -256,15 +343,23 @@
 {% else %}
     <div class="empty-state">
         <div class="empty-icon">
-            <i class="fas fa-tags"></i>
+            <i class="fas fa-{% if search %}search{% else %}tags{% endif %}"></i>
         </div>
-        <h3>No Categories Yet</h3>
-        <p>Create your first category to start organizing your question bank.</p>
+        <h3>{% if search %}No Categories Found{% else %}No Categories Yet{% endif %}</h3>
+        <p>{% if search %}No categories match your search for "{{ search }}".{% else %}Create your first category to start organizing your question bank.{% endif %}</p>
+        {% if search %}
+        <br>
+        <a href="{% url 'video_app:admin_categories' %}" class="btn btn-secondary">
+            <i class="fas fa-times"></i>
+            Clear Search
+        </a>
+        {% else %}
         <br>
         <a href="{% url 'video_app:admin_add_category' %}" class="add-btn">
             <i class="fas fa-plus"></i>
             Create First Category
         </a>
+        {% endif %}
     </div>
 {% endif %}
 

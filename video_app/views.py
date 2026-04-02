@@ -1065,9 +1065,18 @@ def admin_reports(request):
 @staff_required
 def admin_categories(request):
     """Manage question categories."""
-    categories = Category.objects.all().order_by('name')
+    search = request.GET.get('search', '')
+    
+    categories = Category.objects.all()
+    
+    if search:
+        categories = categories.filter(name__icontains=search)
+    
+    categories = categories.order_by('name')
+    
     return render(request, 'admin_panel/categories.html', {
         'categories': categories,
+        'search': search,
     })
 
 
