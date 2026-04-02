@@ -497,26 +497,20 @@ def admin_question_bank(request):
         question_count=Count('question')
     ).order_by('name')
     
+    # Apply category search if provided
+    if search:
+        categories = categories.filter(name__icontains=search)
+    
     # Handle category selection
     selected_category = None
     questions = Question.objects.none()
     
     if category_id:
         try:
-            selected_category = Category.objects.get(id=category_id)
+            selected_category = Category.objects.get(id=category_id, is_active=True)
             questions = Question.objects.filter(category=selected_category).order_by('-created_at')
         except Category.DoesNotExist:
             pass
-    elif not category_id and not search:
-        # Default: show all categories, no questions
-        questions = Question.objects.none()
-    
-    # Apply search if provided
-    if search:
-        if selected_category:
-            questions = questions.filter(question_text__icontains=search)
-        else:
-            questions = Question.objects.filter(question_text__icontains=search).order_by('-created_at')
     
     return render(request, 'admin_panel/question_bank.html', {
         'categories': categories,
@@ -1080,8 +1074,20 @@ def admin_categories(request):
 @staff_required
 def admin_add_category(request):
     """Add a new category."""
+    # Determine redirect URL based on original referrer (case-insensitive)
+    if request.method == 'POST':
+        original_referrer = request.POST.get('original_referrer', '').lower()
+    else:
+        original_referrer = request.META.get('HTTP_REFERER', '').lower()
+    
+    if 'admin-panel/questions' in original_referrer:
+        redirect_url = 'video_app:admin_question_bank'
+    else:
+        redirect_url = 'video_app:admin_categories'
+    
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
         is_active = request.POST.get('is_active') == 'on'
         
         if not name:
@@ -1094,10 +1100,11 @@ def admin_add_category(request):
         
         category = Category.objects.create(
             name=name,
+            description=description,
             is_active=is_active
         )
         messages.success(request, f"Category '{category.name}' created successfully.")
-        return redirect('video_app:admin_categories')
+        return redirect(redirect_url)
     
     return render(request, 'admin_panel/add_category.html')
 
@@ -1107,26 +1114,39 @@ def admin_edit_category(request, category_id):
     """Edit an existing category."""
     category = get_object_or_404(Category, id=category_id)
     
+    # Determine redirect URL based on original referrer (case-insensitive)
+    if request.method == 'POST':
+        original_referrer = request.POST.get('original_referrer', '').lower()
+    else:
+        original_referrer = request.META.get('HTTP_REFERER', '').lower()
+    
+    if 'admin-panel/questions' in original_referrer:
+        redirect_url = 'video_app:admin_question_bank'
+    else:
+        redirect_url = 'video_app:admin_categories'
+    
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
         is_active = request.POST.get('is_active') == 'on'
         
         if not name:
             messages.error(request, "Category name is required.")
-            return redirect('video_app:admin_categories')
+            return redirect(redirect_url)
         
         # Check if name conflicts with another category
         existing = Category.objects.filter(name__iexact=name).exclude(id=category_id)
         if existing.exists():
             messages.error(request, "A category with this name already exists.")
-            return redirect('video_app:admin_categories')
+            return redirect(redirect_url)
         
         category.name = name
+        category.description = description
         category.is_active = is_active
         category.save()
         
         messages.success(request, f"Category '{category.name}' updated successfully.")
-        return redirect('video_app:admin_categories')
+        return redirect(redirect_url)
     
     return render(request, 'admin_panel/edit_category.html', {
         'category': category,
@@ -1137,6 +1157,13 @@ def admin_edit_category(request, category_id):
 def admin_delete_category(request, category_id):
     """Delete a category and all its questions permanently."""
     category = get_object_or_404(Category, id=category_id)
+    
+    # Determine redirect URL based on referrer (case-insensitive)
+    referrer = request.META.get('HTTP_REFERER', '').lower()
+    if 'admin-panel/questions' in referrer:
+        redirect_url = 'video_app:admin_question_bank'
+    else:
+        redirect_url = 'video_app:admin_categories'
     
     # Get questions in this category
     questions_count = category.question_count()
@@ -1150,7 +1177,7 @@ def admin_delete_category(request, category_id):
     else:
         messages.success(request, f"Category '{category.name}' deleted successfully.")
     
-    return redirect('video_app:admin_question_bank')
+    return redirect(redirect_url)
 
 
 @staff_required

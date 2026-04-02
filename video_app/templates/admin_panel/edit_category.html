@@ -231,6 +231,7 @@
 <div class="form-card">
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="original_referrer" value="{{ request.META.HTTP_REFERER }}">
         
         <div class="form-group">
             <label for="name" class="form-label">Category Name *</label>
@@ -241,6 +242,14 @@
                    value="{{ category.name }}"
                    required
                    placeholder="Enter category name">
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="form-label">Description (Optional)</label>
+            <textarea id="description" 
+                      name="description" 
+                      class="form-input form-textarea"
+                      placeholder="Optional description of this category">{{ category.description }}</textarea>
         </div>
 
         <div class="form-group">

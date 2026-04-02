@@ -325,7 +325,7 @@
     </div>
     <div class="header-actions">
         <form method="get" class="search-form">
-            <input type="text" name="search" class="search-input" placeholder="Search questions..." value="{{ search }}">
+            <input type="text" name="search" class="search-input" placeholder="Search categories..." value="{{ search }}">
             <button type="submit" class="btn btn-secondary">
                 <i class="fas fa-search"></i>
             </button>
@@ -334,10 +334,10 @@
             <i class="fas fa-plus"></i>
             Add Question
         </a>
-        <button onclick="showCategoryModal()" class="btn btn-secondary">
-            <i class="fas fa-tags"></i>
+        <a href="#" onclick="showCategoryModal(); return false;" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
             Manage Categories
-        </button>
+        </a>
     </div>
 </div>
 
@@ -351,19 +351,19 @@
 {% endif %}
 
 <!-- Categories Grid (shown when no category is selected) -->
-{% if not selected_category and not search %}
+{% if not selected_category %}
 <div class="categories-grid">
     {% for category in categories %}
     <div class="category-card" onclick="selectCategory({{ category.id }})">
         <div class="category-header">
-            <div>
-                <div class="category-name">
-                    <i class="fas fa-folder category-icon"></i>
-                    {{ category.name }}
-                </div>
-                <div class="category-stats">
-                    <span class="question-count">{{ category.question_count }}</span> questions
-                </div>
+            <div class="category-info">
+                <h3>{{ category.name }}</h3>
+                {% if category.description %}
+                <p>{{ category.description }}</p>
+                {% endif %}
+            </div>
+            <div class="category-stats">
+                <span class="question-count">{{ category.question_count }}</span> questions
             </div>
         </div>
         
@@ -382,30 +382,32 @@
     {% endfor %}
 </div>
 
-<!-- Empty state if no categories -->
+<!-- Empty state if no categories found -->
 {% if not categories %}
 <div class="empty-state">
     <div class="empty-icon">
-        <i class="fas fa-folder-open"></i>
+        <i class="fas fa-search"></i>
     </div>
-    <h3>No Categories Yet</h3>
-    <p>Create your first category to start organizing questions.</p>
+    <h3>No Categories Found</h3>
+    <p>{% if search %}No categories match your search for "{{ search }}".{% else %}No categories available.{% endif %}</p>
+    {% if search %}
+    <br>
+    <a href="{% url 'video_app:admin_question_bank' %}" class="btn btn-secondary">
+        <i class="fas fa-times"></i>
+        Clear Search
+    </a>
+    {% endif %}
 </div>
 {% endif %}
 {% endif %}
 
-<!-- Questions Section (shown when category is selected or searching) -->
-{% if selected_category or search %}
+<!-- Questions Section (shown when category is selected) -->
+{% if selected_category %}
 <div class="questions-section">
     <div class="section-header">
         <div class="section-title">
-            {% if selected_category %}
-                <i class="fas fa-folder-open"></i>
-                {{ selected_category.name }} Questions
-            {% else %}
-                <i class="fas fa-search"></i>
-                Search Results
-            {% endif %}
+            <i class="fas fa-folder-open"></i>
+            {{ selected_category.name }} Questions
             <span style="font-size: 14px; color: var(--text-secondary);">({{ questions.count }} questions)</span>
         </div>
         {% if selected_category %}
@@ -449,7 +451,7 @@
             <i class="fas fa-question-circle"></i>
         </div>
         <h3>No Questions Found</h3>
-        <p>{% if selected_category %}No questions in this category yet.{% else %}No questions match your search.{% endif %}</p>
+        <p>No questions in this category yet.</p>
     </div>
     {% endif %}
 </div>
