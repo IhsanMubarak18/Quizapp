@@ -1,0 +1,406 @@
+{% extends 'admin_panel/base_admin.html' %}
+{% load static %}
+
+{% block title %}Export Questions{% endblock %}
+
+{% block admin_content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="page-header">
+    <a href="{% url 'video_app:admin_dashboard' %}" class="back-link">
+        <i class="fas fa-arrow-left"></i>
+        Back to Dashboard
+    </a>
+    <div>
+        <div class="page-title">
+            <i class="fas fa-download" style="color: var(--brand-blue);"></i>
+            Export Questions
+        </div>
+        <div class="page-subtitle">Download questions in various formats for external systems</div>
+    </div>
+</div>
+
+<!-- Export Options -->
+<div class="export-container">
+    <div class="export-card">
+        <div class="export-header">
+            <h3>Export Options</h3>
+            <p>Choose your preferred format and filter options</p>
+        </div>
+
+        <div class="export-form">
+            <div class="form-section">
+                <h4><i class="fas fa-filter"></i> Filter Questions</h4>
+                
+                <div class="form-group">
+                    <label for="category" class="form-label">Category</label>
+                    <select id="category" name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}">{{ category.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="quiz" class="form-label">Quiz</label>
+                    <select id="quiz" name="quiz" class="form-select">
+                        <option value="">All Quizzes</option>
+                        {% for quiz in quizzes %}
+                        <option value="{{ quiz.id }}">{{ quiz.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h4><i class="fas fa-file-export"></i> Export Format</h4>
+                
+                <div class="format-options">
+                    <div class="format-card" onclick="exportFormat('aiken')">
+                        <div class="format-icon">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="format-info">
+                            <h5>AIKEN Format</h5>
+                            <p>Simple text format compatible with many learning management systems</p>
+                            <div class="format-features">
+                                <span><i class="fas fa-check"></i> Multiple choice</span>
+                                <span><i class="fas fa-check"></i> Plain text</span>
+                                <span><i class="fas fa-check"></i> Wide compatibility</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-download"></i>
+                            Export AIKEN
+                        </button>
+                    </div>
+
+                    <div class="format-card" onclick="exportFormat('gift')">
+                        <div class="format-icon">
+                            <i class="fas fa-gift"></i>
+                        </div>
+                        <div class="format-info">
+                            <h5>GIFT Format</h5>
+                            <p>Moodle General Import Format for comprehensive quiz systems</p>
+                            <div class="format-features">
+                                <span><i class="fas fa-check"></i> Multiple choice</span>
+                                <span><i class="fas fa-check"></i> Rich formatting</span>
+                                <span><i class="fas fa-check"></i> Moodle compatible</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary">
+                            <i class="fas fa-download"></i>
+                            Export GIFT
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Format Information -->
+    <div class="info-section">
+        <div class="info-card">
+            <h4><i class="fas fa-info-circle"></i> Format Information</h4>
+            
+            <div class="format-details">
+                <div class="format-detail">
+                    <h5>AIKEN Format</h5>
+                    <p>The AIKEN format is a simple text format for multiple choice questions. Each question starts with a number, followed by the question text, then options A-D, and finally the correct answer.</p>
+                    <div class="format-example">
+                        <strong>Example:</strong>
+                        <pre>1. What is the capital of France?
+A. London
+B. Berlin
+C. Paris
+D. Madrid
+ANSWER: C</pre>
+                    </div>
+                </div>
+
+                <div class="format-detail">
+                    <h5>GIFT Format</h5>
+                    <p>GIFT (General Import Format Template) is Moodle's format for importing questions. It supports multiple question types and rich formatting options.</p>
+                    <div class="format-example">
+                        <strong>Example:</strong>
+                        <pre>::Geography::What is the capital of France? {
+~London
+~Berlin
+=Paris
+~Madrid
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.export-container {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.export-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.export-header h3 {
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.export-header p {
+    margin: 0 0 24px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.export-form {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.form-section h4 {
+    margin: 0 0 16px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-section h4 i {
+    color: var(--brand-blue);
+    font-size: 14px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--brand-blue);
+    box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+}
+
+.format-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+.format-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.format-card:hover {
+    border-color: var(--brand-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.format-icon {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--brand-blue), var(--brand-purple));
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.format-icon i {
+    color: white;
+    font-size: 20px;
+}
+
+.format-info h5 {
+    margin: 0 0 8px 0;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.format-info p {
+    margin: 0 0 16px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.format-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.format-features span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.format-features i {
+    color: var(--success-color);
+    font-size: 10px;
+}
+
+.info-section {
+    display: flex;
+    justify-content: center;
+}
+
+.info-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    border-radius: 16px;
+    padding: 32px;
+    max-width: 800px;
+    width: 100%;
+}
+
+.info-card h4 {
+    margin: 0 0 24px 0;
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-card h4 i {
+    color: var(--brand-blue);
+    font-size: 16px;
+}
+
+.format-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 32px;
+}
+
+.format-detail h5 {
+    margin: 0 0 12px 0;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.format-detail p {
+    margin: 0 0 16px 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.format-example {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.format-example strong {
+    color: var(--text-primary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.format-example pre {
+    margin: 8px 0 0 0;
+    color: var(--text-primary);
+    font-size: 12px;
+    font-family: 'Courier New', monospace;
+    line-height: 1.4;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 768px) {
+    .export-card {
+        padding: 24px;
+    }
+    
+    .format-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .format-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .format-features {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+</style>
+
+<script>
+function exportFormat(format) {
+    const category = document.getElementById('category').value;
+    const quiz = document.getElementById('quiz').value;
+    
+    let url;
+    if (format === 'aiken') {
+        url = '{% url "video_app:admin_export_aiken" %}';
+    } else if (format === 'gift') {
+        url = '{% url "video_app:admin_export_gift" %}';
+    }
+    
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (category) params.append('category', category);
+    if (quiz) params.append('quiz', quiz);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    // Trigger download
+    window.location.href = url;
+}
+</script>
+{% endblock %}

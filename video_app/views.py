@@ -1,6 +1,6 @@
 import random
 import io
-from datetime import date
+from datetime import date, datetime
 from django.http import HttpResponse, Http404
 from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
@@ -1181,7 +1181,118 @@ def admin_delete_category(request, category_id):
 
 
 @staff_required
-def admin_bulk_assign_category(request):
-    """Bulk assign questions to a category - DEPRECATED."""
-    # This functionality has been removed as requested
-    return redirect('video_app:admin_question_bank')
+def admin_export_questions(request):
+    """Export questions page with format and filter options."""
+    categories = Category.objects.filter(is_active=True).order_by('name')
+    quizzes = Quiz.objects.all().order_by('title')
+    
+    return render(request, 'admin_panel/export_questions.html', {
+        'categories': categories,
+        'quizzes': quizzes,
+    })
+
+
+@staff_required
+def admin_export_aiken(request):
+    """Export questions in AIKEN format."""
+    category_id = request.GET.get('category')
+    quiz_id = request.GET.get('quiz')
+    
+    # Filter questions based on parameters
+    questions = Question.objects.all()
+    
+    if category_id:
+        questions = questions.filter(category_id=category_id)
+    if quiz_id:
+        questions = questions.filter(quizquestion__quiz_id=quiz_id)
+    
+    questions = questions.order_by('category__name', 'question_text')
+    
+    # Generate AIKEN format content
+    content = []
+    for i, question in enumerate(questions, 1):
+        # AIKEN format: Question text on first line, options A-D, correct answer
+        content.append(f"{i}. {question.question_text}")
+        
+        # Add options
+        options = [
+            ('A', question.option_a),
+            ('B', question.option_b),
+            ('C', question.option_c),
+            ('D', question.option_d)
+        ]
+        
+        for letter, option in options:
+            if option:
+                content.append(f"{letter}. {option}")
+        
+        # Add correct answer
+        correct_answers = question.correct_answers
+        if correct_answers:
+            content.append(f"ANSWER: {correct_answers[0]}")
+        else:
+            content.append("ANSWER: A")  # Default fallback
+        
+        content.append("")  # Empty line between questions
+    
+    # Create response
+    response = HttpResponse('\n'.join(content), content_type='text/plain')
+    filename = f"questions_aiken_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    return response
+
+
+@staff_required
+def admin_export_gift(request):
+    """Export questions in GIFT format."""
+    category_id = request.GET.get('category')
+    quiz_id = request.GET.get('quiz')
+    
+    # Filter questions based on parameters
+    questions = Question.objects.all()
+    
+    if category_id:
+        questions = questions.filter(category_id=category_id)
+    if quiz_id:
+        questions = questions.filter(quizquestion__quiz_id=quiz_id)
+    
+    questions = questions.order_by('category__name', 'question_text')
+    
+    # Generate GIFT format content
+    content = []
+    for question in questions:
+        # GIFT format: ::Question title::Question text {=Correct answer ~Wrong answer}
+        question_text = question.question_text.replace('{', '\\{').replace('}', '\\}').replace(':', '\\:')
+        
+        # Build options
+        options = []
+        correct_answers = question.correct_answers or []
+        
+        if question.option_a:
+            marker = '=' if 'A' in correct_answers else '~'
+            options.append(f"{marker}{question.option_a}")
+        
+        if question.option_b:
+            marker = '=' if 'B' in correct_answers else '~'
+            options.append(f"{marker}{question.option_b}")
+        
+        if question.option_c:
+            marker = '=' if 'C' in correct_answers else '~'
+            options.append(f"{marker}{question.option_c}")
+        
+        if question.option_d:
+            marker = '=' if 'D' in correct_answers else '~'
+            options.append(f"{marker}{question.option_d}")
+        
+        # Create GIFT question
+        if options:
+            gift_question = f"::{question.category.name}::{question_text} {{{' '.join(options)}}}"
+            content.append(gift_question)
+    
+    # Create response
+    response = HttpResponse('\n'.join(content), content_type='text/plain')
+    filename = f"questions_gift_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    return response
