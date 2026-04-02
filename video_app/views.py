@@ -840,6 +840,12 @@ def admin_delete_student(request, user_id):
     if request.method == 'POST':
         user.delete()
         messages.success(request, "Student deleted.")
+        
+        # Clear dashboard cache to update stats
+        from .selectors import DASHBOARD_STATS_CACHE_KEY
+        from django.core.cache import cache
+        cache.delete(DASHBOARD_STATS_CACHE_KEY)
+        
         return redirect('video_app:admin_students')
     return render(request, 'admin_panel/confirm_delete.html', {
         'object_name': getattr(getattr(user, 'student_profile', None), 'student_name', user.email),
