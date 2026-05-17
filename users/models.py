@@ -46,6 +46,7 @@ class StudentProfile(models.Model):
     """Extended profile for student users."""
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='student_profile')
     student_name = models.CharField(max_length=200)
+    college_name = models.CharField(max_length=300)
     qualification = models.CharField(max_length=50, choices=[
         ('SSLC', 'SSLC'),
         ('Plus Two', 'Plus Two'),

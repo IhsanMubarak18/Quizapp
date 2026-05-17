@@ -8,6 +8,7 @@ User = get_user_model()
 
 class StudentRegistrationForm(forms.Form):
     student_name = forms.CharField(max_length=200, label="Full Name")
+    college_name = forms.CharField(max_length=300, label="College Name")
     qualification = forms.ChoiceField(choices=[
         ('SSLC', 'SSLC'),
         ('Plus Two', 'Plus Two'),
